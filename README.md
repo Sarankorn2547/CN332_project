@@ -18,24 +18,24 @@ We wanted to turn food delivery into a clean, automatic, and secure process, lik
 Resident places an order via the app;
 system links the order to the Room ID.
 
-2. Rider Arrival & Allocation
+2. Rider Arrival & Allocation:
 
 Rider inputs Room ID on the kiosk.
 AI Engine validates access and allocates the optimal compartment (Hot / Cold / Ambient).
 
-3. Secure Drop-off
+3. Secure Drop-off:
 
 Compartment opens for deposit, then auto-locks.
 Transaction Hash is recorded in the Audit Log for security.
 System generates a unique OTP and sends it to the resident’s app.
 
-4. Verified Retrieval
+4. Verified Retrieval:
 
 Resident enters OTP at the locker.
 System verifies, opens the specific box, records the pickup, 
 and closes the ticket.
 
-5. Data & Prediction
+5. Data & Prediction:
 
 AI analyzes timing, usage density, and user behavior to 
 predict future peak periods.
@@ -47,10 +47,7 @@ predict future peak periods.
 Only you will receive an otp and the delivery person cannot open it again
 
 ### Clean & hygienic
-No food on tables
-
-No ants, no smell
-
+No food on tables, no ants, no smell.
 Some lockers are heated or cooled
 
 ### App & screen
