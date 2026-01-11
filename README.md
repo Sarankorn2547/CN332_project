@@ -12,20 +12,34 @@ Food Box is a smart locker system for condos and dorms that lets food deliveries
 ### Why We Built It
 We wanted to turn food delivery into a clean, automatic, and secure process, like how ATMs handle money or parcel lockers handle packages  but optimized for hot, time-sensitive food.
 
-## Scenario
-1. Resident orders food via app.
-2. Food Box system linked to Room ID.
-3. Rider arrives → Enters main room number.
-4. AI selects permissions + chooses appropriate slot (Hot/Cold/Empty).
-5. Rider opens slot to place food.
-6. Box records and saves hash to Audit Log.
-7. OTP system generates together with that box and sent to the resident's app
-8. Resident arrives and enters main OTP.
-9. System verifies,  The box opens.
-10. System records delivery + closes order.
+## Use Case/Scenario
+1. Order & Assignment:
 
-AI in normal and typical timeframes.
-To predict peak periods of long-term food ordering 📊
+Resident places an order via the app;
+system links the order to the Room ID.
+
+2. Rider Arrival & Allocation
+
+Rider inputs Room ID on the kiosk.
+AI Engine validates access and allocates the optimal compartment (Hot / Cold / Ambient).
+
+3. Secure Drop-off
+
+Compartment opens for deposit, then auto-locks.
+Transaction Hash is recorded in the Audit Log for security.
+System generates a unique OTP and sends it to the resident’s app.
+
+4. Verified Retrieval
+
+Resident enters OTP at the locker.
+System verifies, opens the specific box, records the pickup, 
+and closes the ticket.
+
+5. Data & Prediction
+
+AI analyzes timing, usage density, and user behavior to 
+predict future peak periods.
+
 
 
 ## Features
