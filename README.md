@@ -1,84 +1,56 @@
 # Food Delivery Locker
 
 ## Overview
-Food Box is a smart locker system for condos and dorms that lets food deliveries be dropped, stored, and picked up without waiting, meeting riders, or creating lobby chaos.
+Food Box is an automated smart locker system designed to streamline the food delivery process in residential buildings. By using a secure QR and random code system, it eliminates the need for direct contact between riders and residents while ensuring food safety.
 
 ### Problem We Want to Solve
-- Food left on tables gets stolen, spilled, or cold
-- Riders and residents waste time finding each other
-- Lobby becomes crowded, messy, and unsafe
-- Staff are forced to manage food deliveries
+- **The "Waiting Game":** Riders and residents often waste time coordinating hand-offs.
+- **Theft and Hygiene:** Food left in open areas is prone to being stolen, confused with other orders, or exposed to pests.
+- **Security Issues:** Minimizes the need for external delivery personnel to wander through private building floors.
 
 ### Why We Built It
-We wanted to turn food delivery into a clean, automatic, and secure process, like how ATMs handle money or parcel lockers handle packages  but optimized for hot, time-sensitive food.
+We created this system to provide a secure, traceable "middle-man" for deliveries. Unlike standard parcel lockers, this workflow is optimized for the speed and verification requirements of food delivery, providing backup solutions for technical issues and abandoned orders.
 
-## Use Case/Scenario
-1. Order & Assignment:
+## Use Case/Scenario (Workflow)
 
-Resident places an order via the app;
-system links the order to the Room ID.
+1.  **Rider Arrival & Setup:**
+    *   The rider arrives at the locker station and selects the appropriate **Locker Size** on the screen.
+2.  **Code Generation:**
+    *   The system generates a unique **QR Code + Random Pin Code**.
+3.  **Customer Notification:**
+    *   The rider takes a photo of the QR/Code on the screen and sends it to the customer via their delivery app.
+4.  **Secure Deposit:**
+    *   The rider confirms on the screen that the photo has been sent. The locker door opens.
+    *   The rider places the food inside and takes a final "delivered" photo of the food within the locker for proof of service.
+5.  **Verified Retrieval:**
+    *   The resident arrives at the locker and scans the **QR Code** or enters the **Random Pin Code** to unlock the compartment.
+6.  **Completion:**
+    *   The resident retrieves their food and closes the locker door, resetting the locker for the next use.
 
-2. Rider Arrival & Allocation:
+## Exception Handling & Features
 
-Rider inputs Room ID on the kiosk.
-AI Engine validates access and allocates the optimal compartment (Hot / Cold / Ambient).
+### Smart Access & Recovery
+*   **QR/Technical Issue:** If the QR code fails to scan, a Security Guard (รปภ.) holds a **Master QR**. They can open the locker for the customer after verifying the delivery using the rider's food photo.
+*   **Secure Validation:** The door only opens for the rider *after* they confirm they have sent the access credentials to the customer.
 
-3. Secure Drop-off:
+### Auto-Cleanup (Timeout Policy)
+*   **Abandoned Food:** If food is not picked up within the maximum allowed time, the system triggers a timeout.
+*   **Staff Intervention:** Building security or staff will be notified to remove the food and clear the locker to maintain hygiene and availability.
 
-Compartment opens for deposit, then auto-locks.
-Transaction Hash is recorded in the Audit Log for security.
-System generates a unique OTP and sends it to the resident’s app.
-
-4. Verified Retrieval:
-
-Resident enters OTP at the locker.
-System verifies, opens the specific box, records the pickup, 
-and closes the ticket.
-
-5. Data & Prediction:
-
-AI analyzes timing, usage density, and user behavior to 
-predict future peak periods.
-
-
-
-## Features
-### Smart access
-Only you will receive an otp and the delivery person cannot open it again
-
-### Clean & hygienic
-No food on tables, no ants, no smell.
-Some lockers are heated or cooled
-
-### App & screen
-Shows:
-- “Food arrived”
-- “Locker number”
-- “Time left before cleaning”
-
-### Auto-timeout
-If food is not picked up in 2 hours:
-- Warning sent
-- Locker frees itself
-- Staff cleans it
-
-### Building dashboard
-Management can see:
-- How many deliveries per day
-- Which time is busiest
-- Which lockers are always full
+### Clean & Secure
+*   **No Contact:** Eliminates the "lobby chaos" of food bags piled on tables.
+*   **Traceability:** Every step, from deposit to pickup (including photo evidence), is recorded.
 
 ## Technology
-### Smart Locker
-storage system integrated with technology to manage access securely without traditional keys
-Users access the locker using a OTP as a pin code
 
-### LINE OA
-a specialized account type on the LINE messaging application designed for businesses, organizations, or developers to interact with users.
+### Smart Kiosk Interface
+A centralized touchscreen where riders select locker sizes and customers input codes. It manages the logic for generating unique session-based QR codes.
 
-### Load Cell
-sensor that converts a physical force specifically weight or pressure into an electrical signal.
+### Master Access System
+A secondary override system (Master QR) provided to building management to handle technical malfunctions or lost access codes.
 
+### Photo-Verification Logic
+Integrated workflow that requires "proof of photo" before and after the locker door operates, ensuring a digital paper trail for both the rider and the resident.
 
 ## Team Member
 - ณัฐรวี ช่วยวัง 6610525013
