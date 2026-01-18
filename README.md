@@ -88,3 +88,24 @@ sensor that converts a physical force specifically weight or pressure into an el
 
 # HW1
 - slide: https://www.canva.com/design/DAG-G7xf0UI/oEBJj4-rOHqiSAmjnN85eQ/edit
+
+# Sentence Breakdown
+| Subject          | Verb        | Object             | Full Sentence                                             |
+| ---------------- | ----------- | ------------------ | --------------------------------------------------------- |
+| Rider            | Selects     | Locker Size        | The rider selects a locker size.                          |
+| Locker System    | Generates   | QR Code & Passcode | The locker system generates a QR code and a passcode.     |
+| Screen           | Displays    | QR Code & Passcode | The screen displays the QR code and passcode.             |
+| Rider            | Photographs | Screen             | The rider photographs the screen.                         |
+| Rider            | Presses     | Confirm Button     | The rider presses the confirm button.                     |
+| Locker System    | Unlocks     | Door               | The locker system unlocks the door.                       |
+| Rider            | Places      | Food               | The rider places the food inside the locker.              |
+| Rider            | Closes      | Door               | The rider closes the door.                                |
+| Sensor           | Detects     | Door Status        | The sensor detects the door status.                       |
+| Sensor           | Detects     | Object             | The sensor detects an object inside the locker.           |
+| Locker System    | Updates     | Status (Occupied)  | The locker system updates the locker status to occupied.  |
+| Customer         | Scans       | QR Code            | The customer scans the QR code.                           |
+| Customer         | Enters      | Passcode           | The customer enters the passcode.                         |
+| Locker System    | Validates   | QR Code / Passcode | The locker system validates the QR code and passcode.     |
+| Admin (Security) | Scans       | Master QR          | The admin scans the master QR code.                       |
+| Locker System    | Checks      | Time Duration      | The locker system checks the storage time duration.       |
+| Locker System    | Alerts      | Admin              | The locker system alerts the admin when the time expires. |
