@@ -62,6 +62,7 @@ Integrated workflow that requires "proof of photo" before and after the locker d
 # HW1
 - slide: https://www.canva.com/design/DAG-G7xf0UI/oEBJj4-rOHqiSAmjnN85eQ/edit
 
+# HW2
 # Sentence Breakdown
 | Subject          | Verb        | Object             | Full Sentence                                             |
 | ---------------- | ----------- | ------------------ | --------------------------------------------------------- |
@@ -82,3 +83,11 @@ Integrated workflow that requires "proof of photo" before and after the locker d
 | Admin (Security) | Scans       | Master QR          | The admin scans the master QR code.                       |
 | Locker System    | Checks      | Time Duration      | The locker system checks the storage time duration.       |
 | Locker System    | Alerts      | Admin              | The locker system alerts the admin when the time expires. |
+
+# Demo System
+- Main URL: https://locker-system-332.vercel.app/
+
+Direct Links to Screens:
+- Kiosk Mode: https://locker-system-332.vercel.app/kiosk
+- Locker Wall: https://locker-system-332.vercel.app/locker
+- Technician CLI: https://locker-system-332.vercel.app/cli
