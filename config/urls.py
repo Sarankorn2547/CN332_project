@@ -15,10 +15,20 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
-from foodlocker.views import project_list
+from django.urls import path, include
+from rest_framework import routers
+from foodlocker import views
+
+router = routers.DefaultRouter()
+router.register(r'projects', views.ProjectViewSet)
+router.register(r'buildings', views.BuildingViewSet)
+router.register(r'rooms', views.RoomViewSet)
+router.register(r'lockers', views.LockerViewSet)
+router.register(r'line-users', views.LineUserViewSet)
+router.register(r'locker-logs', views.LockerLogViewSet)
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/project/', project_list),
+    path('api/', include(router.urls)),
 ]

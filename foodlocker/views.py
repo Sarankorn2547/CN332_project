@@ -1,11 +1,34 @@
-from django.shortcuts import render
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from .models import Project
-from .serializers import ProjectSerializer
+from rest_framework import viewsets
+from .models import Project, Building, Room, Locker, LineUser, LockerLog
+from .serializers import (
+    ProjectSerializer,
+    BuildingSerializer,
+    RoomSerializer,
+    LockerSerializer,
+    LineUserSerializer,
+    LockerLogSerializer,
+)
 
-@api_view(['GET'])
-def project_list(request):
-    projects = Project.objects.all()
-    serializer = ProjectSerializer(projects, many=True)
-    return Response(serializer.data)
+class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
+
+class BuildingViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Building.objects.all()
+    serializer_class = BuildingSerializer
+
+class RoomViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Room.objects.all()
+    serializer_class = RoomSerializer
+
+class LockerViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Locker.objects.all()
+    serializer_class = LockerSerializer
+
+class LineUserViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = LineUser.objects.all()
+    serializer_class = LineUserSerializer
+
+class LockerLogViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = LockerLog.objects.all()
+    serializer_class = LockerLogSerializer
