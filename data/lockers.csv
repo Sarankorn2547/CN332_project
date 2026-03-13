@@ -1,0 +1,4 @@
+id,building_id,local_id,size,status,type,passcode,qr_data
+lck-001,bld-001,"L1-01","Medium","Available","Standard","1234","qr-data-1"
+lck-002,bld-001,"L1-02","Large","In Use","Refrigerated","5678","qr-data-2"
+lck-003,bld-002,"L2-01","Small","Available","Standard","9012","qr-data-3"
