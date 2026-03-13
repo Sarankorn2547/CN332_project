@@ -1,0 +1,4 @@
+line_user_id,project_id,building_id,room_no,display_name
+user-001,prj-001,bld-001,"101","Alice"
+user-002,prj-001,bld-001,"102","Bob"
+user-003,prj-002,bld-003,"101","Charlie"
