@@ -77,6 +77,27 @@ class LockerViewSet(viewsets.ReadOnlyModelViewSet):
         except ValueError as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=False, methods=['post'], url_path='verify-qr')
+    def verify_qr(self, request):
+        qr_data = request.data.get('qr_data')
+        passcode = request.data.get('passcode')
+        
+        try:
+            locker = LockerService.verify_qr(qr_data=qr_data, passcode=passcode)
+            serializer = self.get_serializer(locker)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except ValueError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'])
+    def pickup(self, request, pk=None):
+        try:
+            locker = LockerService.pickup_locker(locker_id=pk)
+            serializer = self.get_serializer(locker)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except ValueError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 class LineUserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = LineUser.objects.all()
     serializer_class = LineUserSerializer

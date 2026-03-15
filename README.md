@@ -136,10 +136,10 @@ Direct Links to Screens:
 |------|----------|----------|----------|----------|----------|-------|
 | DevOps | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **20%** |
 | Backend A | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **20%** |
-| Backend B | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **20%** |
+| Backend B | ✅ 100% | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **40%** |
 | Frontend A | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
 | Frontend B | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
-| **Overall** | | | | | | **12% / 100%** |
+| **Overall** | | | | | | **16% / 100%** |
 
 > ✅ Done · 🔄 In Progress · ⬜ Pending · ❌ Blocked
 
@@ -484,11 +484,11 @@ flowchart TD
 | 🔴 P1 | [x] `POST /api/lockers/book/` (find + book by size/type/building) | S1 | ✅ |
 | 🔴 P1 | [x] `POST /api/lockers/{id}/open/` (open door) | S1 | ✅ |
 | 🔴 P1 | [x] `POST /api/lockers/{id}/deposit/` (confirm deposit) | S1 | ✅ |
-| 🟠 P2 | [ ] `GET /api/master/projects/` | S2 | ⬜ |
-| 🟠 P2 | [ ] `GET /api/master/buildings/?project_id=` | S2 | ⬜ |
-| 🟠 P2 | [ ] `GET /api/master/rooms/?building_id=` | S2 | ⬜ |
-| 🟠 P2 | [ ] `POST /api/lockers/verify-qr/` (scan QR + passcode check) | S2 | ⬜ |
-| 🟠 P2 | [ ] `POST /api/lockers/{id}/pickup/` (remove object + reset) | S2 | ⬜ |
+| 🟠 P2 | [x] `GET /api/master/projects/` | S2 | ✅ |
+| 🟠 P2 | [x] `GET /api/master/buildings/?project_id=` | S2 | ✅ |
+| 🟠 P2 | [x] `GET /api/master/rooms/?building_id=` | S2 | ✅ |
+| 🟠 P2 | [x] `POST /api/lockers/verify-qr/` (scan QR + passcode check) | S2 | ✅ |
+| 🟠 P2 | [x] `POST /api/lockers/{id}/pickup/` (remove object + reset) | S2 | ✅ |
 | 🟡 P3 | [ ] `POST /api/system/reset/` (scope: ALL/BUILDING/PROJECT) | S3 | ⬜ |
 | 🟡 P3 | [ ] `POST /api/admin/cli/` (list, open, reset commands) | S3 | ⬜ |
 | 🟡 P3 | [ ] Celery task: abandon check >24h (FOOD lockers) | S3 | ⬜ |
@@ -591,11 +591,11 @@ flowchart TD
 
 - [ ] อัปเดตโดย DevOps:
 - [ ] อัปเดตโดย Backend A:
-- [ ] อัปเดตโดย Backend B:
+- [x] อัปเดตโดย Backend B: Implemented Master API filters, and the verify_qr and pickup_locker state machine and API endpoints. 
 - [ ] อัปเดตโดย Frontend A:
 - [ ] อัปเดตโดย Frontend B:
 
-**% ที่ทำได้จริง sprint นี้:** `_____ %`
+**% ที่ทำได้จริง sprint นี้:** `20 %`
 
 ---
 
