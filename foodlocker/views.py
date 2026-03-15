@@ -17,12 +17,24 @@ class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ProjectSerializer
 
 class BuildingViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Building.objects.all()
     serializer_class = BuildingSerializer
 
+    def get_queryset(self):
+        queryset = Building.objects.all()
+        project_id = self.request.query_params.get('project_id')
+        if project_id:
+            queryset = queryset.filter(project_id=project_id)
+        return queryset
+
 class RoomViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Room.objects.all()
     serializer_class = RoomSerializer
+
+    def get_queryset(self):
+        queryset = Room.objects.all()
+        building_id = self.request.query_params.get('building_id')
+        if building_id:
+            queryset = queryset.filter(building_id=building_id)
+        return queryset
 
 class LockerViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Locker.objects.all()
