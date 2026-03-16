@@ -134,12 +134,12 @@ Direct Links to Screens:
 
 | Role | Sprint 1 | Sprint 2 | Sprint 3 | Sprint 4 | Sprint 5 | Total |
 |------|----------|----------|----------|----------|----------|-------|
-| DevOps | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
-| Backend A | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
-| Backend B | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
+| DevOps | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **20%** |
+| Backend A | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **20%** |
+| Backend B | ✅ 100% | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **40%** |
 | Frontend A | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
 | Frontend B | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
-| **Overall** | | | | | | **0% / 100%** |
+| **Overall** | | | | | | **16% / 100%** |
 
 > ✅ Done · 🔄 In Progress · ⬜ Pending · ❌ Blocked
 
@@ -430,10 +430,10 @@ flowchart TD
 
 | Priority | Task | Sprint | Status |
 |----------|------|--------|--------|
-| 🔴 P1 | [ ] `Dockerfile` สำหรับ Django (Backend) | S1 | ⬜ |
-| 🔴 P1 | [ ] `docker-compose.yml` (Django + PostgreSQL + Nginx) | S1 | ⬜ |
-| 🔴 P1 | [ ] ตั้งค่า VPS + SSH key + firewall | S1 | ⬜ |
-| 🔴 P1 | [ ] GitHub Actions: lint → test → deploy | S1 | ⬜ |
+| 🔴 P1 | [x] `Dockerfile` สำหรับ Django (Backend) | S1 | ✅ |
+| 🔴 P1 | [x] `docker-compose.yml` (Django + PostgreSQL + Nginx) | S1 | ✅ |
+| 🔴 P1 | [x] ตั้งค่า VPS + SSH key + firewall | S1 | ✅ |
+| 🔴 P1 | [x] GitHub Actions: lint → test → deploy | S1 | ✅ |
 | 🟠 P2 | [ ] Staging environment (branch: `develop`) | S2 | ⬜ |
 | 🟠 P2 | [ ] Custom domain + Caddy/Nginx reverse proxy | S2 | ⬜ |
 | 🟠 P2 | [ ] SSL certificate (Let's Encrypt auto-renew) | S2 | ⬜ |
@@ -454,10 +454,10 @@ flowchart TD
 
 | Priority | Task | Sprint | Status |
 |----------|------|--------|--------|
-| 🔴 P1 | [ ] Init Django project + DRF setup + `settings.py` | S1 | ⬜ |
-| 🔴 P1 | [ ] Django Models: `Project`, `Building`, `Room`, `Locker`, `LineUser`, `LockerLog` | S1 | ⬜ |
-| 🔴 P1 | [ ] `manage.py migrate` + Django Admin setup | S1 | ⬜ |
-| 🔴 P1 | [ ] Seed script (`seed_data` management command) | S1 | ⬜ |
+| 🔴 P1 | [x] Init Django project + DRF setup + `settings.py` | S1 | ✅ |
+| 🔴 P1 | [x] Django Models: `Project`, `Building`, `Room`, `Locker`, `LineUser`, `LockerLog` | S1 | ✅ |
+| 🔴 P1 | [x] `manage.py migrate` + Django Admin setup | S1 | ✅ |
+| 🔴 P1 | [x] Seed script (`seed_data` management command) | S1 | ✅ |
 | 🟠 P2 | [ ] `POST /api/users/register/` | S2 | ⬜ |
 | 🟠 P2 | [ ] `GET /api/users/status/?line_user_id=` | S2 | ⬜ |
 | 🟠 P2 | [ ] Authentication/Session (JWT simplejwt) | S2 | ⬜ |
@@ -480,15 +480,15 @@ flowchart TD
 
 | Priority | Task | Sprint | Status |
 |----------|------|--------|--------|
-| 🔴 P1 | [ ] Locker State Machine Service: `LockerService` class | S1 | ⬜ |
-| 🔴 P1 | [ ] `POST /api/lockers/book/` (find + book by size/type/building) | S1 | ⬜ |
-| 🔴 P1 | [ ] `POST /api/lockers/{id}/open/` (open door) | S1 | ⬜ |
-| 🔴 P1 | [ ] `POST /api/lockers/{id}/deposit/` (confirm deposit) | S1 | ⬜ |
-| 🟠 P2 | [ ] `GET /api/master/projects/` | S2 | ⬜ |
-| 🟠 P2 | [ ] `GET /api/master/buildings/?project_id=` | S2 | ⬜ |
-| 🟠 P2 | [ ] `GET /api/master/rooms/?building_id=` | S2 | ⬜ |
-| 🟠 P2 | [ ] `POST /api/lockers/verify-qr/` (scan QR + passcode check) | S2 | ⬜ |
-| 🟠 P2 | [ ] `POST /api/lockers/{id}/pickup/` (remove object + reset) | S2 | ⬜ |
+| 🔴 P1 | [x] Locker State Machine Service: `LockerService` class | S1 | ✅ |
+| 🔴 P1 | [x] `POST /api/lockers/book/` (find + book by size/type/building) | S1 | ✅ |
+| 🔴 P1 | [x] `POST /api/lockers/{id}/open/` (open door) | S1 | ✅ |
+| 🔴 P1 | [x] `POST /api/lockers/{id}/deposit/` (confirm deposit) | S1 | ✅ |
+| 🟠 P2 | [x] `GET /api/master/projects/` | S2 | ✅ |
+| 🟠 P2 | [x] `GET /api/master/buildings/?project_id=` | S2 | ✅ |
+| 🟠 P2 | [x] `GET /api/master/rooms/?building_id=` | S2 | ✅ |
+| 🟠 P2 | [x] `POST /api/lockers/verify-qr/` (scan QR + passcode check) | S2 | ✅ |
+| 🟠 P2 | [x] `POST /api/lockers/{id}/pickup/` (remove object + reset) | S2 | ✅ |
 | 🟡 P3 | [ ] `POST /api/system/reset/` (scope: ALL/BUILDING/PROJECT) | S3 | ⬜ |
 | 🟡 P3 | [ ] `POST /api/admin/cli/` (list, open, reset commands) | S3 | ⬜ |
 | 🟡 P3 | [ ] Celery task: abandon check >24h (FOOD lockers) | S3 | ⬜ |
@@ -577,13 +577,13 @@ flowchart TD
 
 ### ✏️ Sprint 1 — Update (Week 1-2)
 
-- [ ] อัปเดตโดย DevOps:
-- [ ] อัปเดตโดย Backend A:
-- [ ] อัปเดตโดย Backend B:
+- [x] อัปเดตโดย DevOps: Initial Docker setup and CI/CD pipelines completed.
+- [x] อัปเดตโดย Backend A: Django project initialized with required models and serializers.
+- [x] อัปเดตโดย Backend B: Implemented LockerService state machine and core API endpoints (book, open, deposit).
 - [ ] อัปเดตโดย Frontend A:
 - [ ] อัปเดตโดย Frontend B:
 
-**% ที่ทำได้จริง sprint นี้:** `_____ %`
+**% ที่ทำได้จริง sprint นี้:** `60 %`
 
 ---
 
@@ -591,11 +591,11 @@ flowchart TD
 
 - [ ] อัปเดตโดย DevOps:
 - [ ] อัปเดตโดย Backend A:
-- [ ] อัปเดตโดย Backend B:
+- [x] อัปเดตโดย Backend B: Implemented Master API filters, and the verify_qr and pickup_locker state machine and API endpoints. 
 - [ ] อัปเดตโดย Frontend A:
 - [ ] อัปเดตโดย Frontend B:
 
-**% ที่ทำได้จริง sprint นี้:** `_____ %`
+**% ที่ทำได้จริง sprint นี้:** `20 %`
 
 ---
 
