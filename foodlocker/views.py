@@ -1,6 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from .models import Project, Building, Room, Locker, LineUser, LockerLog
 from .serializers import (
     ProjectSerializer,
@@ -12,11 +13,41 @@ from .serializers import (
 )
 from .services import LockerService
 
+class UserStatusView(APIView):
+    def get(self, request):
+        line_user_id = request.query_params.get('line_user_id')
+        if not line_user_id:
+            return Response({'error': 'line_user_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if the user exists
+        try:
+            LineUser.objects.get(line_user_id=line_user_id)
+        except LineUser.DoesNotExist:
+            return Response({'detail': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Find lockers associated with the user that are not 'AVAILABLE'
+        locker_ids = LockerLog.objects.filter(actor_id=line_user_id).values_list('locker_id', flat=True).distinct()
+        active_lockers = Locker.objects.filter(id__in=locker_ids).exclude(status="AVAILABLE")
+
+        if not active_lockers.exists():
+            return Response({
+                "status": "NO_ACTIVE_LOCKER",
+                "lockers": []
+            }, status=status.HTTP_200_OK)
+
+
+        serializer = LockerSerializer(active_lockers, many=True)
+        return Response({
+            "status": "HAS_ACTIVE_LOCKER",
+            "lockers": serializer.data
+        }, status=status.HTTP_200_OK)
+
 class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
 
 class BuildingViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Building.objects.all()
     serializer_class = BuildingSerializer
 
     def get_queryset(self):
@@ -27,6 +58,7 @@ class BuildingViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
 class RoomViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Room.objects.all()
     serializer_class = RoomSerializer
 
     def get_queryset(self):
