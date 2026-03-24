@@ -135,7 +135,7 @@ Direct Links to Screens:
 | Role | Sprint 1 | Sprint 2 | Sprint 3 | Sprint 4 | Sprint 5 | Total |
 |------|----------|----------|----------|----------|----------|-------|
 | DevOps | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **20%** |
-| Backend A | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **20%** |
+| Backend A | ✅ 100% | 🔄 25% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **25%** |
 | Backend B | ✅ 100% | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **40%** |
 | Frontend A | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
 | Frontend B | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
@@ -459,7 +459,7 @@ flowchart TD
 | 🔴 P1 | [x] `manage.py migrate` + Django Admin setup | S1 | ✅ |
 | 🔴 P1 | [x] Seed script (`seed_data` management command) | S1 | ✅ |
 | 🟠 P2 | [ ] `POST /api/users/register/` | S2 | ⬜ |
-| 🟠 P2 | [ ] `GET /api/users/status/?line_user_id=` | S2 | ⬜ |
+| 🟠 P2 | [x] `GET /api/users/status/?line_user_id=` | S2 | ✅ |
 | 🟠 P2 | [ ] Authentication/Session (JWT simplejwt) | S2 | ⬜ |
 | 🟠 P2 | [ ] Tests: User registration flow (pytest-django) | S2 | ⬜ |
 | 🟡 P3 | [ ] `GET /api/lockers/` (list by building) | S3 | ⬜ |
