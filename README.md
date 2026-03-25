@@ -124,7 +124,7 @@ Direct Links to Screens:
 > **Duration:** 5 Sprints × 2 Weeks = ~10 Weeks (ทำงาน ~8 ชม./สัปดาห์)  
 > **Team:** 1 DevOps · 2 Backend · 2 Frontend  
 > **Backend Stack:** Django 5.x + DRF + PostgreSQL  
-> **Frontend Stack:** 🗳️ **ทีม Frontend เลือกเอง** — ดู [Frontend Tech Decision](#-frontend-tech-stack-decision) ด้านล่าง  # มาแก้ด้วย
+> **Frontend Stack:**  Django Templates + HTMX  | Server-side | Alpine.js
 
 ---
 
@@ -144,43 +144,6 @@ Direct Links to Screens:
 > ✅ Done · 🔄 In Progress · ⬜ Pending · ❌ Blocked
 
 ---
-
-
-
-## 🗳️ Frontend Tech Stack Decision
-
-> **ทีม Frontend ต้องตัดสินใจและ mark ✅ ตัวเลือกที่เลือกใน Sprint 1 ก่อนเริ่มงาน**
-
-### ตัวเลือกที่มี
-
-| # | Option | Framework | Animation | ความยากโปเจกต์ | เหมาะกับ |
-|---|--------|-----------|-----------|----------------|----------|
-| 🅐 | **Next.js 14+ (App Router)** | React | Framer Motion | ⭐⭐⭐ | ต่อยอดจาก codebase เดิมได้เลย |
-| 🅑 | **Vite + React (SPA)** | React | Framer Motion | ⭐⭐ | อยากมี freedom เต็มที่ ไม่ต้องการ SSR |
-| 🅒 | **SvelteKit** | Svelte | svelte/transition | ⭐⭐⭐⭐ | อยากลอง modern framework, bundle เล็ก |
-| 🅓 | **Django Templates + HTMX** | Server-side | Alpine.js | ⭐⭐ | ทีม backend-heavy, ไม่ต้องการ JS framework |
-
-### Trade-off เปรียบเทียบ
-
-| Criteria | 🅐 Next.js | 🅑 Vite+React | 🅒 SvelteKit | 🅓 Django+HTMX |
-|----------|-----------|--------------|-------------|----------------|
-| **ต่อยอด code เดิม** | ✅ ง่ายมาก | ✅ ง่าย | ❌ เขียนใหม่ | ❌ เขียนใหม่ |
-| **3D Animation ตู้** | ✅ Framer Motion | ✅ Framer Motion | 🟡 ต้อง custom | ❌ ยากมาก |
-| **QR Camera Scan** | ✅ `react-zxing` | ✅ `react-zxing` | 🟡 ต้อง custom | ❌ vanilla JS |
-| **Realtime (WebSocket)** | ✅ built-in | ✅ native WS | ✅ ง่ายมาก | 🟡 SSE/polling |
-| **Bundle Size** | 🟡 กลาง | 🟡 กลาง | ✅ เล็กกว่า | ✅ แทบไม่มี JS |
-
-### 🗳️ Decision Checklist (ทำ Sprint 1)
-
-- [ ] **ทีม FE A + FE B ประชุมเลือก stack ร่วมกัน**
-- [ ] **ตัวเลือกที่เลือก:** `_____ (A/B/C/D)`
-- [ ] **เหตุผล:** `_____`
-- [ ] **แจ้ง DevOps** เพื่ออัปเดต Dockerfile / nginx config ตามที่เลือก
-
-> 💡 **แนะนำ:** สำหรับ project นี้ที่มี Framer Motion 3D door + QR Camera **🅐 Next.js หรือ 🅑 Vite+React** เหมาะที่สุด
-
----
-
 
 
 ## 🗄️ ER Diagram (Database)
