@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}QR Code และ PIN - Rider{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-4">
+    <h1 class="text-2xl font-bold mb-4">ไรเดอร์ - แสดง QR Code และ PIN</h1>
+    <p class="text-gray-600">Step 2 of 4: Display QR code and PIN</p>
+    
+    <!-- TODO: Implement QR code and PIN display -->
+    <div class="mt-4">
+        <a href="{% url 'kiosk:rider_select_size' %}" class="bg-gray-500 text-white px-4 py-2 rounded">← กลับ</a>
+    </div>
+</div>
+{% endblock %}

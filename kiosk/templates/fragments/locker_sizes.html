@@ -1,0 +1,19 @@
+<!-- HTMX Fragment: Locker size cards -->
+<div class="grid grid-cols-2 gap-4">
+    {% for size in sizes %}
+    <div class="border rounded p-4 {% if size.is_available %}bg-green-50 border-green-400 cursor-pointer hover:bg-green-100{% else %}bg-gray-100 border-gray-300 cursor-not-allowed{% endif %}">
+        <div class="text-4xl font-bold text-center mb-2">{{ size.size }}</div>
+        <div class="text-lg text-center mb-1">
+            {% if size.size == 'S' %}เล็ก{% elif size.size == 'M' %}กลาง{% elif size.size == 'L' %}ใหญ่{% else %}ใหญ่พิเศษ{% endif %}
+        </div>
+        <div class="text-sm text-center text-gray-600 mb-2">{{ size.dimensions }}</div>
+        <div class="text-center {% if size.is_available %}text-green-600{% else %}text-red-600{% endif %}">
+            {% if size.is_available %}
+                ✓ ว่าง {{ size.available_count }} ตู้
+            {% else %}
+                ✗ เต็มหมด
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>

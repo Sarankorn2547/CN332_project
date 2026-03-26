@@ -1,0 +1,5 @@
+<!-- HTMX Fragment: Room dropdown options -->
+<option value="">เลือกห้อง</option>
+{% for room in rooms %}
+<option value="{{ room.id }}">{{ room.unit_number }} (ชั้น {{ room.floor }})</option>
+{% endfor %}
