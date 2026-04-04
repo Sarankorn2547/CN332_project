@@ -13,6 +13,55 @@ from .serializers import (
 )
 from .services import LockerService
 
+class UserRegisterView(APIView):
+    def post(self, request):
+        # Extract required fields from request
+        line_user_id = request.data.get('line_user_id')
+        project_id = request.data.get('project_id')
+        building_id = request.data.get('building_id')
+        room_no = request.data.get('room_no')
+        display_name = request.data.get('display_name')
+
+        # Validate all required fields are present
+        if not all([line_user_id, project_id, building_id, room_no, display_name]):
+            return Response(
+                {'error': 'line_user_id, project_id, building_id, room_no, and display_name are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Check if user already exists
+        if LineUser.objects.filter(line_user_id=line_user_id).exists():
+            return Response(
+                {'error': 'User with this line_user_id already exists'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Check if project and building exist
+        try:
+            project = Project.objects.get(id=project_id)
+        except Project.DoesNotExist:
+            return Response({'error': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            building = Building.objects.get(id=building_id, project=project)
+        except Building.DoesNotExist:
+            return Response({'error': 'Building not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Create the new LineUser
+        try:
+            line_user = LineUser.objects.create(
+                line_user_id=line_user_id,
+                project=project,
+                building=building,
+                room_no=room_no,
+                display_name=display_name
+            )
+            serializer = LineUserSerializer(line_user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
 class UserStatusView(APIView):
     def get(self, request):
         line_user_id = request.query_params.get('line_user_id')

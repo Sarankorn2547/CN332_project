@@ -458,7 +458,7 @@ flowchart TD
 | 🔴 P1 | [x] Django Models: `Project`, `Building`, `Room`, `Locker`, `LineUser`, `LockerLog` | S1 | ✅ |
 | 🔴 P1 | [x] `manage.py migrate` + Django Admin setup | S1 | ✅ |
 | 🔴 P1 | [x] Seed script (`seed_data` management command) | S1 | ✅ |
-| 🟠 P2 | [ ] `POST /api/users/register/` | S2 | ⬜ |
+| 🟠 P2 | [x] `POST /api/users/register/` | S2 | ✅ |
 | 🟠 P2 | [x] `GET /api/users/status/?line_user_id=` | S2 | ✅ |
 | 🟠 P2 | [ ] Authentication/Session (JWT simplejwt) | S2 | ⬜ |
 | 🟠 P2 | [ ] Tests: User registration flow (pytest-django) | S2 | ⬜ |
