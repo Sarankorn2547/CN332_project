@@ -170,10 +170,11 @@ class LockerViewSet(viewsets.ReadOnlyModelViewSet):
         except ValueError as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], url_path='pickup')
     def pickup(self, request, pk=None):
+        actor_id = request.data.get('actor_id', 'customer')
         try:
-            locker = LockerService.pickup_locker(locker_id=pk)
+            locker = LockerService.pickup_locker(locker_id=pk, actor_id=actor_id)
             serializer = self.get_serializer(locker)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except ValueError as e:

@@ -41,6 +41,11 @@ class Room(models.Model):
 
 
 class Locker(models.Model):
+    class Status(models.TextChoices):
+        AVAILABLE = "AVAILABLE", "Available"
+        BOOKED = "BOOKED", "Booked"
+        OCCUPIED = "OCCUPIED", "Occupied"
+
     id = models.TextField(primary_key=True)
     building = models.ForeignKey(
         Building,
@@ -49,7 +54,7 @@ class Locker(models.Model):
     )
     local_id = models.TextField()
     size = models.TextField()
-    status = models.TextField()
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.AVAILABLE)
     type = models.TextField()
     metadata = models.JSONField(blank=True, null=True)
 

@@ -11,7 +11,7 @@ class LockerService:
             building_id=building_id,
             size=size,
             type=locker_type,
-            status="AVAILABLE"
+            status=Locker.Status.AVAILABLE
         ).first()
 
         if not locker:
@@ -20,7 +20,7 @@ class LockerService:
         passcode = f"{random.randint(0, 999999):06d}"
         qr_data = str(uuid.uuid4())
 
-        locker.status = "BOOKED"
+        locker.status = Locker.Status.BOOKED
         locker.passcode = passcode
         locker.qr_data = qr_data
         locker.is_locked = True
@@ -43,7 +43,7 @@ class LockerService:
         except Locker.DoesNotExist:
             raise ValueError(f"Locker with id '{locker_id}' not found.")
 
-        if locker.status not in ["BOOKED", "OCCUPIED"]:
+        if locker.status not in [Locker.Status.BOOKED, Locker.Status.OCCUPIED]:
             raise ValueError(f"Locker '{locker_id}' cannot be opened in status '{locker.status}'.")
 
         locker.is_door_open = True
@@ -65,13 +65,13 @@ class LockerService:
         except Locker.DoesNotExist:
             raise ValueError(f"Locker with id '{locker_id}' not found.")
 
-        if locker.status != "BOOKED":
+        if locker.status != Locker.Status.BOOKED:
             raise ValueError(f"Locker '{locker_id}' must be in BOOKED status to confirm deposit.")
 
         if not locker.is_door_open:
             raise ValueError(f"Locker '{locker_id}' door must be open to deposit.")
 
-        locker.status = "OCCUPIED"
+        locker.status = Locker.Status.OCCUPIED
         locker.has_object = True
         locker.is_door_open = False
         locker.is_locked = True
@@ -92,7 +92,7 @@ class LockerService:
             raise ValueError("Either qr_data or passcode must be provided.")
 
         locker = Locker.objects.filter(
-            status="OCCUPIED"
+            status=Locker.Status.OCCUPIED
         ).filter(
             models.Q(qr_data=qr_data) | models.Q(passcode=passcode) if qr_data and passcode else
             models.Q(qr_data=qr_data) if qr_data else
@@ -122,10 +122,10 @@ class LockerService:
         except Locker.DoesNotExist:
             raise ValueError(f"Locker with id '{locker_id}' not found.")
 
-        if locker.status != "OCCUPIED":
+        if locker.status != Locker.Status.OCCUPIED:
             raise ValueError(f"Locker '{locker_id}' must be OCCUPIED to pickup.")
 
-        locker.status = "AVAILABLE"
+        locker.status = Locker.Status.AVAILABLE
         locker.passcode = ""
         locker.qr_data = ""
         locker.has_object = False
