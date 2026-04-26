@@ -3,13 +3,83 @@
 {% block title %}ส่งมอบสำเร็จ - Rider{% endblock %}
 
 {% block content %}
-<div class="container mx-auto p-4">
-    <h1 class="text-2xl font-bold mb-4 text-green-600">✓ ส่งมอบสำเร็จ!</h1>
-    
-    <!-- TODO: Implement success screen with transaction summary -->
-    <div class="mt-4">
-        <p class="text-gray-600">กำลังกลับสู่หน้าหลักใน 10 วินาที...</p>
-        <a href="{% url 'kiosk:home' %}" class="bg-blue-500 text-white px-4 py-2 rounded inline-block mt-4">← กลับหน้าหลัก</a>
+<div class="container mx-auto p-4 font-thai" x-data="successScreen()" x-init="init()">
+    <div class="max-w-xl mx-auto text-center">
+        <!-- Checkmark -->
+        <div class="text-6xl mb-2">✅</div>
+        <h1 class="text-3xl font-bold text-success-600 mb-6">✓ ส่งมอบสำเร็จ!</h1>
+
+        <!-- Transaction summary -->
+        <div class="bg-white rounded-lg shadow-lg p-6 text-left space-y-3">
+            <div class="flex justify-between">
+                <span class="text-gray-600">หมายเลขตู้:</span>
+                <span class="font-bold" x-text="booking.locker_id || '-'"></span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600">รหัส PIN:</span>
+                <span class="font-bold" x-text="booking.pin || '-'"></span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600">เวลาฝาก:</span>
+                <span x-text="formattedTime"></span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600">รูปยืนยัน:</span>
+                <span class="text-success-600 font-medium">✓ บันทึกแล้ว</span>
+            </div>
+        </div>
+
+        <!-- Auto-redirect notice -->
+        <div class="mt-6 text-gray-600">
+            กำลังกลับสู่หน้าหลักใน
+            <span x-text="countdown" class="font-bold text-primary-700"></span> วินาที
+        </div>
+
+        <a href="{% url 'kiosk:home' %}"
+           class="btn-touch bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded inline-block mt-4 font-medium">
+            ← กลับหน้าหลัก
+        </a>
     </div>
 </div>
+
+<script>
+function successScreen() {
+    return {
+        booking: {},
+        depositTime: '',
+        countdown: 10,
+        _interval: null,
+
+        init() {
+            this.booking = JSON.parse(sessionStorage.getItem('booking') || '{}');
+            this.depositTime = sessionStorage.getItem('deposit_time') || new Date().toISOString();
+
+            // เคลียร์ session ของ flow นี้
+            sessionStorage.removeItem('booking');
+            sessionStorage.removeItem('deposit_time');
+
+            // นับถอยหลัง redirect
+            this._interval = setInterval(() => {
+                this.countdown--;
+                if (this.countdown <= 0) {
+                    clearInterval(this._interval);
+                    window.location.href = '{% url "kiosk:home" %}';
+                }
+            }, 1000);
+        },
+
+        get formattedTime() {
+            if (!this.depositTime) return '-';
+            try {
+                return new Date(this.depositTime).toLocaleString('th-TH', {
+                    year: 'numeric', month: 'long', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+            } catch (e) {
+                return this.depositTime;
+            }
+        }
+    };
+}
+</script>
 {% endblock %}
