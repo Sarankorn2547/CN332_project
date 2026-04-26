@@ -1,11 +1,13 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.http import require_GET, require_POST, require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 
 
 # ============================================================================
 # Main Kiosk Interface
 # ============================================================================
-
+@require_GET
 def kiosk_home(request):
     """
     Kiosk home screen - user type selection
@@ -18,6 +20,7 @@ def kiosk_home(request):
 # Registration Page
 # ============================================================================
 
+@require_GET
 def registration_page(request):
     """
     User registration page with LINE LIFF integration
@@ -30,6 +33,7 @@ def registration_page(request):
 # Rider Flow Views
 # ============================================================================
 
+@require_GET
 def rider_select_size(request):
     """
     Rider Step 1: Select locker size
@@ -37,7 +41,7 @@ def rider_select_size(request):
     """
     return render(request, 'kiosk/rider/select_size.html')
 
-
+@require_GET
 def rider_qr_display(request):
     """
     Rider Step 2: Display QR code and PIN
@@ -45,7 +49,7 @@ def rider_qr_display(request):
     """
     return render(request, 'kiosk/rider/qr_display.html')
 
-
+@require_GET
 def rider_confirm(request):
     """
     Rider Step 3: Confirm photo sent to customer
@@ -53,7 +57,7 @@ def rider_confirm(request):
     """
     return render(request, 'kiosk/rider/confirm.html')
 
-
+@require_GET
 def rider_deposit(request):
     """
     Rider Step 4: Deposit food and take proof photo
@@ -61,7 +65,7 @@ def rider_deposit(request):
     """
     return render(request, 'kiosk/rider/deposit.html')
 
-
+@require_GET
 def rider_success(request):
     """
     Rider completion screen
@@ -73,7 +77,7 @@ def rider_success(request):
 # ============================================================================
 # Customer Flow Views
 # ============================================================================
-
+@require_GET
 def customer_method_select(request):
     """
     Customer: Choose authentication method
@@ -81,7 +85,7 @@ def customer_method_select(request):
     """
     return render(request, 'kiosk/customer/method_select.html')
 
-
+@require_GET
 def customer_qr_scan(request):
     """
     Customer: QR code scanner
@@ -90,6 +94,7 @@ def customer_qr_scan(request):
     return render(request, 'kiosk/customer/qr_scan.html')
 
 
+@require_GET
 def customer_pin_entry(request):
     """
     Customer: PIN entry keypad
@@ -97,7 +102,7 @@ def customer_pin_entry(request):
     """
     return render(request, 'kiosk/customer/pin_entry.html')
 
-
+@require_GET
 def customer_success(request):
     """
     Customer completion screen
@@ -110,6 +115,7 @@ def customer_success(request):
 # Security Flow Views
 # ============================================================================
 
+@require_GET
 def security_master_access(request):
     """
     Security guard master access
@@ -122,6 +128,7 @@ def security_master_access(request):
 # HTMX Endpoints (Return HTML Fragments)
 # ============================================================================
 
+@require_GET
 def htmx_get_buildings(request):
     """
     HTMX endpoint: Get buildings for selected project
@@ -134,7 +141,7 @@ def htmx_get_buildings(request):
         'buildings': []  # Placeholder
     })
 
-
+@require_GET
 def htmx_get_rooms(request):
     """
     HTMX endpoint: Get rooms for selected building
@@ -147,7 +154,7 @@ def htmx_get_rooms(request):
         'rooms': []  # Placeholder
     })
 
-
+@require_GET
 def htmx_get_locker_sizes(request):
     """
     HTMX endpoint: Get available locker sizes
@@ -160,7 +167,7 @@ def htmx_get_locker_sizes(request):
         'sizes': []  # Placeholder
     })
 
-
+@require_POST
 def htmx_qr_display(request):
     """
     HTMX endpoint: Generate and display QR code
@@ -176,7 +183,7 @@ def htmx_qr_display(request):
         })
     return HttpResponse(status=405)  # Method not allowed
 
-
+@require_GET
 def htmx_locker_status(request):
     """
     HTMX endpoint: Get current locker status
@@ -188,3 +195,98 @@ def htmx_locker_status(request):
     return render(request, 'fragments/locker_status.html', {
         'locker': None  # Placeholder
     })
+# ============================================================
+# API Endpoints (Sprint 3-4) - stub สำหรับเชื่อม frontend
+# TODO: เชื่อม logic จริงเข้ากับ database/hardware
+# ============================================================
+
+@csrf_exempt   # ชั่วคราวระหว่าง dev — production ต้องส่ง CSRF token จาก frontend
+@require_POST
+def api_book_locker(request):
+    """POST /kiosk/api/lockers/book/
+    รับ: { size, type, building_id }
+    ส่ง: { locker_id, pin, qr_url, booking_id }
+    """
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'detail': 'Invalid JSON'}, status=400)
+
+    size = data.get('size')
+    locker_type = data.get('type')
+    building_id = data.get('building_id')
+
+    # TODO: เรียก service จองตู้จริง เช่น
+    # locker = LockerService.book(size, locker_type, building_id)
+
+    return JsonResponse({
+        'locker_id': 'M-12',
+        'pin': '1234',
+        'qr_url': '/static/img/sample-qr.png',
+        'booking_id': 'BK-001',
+    })
+
+
+@csrf_exempt
+@require_POST
+def api_open_locker(request, locker_id):
+    """POST /kiosk/api/lockers/<locker_id>/open/
+    ส่งคำสั่งเปิดตู้ไปที่ hardware
+    """
+    # TODO: integrate กับ hardware controller
+    return JsonResponse({'status': 'opened', 'locker_id': locker_id})
+
+
+@csrf_exempt
+@require_POST
+def api_deposit(request, locker_id):
+    """POST /kiosk/api/lockers/<locker_id>/deposit/
+    รับ: { photo: base64-string }
+    บันทึกรูปยืนยันและอัปเดตสถานะ booking เป็น 'deposited'
+    """
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'detail': 'Invalid JSON'}, status=400)
+
+    photo_b64 = data.get('photo', '')
+
+    # TODO: decode base64, save เป็นไฟล์, update booking status
+    return JsonResponse({'status': 'deposited', 'locker_id': locker_id})
+
+
+@csrf_exempt
+@require_POST
+def api_verify_qr(request):
+    """POST /kiosk/api/lockers/verify-qr/
+    รับ: { code }   # อาจเป็น QR string หรือ PIN 4 หลัก
+    ตรวจสอบว่าตรงกับ booking ที่ active อยู่หรือไม่
+    """
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'detail': 'Invalid JSON'}, status=400)
+
+    code = data.get('code')
+
+    # TODO: query booking จาก DB ตาม code
+    return JsonResponse({
+        'valid': True,
+        'locker_id': 'M-12',
+        'deposit_time': '2026-04-26T10:30:00Z',
+    })
+
+
+@csrf_exempt
+@require_POST
+def api_register_user(request):
+    """POST /kiosk/api/users/register/
+    บันทึกผู้ใช้ใหม่จากหน้า LINE LIFF registration
+    """
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'detail': 'Invalid JSON'}, status=400)
+
+    # TODO: validate + บันทึก User model
+    return JsonResponse({'status': 'registered'})
