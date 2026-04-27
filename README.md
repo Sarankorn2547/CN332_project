@@ -137,7 +137,7 @@ Direct Links to Screens:
 | DevOps | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
 | Backend A | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
 | Backend B | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
-| Frontend A | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
+| Frontend A | ✅ 100% | 🔄 15% | 🔄 75% | 🔄 33% | ⬜ 0% | **~47%** |
 | Frontend B | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
 | **Overall** | | | | | | **0% / 100%** |
 
@@ -467,25 +467,25 @@ flowchart TD
 
 ### 🎨 Frontend A — Kiosk UI + Registration (คน A)
 
-> 🗳️ **ต้องตัดสินใจ Framework ก่อน** — ดู [Frontend Tech Decision](#-frontend-tech-stack-decision)
+> ✅ **ตัดสินใจ Framework แล้ว** — Django Templates + HTMX + Alpine.js + TailwindCSS
 
 | Priority | Task | Sprint | Status |
 |----------|------|--------|--------|
-| 🔴 P1 | [ ] **ประชุม + ตัดสินใจ Frontend Framework** ร่วมกับ FE B | S1 | ⬜ |
-| 🔴 P1 | [ ] Init project + TailwindCSS + State management | S1 | ⬜ |
-| 🔴 P1 | [ ] API client layer — connect ไปที่ Django DRF | S1 | ⬜ |
-| 🔴 P1 | [ ] Setup routing + Layout + global design system | S1 | ⬜ |
-| 🟠 P2 | [ ] `/register`: LINE LIFF integration | S2 | ⬜ |
-| 🟠 P2 | [ ] `/register`: Project → Building → Room cascade | S2 | ⬜ |
-| 🟠 P2 | [ ] `/register`: เชื่อม `POST /api/users/register/` | S2 | ⬜ |
+| 🔴 P1 | [x] **ประชุม + ตัดสินใจ Frontend Framework** ร่วมกับ FE B | S1 | ✅ |
+| 🔴 P1 | [x] Init project + TailwindCSS + State management (Alpine.js) | S1 | ✅ |
+| 🔴 P1 | [x] API client layer — HTMX fragments + Alpine.js `$api` helper + API stubs | S1 | ✅ |
+| 🔴 P1 | [x] Setup routing + Layout + global design system (base.html, urls.py) | S1 | ✅ |
+| 🟠 P2 | [ ] `/register`: LINE LIFF integration (SDK loaded แต่ยังไม่ implement logic) | S2 | 🔄 |
+| 🟠 P2 | [ ] `/register`: Project → Building → Room cascade (HTML มีแล้ว แต่ dropdown ยัง disabled) | S2 | 🔄 |
+| 🟠 P2 | [ ] `/register`: เชื่อม `POST /api/users/register/` (endpoint stub มี แต่ frontend ไม่ส่ง) | S2 | ⬜ |
 | 🟠 P2 | [ ] `/register`: Success/Error state | S2 | ⬜ |
-| 🟡 P3 | [ ] Kiosk: Rider Tab — เลือก Type + Size | S3 | ⬜ |
-| 🟡 P3 | [ ] Kiosk: แสดง QR Code | S3 | ⬜ |
-| 🟡 P3 | [ ] Kiosk: ปุ่ม "Open Locker" → call API | S3 | ⬜ |
+| 🟡 P3 | [x] Kiosk: Rider Tab — เลือก Type + Size (Alpine.js component + loadSizes() + selectSize()) | S3 | ✅ |
+| 🟡 P3 | [x] Kiosk: แสดง QR Code + PIN (template เสร็จ อ่านจาก sessionStorage) | S3 | ✅ |
+| 🟡 P3 | [x] Kiosk: ปุ่ม "Open Locker" → call API (stub `/api/lockers/<id>/open/` พร้อม) | S3 | ✅ |
 | 🟡 P3 | [ ] `/login`: auth flow + token store | S3 | ⬜ |
-| 🟢 P4 | [ ] Kiosk: Customer Tab — Scan QR (camera) | S4 | ⬜ |
+| 🟢 P4 | [ ] Kiosk: Customer Tab — Scan QR (camera) (ยังเป็น placeholder เท่านั้น) | S4 | ⬜ |
 | 🟢 P4 | [ ] Kiosk: WebSocket / SSE real-time state | S4 | ⬜ |
-| 🟢 P4 | [ ] Kiosk: Confirm deposit flow | S4 | ⬜ |
+| 🟢 P4 | [x] Kiosk: Confirm deposit flow (กล้อง + ถ่ายรูป + ส่ง base64 ไป API ครบ) | S4 | ✅ |
 | 🔵 P5 | [ ] E2E test: Rider + Customer flow | S5 | ⬜ |
 | 🔵 P5 | [ ] Mobile responsive + UX polish | S5 | ⬜ |
 
@@ -543,7 +543,7 @@ flowchart TD
 - [ ] อัปเดตโดย DevOps:
 - [ ] อัปเดตโดย Backend A:
 - [ ] อัปเดตโดย Backend B:
-- [ ] อัปเดตโดย Frontend A:
+- [x] อัปเดตโดย Frontend A: ตัดสินใจ Framework (Django Templates + HTMX + Alpine.js + Tailwind), init Django project, setup routing/urls.py, base.html layout, API client stubs, Alpine.js utils
 - [ ] อัปเดตโดย Frontend B:
 
 **% ที่ทำได้จริง sprint นี้:** `_____ %`
@@ -555,7 +555,7 @@ flowchart TD
 - [ ] อัปเดตโดย DevOps:
 - [ ] อัปเดตโดย Backend A:
 - [ ] อัปเดตโดย Backend B:
-- [ ] อัปเดตโดย Frontend A:
+- [x] อัปเดตโดย Frontend A: สร้าง register.html skeleton (Project/Building/Room dropdowns) และ registration_page view แต่ LINE LIFF logic ยังไม่ implement, dropdown ยัง disabled, ยังไม่เชื่อม API จริง
 - [ ] อัปเดตโดย Frontend B:
 
 **% ที่ทำได้จริง sprint นี้:** `_____ %`
@@ -567,7 +567,7 @@ flowchart TD
 - [ ] อัปเดตโดย DevOps:
 - [ ] อัปเดตโดย Backend A:
 - [ ] อัปเดตโดย Backend B:
-- [ ] อัปเดตโดย Frontend A:
+- [x] อัปเดตโดย Frontend A: Rider flow เสร็จ 3/4 — select_size.html (Alpine.js + loadSizes/selectSize), qr_display.html (QR+PIN+instructions), rider_confirm.html, HTMX endpoints stubs ครบ; ยังขาด /login auth flow
 - [ ] อัปเดตโดย Frontend B:
 
 **% ที่ทำได้จริง sprint นี้:** `_____ %`
@@ -579,7 +579,7 @@ flowchart TD
 - [ ] อัปเดตโดย DevOps:
 - [ ] อัปเดตโดย Backend A:
 - [ ] อัปเดตโดย Backend B:
-- [ ] อัปเดตโดย Frontend A:
+- [x] อัปเดตโดย Frontend A: deposit.html เสร็จสมบูรณ์ (กล้อง + takePhoto + submit base64 → API); Customer QR scan ยังเป็น placeholder; WebSocket ยังไม่ได้ทำ
 - [ ] อัปเดตโดย Frontend B:
 
 **% ที่ทำได้จริง sprint นี้:** `_____ %`
