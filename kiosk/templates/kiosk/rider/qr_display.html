@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}QR Code และ PIN - Rider{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-4 font-thai" x-data="qrDisplay()" x-init="init()">
+    <div class="text-center text-gray-600 mb-2">Step 2 of 4</div>
+    <h1 class="text-2xl font-bold mb-4 text-center">ไรเดอร์ - แสดง QR Code และ PIN</h1>
+
+    <div class="max-w-xl mx-auto text-center">
+        <!-- QR Code -->
+        <div class="bg-white p-4 rounded-lg shadow-lg inline-block">
+            <img :src="booking.qr_url" alt="QR Code" class="w-64 h-64 mx-auto">
+        </div>
+
+        <!-- PIN -->
+        <div class="mt-6">
+            <div class="text-gray-500 text-sm">รหัส PIN</div>
+            <div class="text-7xl font-bold tracking-[0.3em] mt-2 text-primary-900"
+                 x-text="booking.pin"></div>
+        </div>
+
+        <!-- Locker ID -->
+        <div class="mt-4 text-2xl">
+            ตู้: <span class="font-bold" x-text="booking.locker_id"></span>
+        </div>
+
+        <!-- Warning / Instructions -->
+        <div class="mt-6 p-4 bg-primary-50 border-l-4 border-primary-500 text-left rounded">
+            <p class="font-bold text-primary-900">📸 กรุณาทำตามขั้นตอน</p>
+            <ol class="list-decimal ml-6 mt-2 text-sm">
+                <li>ถ่ายรูปหน้าจอนี้</li>
+                <li>ส่งรูปให้ลูกค้าทาง LINE</li>
+                <li>รอลูกค้ายืนยันก่อนกดปุ่มข้างล่าง</li>
+            </ol>
+        </div>
+
+        <!-- Buttons -->
+        <div class="mt-6 flex gap-4">
+            <a href="{% url 'kiosk:home' %}"
+               class="btn-touch flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-3 rounded text-center">
+                ยกเลิก
+            </a>
+            <a href="{% url 'kiosk:rider_confirm' %}"
+               class="btn-touch flex-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-3 rounded font-bold text-center">
+                ส่งรูปแล้ว →
+            </a>
+        </div>
+
+        <div class="mt-4">
+            <a href="{% url 'kiosk:rider_select_size' %}"
+               class="text-sm text-gray-500 hover:text-gray-700">← กลับ (เลือกขนาดใหม่)</a>
+        </div>
+    </div>
+</div>
+
+<script>
+function qrDisplay() {
+    return {
+        booking: { qr_url: '', pin: '----', locker_id: '--' },
+
+        init() {
+            const data = sessionStorage.getItem('booking');
+            if (!data) {
+                Alpine.store('toast').error('ไม่พบข้อมูลการจอง');
+                setTimeout(() => {
+                    window.location.href = '{% url "kiosk:home" %}';
+                }, 2000);
+                return;
+            }
+            this.booking = JSON.parse(data);
+        }
+    };
+}
+</script>
+{% endblock %}

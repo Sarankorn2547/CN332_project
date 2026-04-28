@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Master Access - Security{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-4">
+    <h1 class="text-2xl font-bold mb-4">รปภ./เจ้าหน้าที่ - Master Access</h1>
+    
+    <!-- TODO: Implement master QR code scanner -->
+    <div class="bg-yellow-100 border border-yellow-400 p-4 rounded mb-4">
+        <p class="text-yellow-800 font-bold">⚠️ สำหรับเจ้าหน้าที่เท่านั้น</p>
+        <p class="text-yellow-700">การใช้งานทุกครั้งจะถูกบันทึกในระบบ</p>
+    </div>
+    
+    <div class="bg-gray-200 h-64 flex items-center justify-center rounded">
+        <p class="text-gray-600">🔑 Master QR Code scanner will appear here</p>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{% url 'kiosk:home' %}" class="bg-gray-300 text-gray-700 px-4 py-2 rounded">← กลับหน้าหลัก</a>
+    </div>
+</div>
+{% endblock %}

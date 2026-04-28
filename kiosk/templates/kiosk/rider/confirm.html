@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}ยืนยันการส่งรูป - Rider{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-4 font-thai" x-data="confirmDialog()">
+    <div class="text-center text-gray-600 mb-2">Step 3 of 4</div>
+    <h1 class="text-2xl font-bold mb-4 text-center">ไรเดอร์ - ยืนยันก่อนเปิดตู้</h1>
+
+    <div class="max-w-xl mx-auto">
+        <!-- Checklist -->
+        <div class="bg-white rounded-lg shadow-lg p-6 space-y-4">
+            <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" x-model="checks.photo"
+                       class="w-6 h-6 accent-success-600">
+                <span class="text-lg">ถ่ายรูป QR และ PIN เรียบร้อยแล้ว</span>
+            </label>
+            <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" x-model="checks.sent"
+                       class="w-6 h-6 accent-success-600">
+                <span class="text-lg">ส่งรูปให้ลูกค้าทาง LINE แล้ว</span>
+            </label>
+            <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" x-model="checks.received"
+                       class="w-6 h-6 accent-success-600">
+                <span class="text-lg">ลูกค้ายืนยันว่าได้รับรูปแล้ว</span>
+            </label>
+        </div>
+
+        <!-- Warning -->
+        <div class="mt-6 p-4 bg-danger-50 border-l-4 border-danger-500 rounded">
+            <p class="text-danger-700">
+                ⚠️ เมื่อกดปุ่ม "เปิดตู้" ระบบจะปลดล็อกทันที
+                กรุณาแน่ใจว่าทุกขั้นตอนเสร็จสิ้นแล้ว
+            </p>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="mt-6 flex gap-4">
+            <a href="{% url 'kiosk:rider_qr_display' %}"
+               class="btn-touch flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-3 rounded text-center">
+                ← กลับ
+            </a>
+            <button @click="openLocker()"
+                    :disabled="!allChecked || submitting"
+                    :class="(allChecked && !submitting)
+                            ? 'bg-danger-600 hover:bg-danger-700'
+                            : 'bg-gray-300 cursor-not-allowed'"
+                    class="btn-touch flex-1 text-white px-4 py-3 rounded font-bold">
+                <span x-show="!submitting">เปิดตู้</span>
+                <span x-show="submitting">กำลังเปิด...</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDialog() {
+    return {
+        checks: { photo: false, sent: false, received: false },
+        submitting: false,
+
+        get allChecked() {
+            return this.checks.photo && this.checks.sent && this.checks.received;
+        },
+
+        async openLocker() {
+            const booking = JSON.parse(sessionStorage.getItem('booking') || '{}');
+            if (!booking.locker_id) {
+                Alpine.store('toast').error('ไม่พบข้อมูลการจอง');
+                return;
+            }
+            this.submitting = true;
+            try {
+                const url = `/kiosk/api/lockers/${booking.locker_id}/open/`;
+                await this.$api.post(url, {});
+                window.location.href = '{% url "kiosk:rider_deposit" %}';
+            } catch (e) {
+                Alpine.store('toast').error('เปิดตู้ไม่สำเร็จ: ' + e.message);
+                this.submitting = false;
+            }
+        }
+    };
+}
+</script>
+{% endblock %}
