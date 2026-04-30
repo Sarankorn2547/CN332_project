@@ -1,42 +1,208 @@
 {% extends "base.html" %}
 
-{% block title %}ลงทะเบียน - Registration{% endblock %}
+{% block title %}ลงทะเบียน - Food Locker{% endblock %}
 
 {% block extra_head %}
-<!-- LINE LIFF SDK -->
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 {% endblock %}
 
 {% block content %}
-<div class="container mx-auto p-4 max-w-md">
-    <h1 class="text-2xl font-bold mb-4">ลงทะเบียนผู้ใช้งาน</h1>
-    
-    <!-- TODO: Implement LINE LIFF integration and cascade selection -->
-    <form class="space-y-4">
-        <div>
-            <label class="block text-gray-700 mb-2">โครงการ</label>
-            <select class="w-full border border-gray-300 rounded px-3 py-2">
-                <option value="">เลือกโครงการ</option>
-            </select>
-        </div>
-        
-        <div>
-            <label class="block text-gray-700 mb-2">อาคาร</label>
-            <select class="w-full border border-gray-300 rounded px-3 py-2" disabled>
-                <option value="">เลือกอาคาร</option>
-            </select>
-        </div>
-        
-        <div>
-            <label class="block text-gray-700 mb-2">ห้อง</label>
-            <select class="w-full border border-gray-300 rounded px-3 py-2" disabled>
-                <option value="">เลือกห้อง</option>
-            </select>
-        </div>
-        
-        <button type="submit" class="w-full bg-blue-500 text-white px-4 py-3 rounded font-bold" disabled>
-            ลงทะเบียน
-        </button>
+<div class="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-lg w-full max-w-md p-8"
+       x-data="registerForm()"
+       x-init="initLiff()">
+
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <div class="text-4xl mb-3">🔐</div>
+      <h1 class="text-2xl font-bold text-gray-800">ลงทะเบียนผู้ใช้งาน</h1>
+      <p class="text-gray-500 text-sm mt-1">Food Delivery Locker System</p>
+    </div>
+
+    <!-- Success State -->
+    <div x-show="state === 'success'" x-transition class="text-center py-6">
+      <div class="text-6xl mb-4">✅</div>
+      <h2 class="text-xl font-bold text-green-700 mb-2">ลงทะเบียนสำเร็จ!</h2>
+      <p class="text-gray-600 mb-1">ชื่อ: <span class="font-semibold" x-text="form.display_name"></span></p>
+      <p class="text-gray-500 text-sm mt-1">ระบบจะแจ้งเตือนผ่าน LINE เมื่อมีพัสดุมาฝาก</p>
+      <a href="/" class="mt-6 inline-block bg-primary-500 text-white px-6 py-3 rounded-xl font-bold hover:bg-primary-600">
+        กลับหน้าหลัก
+      </a>
+    </div>
+
+    <!-- Form -->
+    <form x-show="state !== 'success'" x-transition @submit.prevent="submit()">
+
+      <!-- LINE User ID (dev fallback) -->
+      <div class="mb-5" x-show="!liffReady">
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          LINE User ID <span class="text-red-500">*</span>
+          <span class="text-xs text-amber-500">(dev mode)</span>
+        </label>
+        <input type="text"
+               x-model="form.line_user_id"
+               placeholder="Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+               class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-400">
+      </div>
+
+      <!-- Display Name -->
+      <div class="mb-5">
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          ชื่อ-นามสกุล <span class="text-red-500">*</span>
+        </label>
+        <input type="text"
+               x-model="form.display_name"
+               :readonly="liffReady"
+               placeholder="ชื่อของคุณ"
+               class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-400"
+               :class="liffReady ? 'bg-gray-100 text-gray-500' : ''">
+      </div>
+
+      <!-- Project -->
+      <div class="mb-5">
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          โครงการ <span class="text-red-500">*</span>
+        </label>
+        <select id="project-select"
+                x-model="form.project_id"
+                name="project_id"
+                hx-get="/htmx/buildings/"
+                hx-include="#project-select"
+                hx-target="#building-select"
+                hx-swap="innerHTML"
+                hx-trigger="change"
+                @change="form.building_id = ''; form.room_no = ''; resetSelect('room-select')"
+                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-400">
+          <option value="">— เลือกโครงการ —</option>
+          {% for p in projects %}
+          <option value="{{ p.id }}">{{ p.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Building -->
+      <div class="mb-5">
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          อาคาร <span class="text-red-500">*</span>
+        </label>
+        <select id="building-select"
+                x-model="form.building_id"
+                name="building_id"
+                hx-get="/htmx/rooms/"
+                hx-include="#building-select"
+                hx-target="#room-select"
+                hx-swap="innerHTML"
+                hx-trigger="change"
+                @change="form.room_no = ''"
+                :disabled="!form.project_id"
+                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-400 disabled:bg-gray-100 disabled:text-gray-400">
+          <option value="">— เลือกอาคาร —</option>
+        </select>
+      </div>
+
+      <!-- Room -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          ห้อง <span class="text-red-500">*</span>
+        </label>
+        <select id="room-select"
+                x-model="form.room_no"
+                :disabled="!form.building_id"
+                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-400 disabled:bg-gray-100 disabled:text-gray-400">
+          <option value="">— เลือกห้อง —</option>
+        </select>
+      </div>
+
+      <!-- Error -->
+      <div x-show="errorMsg"
+           x-transition
+           class="mb-4 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm"
+           x-text="errorMsg">
+      </div>
+
+      <!-- Submit -->
+      <button type="submit"
+              :disabled="!canSubmit || state === 'loading'"
+              class="w-full bg-primary-500 text-white font-bold py-3 rounded-xl text-lg
+                     hover:bg-primary-600 active:scale-95 transition
+                     disabled:opacity-50 disabled:cursor-not-allowed">
+        <span x-show="state !== 'loading'">ลงทะเบียน</span>
+        <span x-show="state === 'loading'" class="flex items-center justify-center gap-2">
+          <svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg>
+          กำลังบันทึก...
+        </span>
+      </button>
+
     </form>
+  </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function registerForm() {
+  return {
+    state: 'idle',
+    errorMsg: '',
+    liffReady: false,
+    form: {
+      line_user_id: '',
+      display_name: '',
+      project_id: '',
+      building_id: '',
+      room_no: '',
+    },
+
+    get canSubmit() {
+      const f = this.form;
+      return f.line_user_id && f.display_name && f.project_id && f.building_id && f.room_no;
+    },
+
+    resetSelect(id) {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = '<option value="">— เลือกห้อง —</option>';
+    },
+
+    async initLiff() {
+      const LIFF_ID = '{{ liff_id|default:"" }}';
+      if (!LIFF_ID) return;
+      try {
+        await liff.init({ liffId: LIFF_ID });
+        if (!liff.isLoggedIn()) { liff.login(); return; }
+        const profile = await liff.getProfile();
+        this.form.line_user_id = profile.userId;
+        this.form.display_name = profile.displayName;
+        this.liffReady = true;
+      } catch (e) {
+        console.warn('LIFF init failed, dev mode active:', e.message);
+      }
+    },
+
+    async submit() {
+      this.errorMsg = '';
+      this.state = 'loading';
+      try {
+        const res = await fetch('/api/users/register/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(this.form),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          this.errorMsg = data.detail || 'เกิดข้อผิดพลาด กรุณาลองใหม่';
+          this.state = 'idle';
+          return;
+        }
+        this.state = 'success';
+      } catch (e) {
+        this.errorMsg = 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้';
+        this.state = 'idle';
+      }
+    },
+  };
+}
+</script>
 {% endblock %}
