@@ -137,9 +137,9 @@ Direct Links to Screens:
 | DevOps | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **20%** |
 | Backend A | ✅ 100% | 🔄 25% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **25%** |
 | Backend B | ✅ 100% | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **40%** |
-| Frontend A | ✅ 100% | 🔄 15% | 🔄 75% | 🔄 33% | ⬜ 0% | **~47%** |
+| Frontend A | ✅ 100% | ✅ 100% | 🔄 75% | 🔄 33% | ⬜ 0% | **75%** |
 | Frontend B | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
-| **Overall** | | | | | | **16% / 100%** |
+| **Overall** | | | | | | **32% / 100%** |
 
 > ✅ Done · 🔄 In Progress · ⬜ Pending · ❌ Blocked
 
@@ -475,10 +475,10 @@ flowchart TD
 | 🔴 P1 | [x] Init project + TailwindCSS + State management (Alpine.js) | S1 | ✅ |
 | 🔴 P1 | [x] API client layer — HTMX fragments + Alpine.js `$api` helper + API stubs | S1 | ✅ |
 | 🔴 P1 | [x] Setup routing + Layout + global design system (base.html, urls.py) | S1 | ✅ |
-| 🟠 P2 | [ ] `/register`: LINE LIFF integration (SDK loaded แต่ยังไม่ implement logic) | S2 | 🔄 |
-| 🟠 P2 | [ ] `/register`: Project → Building → Room cascade (HTML มีแล้ว แต่ dropdown ยัง disabled) | S2 | 🔄 |
-| 🟠 P2 | [ ] `/register`: เชื่อม `POST /api/users/register/` (endpoint stub มี แต่ frontend ไม่ส่ง) | S2 | ⬜ |
-| 🟠 P2 | [ ] `/register`: Success/Error state | S2 | ⬜ |
+| 🟠 P2 | [x] `/register`: LINE LIFF integration (SDK + initLiff() + dev fallback กรอก ID มือ) | S2 | ✅ |
+| 🟠 P2 | [x] `/register`: Project → Building → Room cascade (HTMX ดึงจาก DB จริง) | S2 | ✅ |
+| 🟠 P2 | [x] `/register`: เชื่อม `POST /api/users/register/` (บันทึก LineUser ลง DB จริง) | S2 | ✅ |
+| 🟠 P2 | [x] `/register`: Success/Error state + Loading state | S2 | ✅ |
 | 🟡 P3 | [x] Kiosk: Rider Tab — เลือก Type + Size (Alpine.js component + loadSizes() + selectSize()) | S3 | ✅ |
 | 🟡 P3 | [x] Kiosk: แสดง QR Code + PIN (template เสร็จ อ่านจาก sessionStorage) | S3 | ✅ |
 | 🟡 P3 | [x] Kiosk: ปุ่ม "Open Locker" → call API (stub `/api/lockers/<id>/open/` พร้อม) | S3 | ✅ |
@@ -555,7 +555,7 @@ flowchart TD
 - [ ] อัปเดตโดย DevOps:
 - [ ] อัปเดตโดย Backend A:
 - [ ] อัปเดตโดย Backend B:
-- [ ] อัปเดตโดย Frontend A:
+- [x] อัปเดตโดย Frontend A: ทำ `/register` ครบ — LINE LIFF integration (dev fallback), HTMX cascade Project→Building→Room ดึง DB จริง, บันทึก LineUser ผ่าน `POST /api/users/register/`, Success/Error/Loading state ครบ
 - [ ] อัปเดตโดย Frontend B:
 
 **% ที่ทำได้จริง sprint นี้:** `20 %`
