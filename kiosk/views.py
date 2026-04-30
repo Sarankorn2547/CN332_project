@@ -1,7 +1,9 @@
+import json
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 from django.views.decorators.csrf import csrf_exempt
+from foodlocker.models import Project, Building, Room, LineUser
 
 
 # ============================================================================
@@ -22,11 +24,8 @@ def kiosk_home(request):
 
 @require_GET
 def registration_page(request):
-    """
-    User registration page with LINE LIFF integration
-    Allows residents to register their account through LINE
-    """
-    return render(request, 'registration/register.html')
+    projects = Project.objects.all().order_by('name')
+    return render(request, 'registration/register.html', {'projects': projects})
 
 
 # ============================================================================
@@ -130,29 +129,15 @@ def security_master_access(request):
 
 @require_GET
 def htmx_get_buildings(request):
-    """
-    HTMX endpoint: Get buildings for selected project
-    Returns <option> elements for building dropdown
-    """
     project_id = request.GET.get('project_id')
-    # TODO: Fetch buildings from database
-    # buildings = Building.objects.filter(project_id=project_id)
-    return render(request, 'fragments/building_options.html', {
-        'buildings': []  # Placeholder
-    })
+    buildings = Building.objects.filter(project_id=project_id).order_by('name') if project_id else []
+    return render(request, 'fragments/building_options.html', {'buildings': buildings})
 
 @require_GET
 def htmx_get_rooms(request):
-    """
-    HTMX endpoint: Get rooms for selected building
-    Returns <option> elements for room dropdown
-    """
     building_id = request.GET.get('building_id')
-    # TODO: Fetch rooms from database
-    # rooms = Room.objects.filter(building_id=building_id)
-    return render(request, 'fragments/room_options.html', {
-        'rooms': []  # Placeholder
-    })
+    rooms = Room.objects.filter(building_id=building_id).order_by('floor', 'unit_number') if building_id else []
+    return render(request, 'fragments/room_options.html', {'rooms': rooms})
 
 @require_GET
 def htmx_get_locker_sizes(request):
@@ -280,13 +265,36 @@ def api_verify_qr(request):
 @csrf_exempt
 @require_POST
 def api_register_user(request):
-    """POST /kiosk/api/users/register/
-    บันทึกผู้ใช้ใหม่จากหน้า LINE LIFF registration
-    """
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
         return JsonResponse({'detail': 'Invalid JSON'}, status=400)
 
-    # TODO: validate + บันทึก User model
+    line_user_id = data.get('line_user_id')
+    project_id = data.get('project_id')
+    building_id = data.get('building_id')
+    room_no = data.get('room_no')
+    display_name = data.get('display_name')
+
+    if not all([line_user_id, project_id, building_id, room_no, display_name]):
+        return JsonResponse({'detail': 'กรุณากรอกข้อมูลให้ครบทุกช่อง'}, status=400)
+
+    if LineUser.objects.filter(line_user_id=line_user_id).exists():
+        return JsonResponse({'detail': 'ผู้ใช้นี้ลงทะเบียนแล้ว'}, status=400)
+
+    try:
+        project = Project.objects.get(id=project_id)
+        building = Building.objects.get(id=building_id, project=project)
+    except Project.DoesNotExist:
+        return JsonResponse({'detail': 'ไม่พบโครงการ'}, status=404)
+    except Building.DoesNotExist:
+        return JsonResponse({'detail': 'ไม่พบอาคาร'}, status=404)
+
+    LineUser.objects.create(
+        line_user_id=line_user_id,
+        project=project,
+        building=building,
+        room_no=room_no,
+        display_name=display_name,
+    )
     return JsonResponse({'status': 'registered'})
