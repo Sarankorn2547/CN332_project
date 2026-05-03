@@ -135,7 +135,7 @@ Direct Links to Screens:
 | Role | Sprint 1 | Sprint 2 | Sprint 3 | Sprint 4 | Sprint 5 | Total |
 |------|----------|----------|----------|----------|----------|-------|
 | DevOps | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **20%** |
-| Backend A | ✅ 100% | 🔄 25% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **25%** |
+| Backend A | ✅ 100% | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **40%** |
 | Backend B | ✅ 100% | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **40%** |
 | Frontend A | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
 | Frontend B | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
@@ -460,8 +460,8 @@ flowchart TD
 | 🔴 P1 | [x] Seed script (`seed_data` management command) | S1 | ✅ |
 | 🟠 P2 | [x] `POST /api/users/register/` | S2 | ✅ |
 | 🟠 P2 | [x] `GET /api/users/status/?line_user_id=` | S2 | ✅ |
-| 🟠 P2 | [ ] Authentication/Session (JWT simplejwt) | S2 | ⬜ |
-| 🟠 P2 | [ ] Tests: User registration flow (pytest-django) | S2 | ⬜ |
+| 🟠 P2 | [x] Authentication/Session (JWT simplejwt) | S2 | ✅ |
+| 🟠 P2 | [x] Tests: User registration flow (pytest-django) | S2 | ✅ |
 | 🟡 P3 | [ ] `GET /api/lockers/` (list by building) | S3 | ⬜ |
 | 🟡 P3 | [ ] `GET /api/lockers/{id}/` (locker detail) | S3 | ⬜ |
 | 🟡 P3 | [ ] `PUT /api/lockers/{id}/` (admin update) | S3 | ⬜ |
@@ -590,7 +590,7 @@ flowchart TD
 ### ✏️ Sprint 2 — Update (Week 3-4)
 
 - [ ] อัปเดตโดย DevOps:
-- [ ] อัปเดตโดย Backend A:
+- [x] อัปเดตโดย Backend A: Implemented JWT authentication using `djangorestframework-simplejwt`. Added `POST /api/token/` (issue token by `line_user_id`) and `POST /api/token/refresh/`. Protected locker operation endpoints (`book`, `open`, `deposit`, `verify-qr`, `pickup`) with `IsAuthenticated`. Added custom `LineUserJWTAuthentication` to resolve tokens against `LineUser` model. Set up `pytest-django` with 13 passing tests covering registration flow and JWT auth flow.
 - [x] อัปเดตโดย Backend B: Implemented Master API filters, and the verify_qr and pickup_locker state machine and API endpoints. 
 - [ ] อัปเดตโดย Frontend A:
 - [ ] อัปเดตโดย Frontend B:
