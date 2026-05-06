@@ -1,5 +1,5 @@
 import pytest
-from foodlocker.models import Project, Building, LineUser
+from foodlocker.models import Project, Building, LineUser, Locker
 
 
 @pytest.fixture
@@ -20,4 +20,21 @@ def line_user(db, project, building):
         building=building,
         room_no='101',
         display_name='Test User',
+    )
+
+
+@pytest.fixture
+def locker(db, building):
+    return Locker.objects.create(
+        id='lck-001',
+        building=building,
+        local_id='1',
+        size='M',
+        status='AVAILABLE',
+        type='FOOD',
+        passcode='',
+        qr_data='',
+        is_door_open=False,
+        has_object=False,
+        is_locked=True,
     )
