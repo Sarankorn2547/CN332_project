@@ -1,23 +1,115 @@
 {% extends "base.html" %}
 
-{% block title %}Master Access - Security{% endblock %}
+{% block title %}Master Access - เจ้าหน้าที่{% endblock %}
 
 {% block content %}
-<div class="container mx-auto p-4">
-    <h1 class="text-2xl font-bold mb-4">รปภ./เจ้าหน้าที่ - Master Access</h1>
-    
-    <!-- TODO: Implement master QR code scanner -->
-    <div class="bg-yellow-100 border border-yellow-400 p-4 rounded mb-4">
-        <p class="text-yellow-800 font-bold">⚠️ สำหรับเจ้าหน้าที่เท่านั้น</p>
-        <p class="text-yellow-700">การใช้งานทุกครั้งจะถูกบันทึกในระบบ</p>
+<div class="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 flex items-center justify-center p-4"
+     x-data="masterAccess()"
+     x-init="startCamera()"
+     @beforeunload.window="cleanup()">
+
+  <div class="w-full max-w-sm">
+
+    <!-- Header -->
+    <div class="text-center mb-4">
+      <div class="text-5xl mb-3">🔑</div>
+      <h1 class="text-3xl font-bold text-gray-800">Master Access</h1>
+      <p class="text-gray-500 mt-1">สำหรับเจ้าหน้าที่ / รปภ. เท่านั้น</p>
     </div>
-    
-    <div class="bg-gray-200 h-64 flex items-center justify-center rounded">
-        <p class="text-gray-600">🔑 Master QR Code scanner will appear here</p>
+
+    <!-- Warning banner -->
+    <div class="bg-amber-50 border-2 border-amber-400 rounded-2xl p-4 mb-4 flex items-start gap-3">
+      <span class="text-2xl">⚠️</span>
+      <div>
+        <p class="font-bold text-amber-800">การใช้งานทุกครั้งจะถูกบันทึก</p>
+        <p class="text-amber-700 text-sm mt-0.5">ใช้เฉพาะกรณีฉุกเฉินหรือ QR Code ของลูกบ้านใช้งานไม่ได้</p>
+      </div>
     </div>
-    
-    <div class="mt-4">
-        <a href="{% url 'kiosk:home' %}" class="bg-gray-300 text-gray-700 px-4 py-2 rounded">← กลับหน้าหลัก</a>
+
+    <!-- Camera viewfinder -->
+    <div class="bg-white rounded-2xl shadow-lg border-2 border-amber-200 overflow-hidden mb-4">
+      <div class="relative aspect-square bg-black">
+        <video x-ref="video" x-show="!cameraError"
+               autoplay playsinline class="w-full h-full object-cover"></video>
+
+        <!-- Scan overlay -->
+        <div x-show="!cameraError" class="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div class="w-48 h-48 border-4 border-amber-400 rounded-2xl opacity-80">
+            <div class="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-amber-500 rounded-tl-xl"></div>
+            <div class="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-amber-500 rounded-tr-xl"></div>
+            <div class="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-amber-500 rounded-bl-xl"></div>
+            <div class="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-amber-500 rounded-br-xl"></div>
+          </div>
+        </div>
+
+        <!-- Camera error -->
+        <div x-show="cameraError"
+             class="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 text-white p-6 text-center">
+          <span class="text-4xl mb-3">📷</span>
+          <p class="font-bold">เปิดกล้องไม่ได้</p>
+          <p class="text-gray-300 text-sm mt-1" x-text="cameraError"></p>
+        </div>
+
+        <!-- Scanning indicator -->
+        <div x-show="!cameraError"
+             class="absolute bottom-3 left-0 right-0 flex justify-center">
+          <div class="bg-black/60 text-white text-xs px-3 py-1 rounded-full flex items-center gap-2">
+            <div class="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
+            สแกน Master QR...
+          </div>
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div x-show="statusMsg"
+           x-transition
+           class="px-4 py-3 text-center text-sm font-medium"
+           :class="statusType === 'error' ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'"
+           x-text="statusMsg">
+      </div>
     </div>
+
+    <!-- Back -->
+    <div class="text-center">
+      <a href="{% url 'kiosk:home' %}"
+         class="text-gray-500 hover:text-gray-700 text-sm underline underline-offset-2">
+        ← กลับหน้าหลัก
+      </a>
+    </div>
+
+  </div>
 </div>
+
+<canvas id="master-canvas" class="hidden"></canvas>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function masterAccess() {
+  return {
+    stream: null,
+    cameraError: '',
+    statusMsg: '',
+    statusType: '',
+
+    async startCamera() {
+      try {
+        this.stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' }
+        });
+        this.$refs.video.srcObject = this.stream;
+      } catch (e) {
+        this.cameraError = e.message || 'กรุณาอนุญาตให้ใช้กล้อง';
+      }
+    },
+
+    cleanup() {
+      if (this.stream) {
+        this.stream.getTracks().forEach(t => t.stop());
+        this.stream = null;
+      }
+    },
+  };
+}
+</script>
 {% endblock %}

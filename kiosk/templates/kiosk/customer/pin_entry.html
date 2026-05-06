@@ -1,26 +1,174 @@
 {% extends "base.html" %}
 
-{% block title %}กรอกรหัส PIN - Customer{% endblock %}
+{% block title %}กรอกรหัส PIN - ลูกบ้าน{% endblock %}
 
 {% block content %}
-<div class="container mx-auto p-4">
-    <h1 class="text-2xl font-bold mb-4">ลูกบ้าน - กรอกรหัส PIN</h1>
-    
-    <!-- TODO: Implement numeric keypad for PIN entry -->
-    <div class="bg-gray-100 p-8 rounded mb-4">
-        <p class="text-center text-gray-600 mb-4">กรอกรหัส PIN 4 หลัก</p>
-        <div class="text-center text-4xl font-bold tracking-widest">
-            ••••
-        </div>
+<div class="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 flex items-center justify-center p-4"
+     x-data="pinEntry()">
+
+  <div class="w-full max-w-sm">
+
+    <!-- Header -->
+    <div class="text-center mb-6">
+      <div class="text-sm text-gray-500 mb-1">Step 2 of 3</div>
+      <h1 class="text-3xl font-bold text-gray-800">กรอกรหัส PIN</h1>
+      <p class="text-gray-500 mt-1">รหัส 4 หลักที่ได้รับจากไรเดอร์</p>
     </div>
-    
-    <div class="mt-4 space-y-2">
-        <a href="{% url 'kiosk:customer_qr_scan' %}" class="block bg-gray-500 text-white px-4 py-2 rounded text-center">
-            📷 สแกน QR แทน
-        </a>
-        <a href="{% url 'kiosk:customer_method_select' %}" class="block bg-gray-300 text-gray-700 px-4 py-2 rounded text-center">
-            ← กลับ
-        </a>
+
+    <!-- PIN Display -->
+    <div class="bg-white rounded-2xl shadow-lg p-6 mb-6 border-2 border-primary-200">
+      <div class="flex justify-center gap-4">
+        <template x-for="i in 4" :key="i">
+          <div class="w-14 h-14 rounded-xl border-2 flex items-center justify-center text-3xl font-bold transition-all"
+               :class="pin.length >= i
+                 ? 'border-primary-500 bg-primary-50 text-primary-800'
+                 : 'border-gray-300 bg-gray-50 text-gray-300'">
+            <span x-text="pin.length >= i ? '●' : '○'"></span>
+          </div>
+        </template>
+      </div>
+
+      <!-- Error message -->
+      <div x-show="errorMsg"
+           x-transition
+           class="mt-4 text-center text-red-600 text-sm font-medium"
+           x-text="errorMsg">
+      </div>
     </div>
+
+    <!-- Numeric Keypad -->
+    <div class="bg-white rounded-2xl shadow-lg p-4 border-2 border-primary-200">
+      <div class="grid grid-cols-3 gap-3">
+
+        <!-- 1–9 -->
+        <template x-for="n in [1,2,3,4,5,6,7,8,9]" :key="n">
+          <button @click="press(n)"
+                  :disabled="pin.length >= 4 || loading"
+                  class="btn-touch h-16 rounded-xl text-2xl font-bold
+                         bg-white border-2 border-gray-200 text-gray-800
+                         hover:bg-primary-50 hover:border-primary-400 hover:text-primary-700
+                         active:scale-95 active:bg-primary-100
+                         disabled:opacity-40 disabled:cursor-not-allowed
+                         transition-all shadow-sm"
+                  x-text="n">
+          </button>
+        </template>
+
+        <!-- QR switch -->
+        <a href="{% url 'kiosk:customer_qr_scan' %}"
+           class="btn-touch h-16 rounded-xl text-xl font-bold
+                  bg-white border-2 border-gray-200 text-gray-500
+                  hover:bg-gray-50 hover:border-gray-400
+                  active:scale-95 transition-all shadow-sm
+                  flex items-center justify-center">
+          📷
+        </a>
+
+        <!-- 0 -->
+        <button @click="press(0)"
+                :disabled="pin.length >= 4 || loading"
+                class="btn-touch h-16 rounded-xl text-2xl font-bold
+                       bg-white border-2 border-gray-200 text-gray-800
+                       hover:bg-primary-50 hover:border-primary-400 hover:text-primary-700
+                       active:scale-95 active:bg-primary-100
+                       disabled:opacity-40 disabled:cursor-not-allowed
+                       transition-all shadow-sm">
+          0
+        </button>
+
+        <!-- Backspace -->
+        <button @click="backspace()"
+                :disabled="pin.length === 0 || loading"
+                class="btn-touch h-16 rounded-xl text-2xl font-bold
+                       bg-white border-2 border-gray-200 text-gray-500
+                       hover:bg-red-50 hover:border-red-300 hover:text-red-600
+                       active:scale-95 transition-all shadow-sm
+                       disabled:opacity-40 disabled:cursor-not-allowed">
+          ⌫
+        </button>
+
+      </div>
+
+      <!-- Submit / Loading -->
+      <button @click="submit()"
+              :disabled="pin.length < 4 || loading"
+              class="mt-4 w-full btn-touch h-14 rounded-xl text-xl font-bold
+                     bg-gradient-to-r from-primary-600 to-primary-500 text-white
+                     hover:from-primary-700 hover:to-primary-600
+                     active:scale-95 transition-all shadow-md
+                     disabled:opacity-40 disabled:cursor-not-allowed">
+        <span x-show="!loading">ยืนยัน</span>
+        <span x-show="loading" class="flex items-center justify-center gap-2">
+          <svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg>
+          กำลังตรวจสอบ...
+        </span>
+      </button>
+    </div>
+
+    <!-- Back -->
+    <div class="mt-4 text-center">
+      <a href="{% url 'kiosk:customer_method_select' %}"
+         class="text-gray-500 hover:text-gray-700 text-sm underline underline-offset-2">
+        ← กลับเลือกวิธียืนยัน
+      </a>
+    </div>
+
+  </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function pinEntry() {
+  return {
+    pin: '',
+    loading: false,
+    errorMsg: '',
+
+    press(digit) {
+      if (this.pin.length >= 4) return;
+      this.pin += digit;
+      this.errorMsg = '';
+      if (this.pin.length === 4) this.submit();
+    },
+
+    backspace() {
+      this.pin = this.pin.slice(0, -1);
+      this.errorMsg = '';
+    },
+
+    async submit() {
+      if (this.pin.length < 4 || this.loading) return;
+      this.loading = true;
+      this.errorMsg = '';
+      try {
+        const res = await fetch('/api/lockers/verify-qr/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content,
+          },
+          body: JSON.stringify({ code: this.pin }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.valid) {
+          this.errorMsg = 'รหัส PIN ไม่ถูกต้อง กรุณาลองใหม่';
+          this.pin = '';
+          this.loading = false;
+          return;
+        }
+        sessionStorage.setItem('pickup', JSON.stringify(data));
+        window.location.href = '{% url "kiosk:customer_success" %}';
+      } catch (e) {
+        this.errorMsg = 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่';
+        this.pin = '';
+        this.loading = false;
+      }
+    },
+  };
+}
+</script>
 {% endblock %}

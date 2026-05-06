@@ -1,76 +1,94 @@
 {% extends "base.html" %}
 
-{% block title %}QR Code และ PIN - Rider{% endblock %}
+{% block title %}QR Code และ PIN - ไรเดอร์{% endblock %}
 
 {% block content %}
-<div class="container mx-auto p-4 font-thai" x-data="qrDisplay()" x-init="init()">
-    <div class="text-center text-gray-600 mb-2">Step 2 of 4</div>
-    <h1 class="text-2xl font-bold mb-4 text-center">ไรเดอร์ - แสดง QR Code และ PIN</h1>
+<div class="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 flex items-center justify-center p-4"
+     x-data="qrDisplay()"
+     x-init="init()">
 
-    <div class="max-w-xl mx-auto text-center">
-        <!-- QR Code -->
-        <div class="bg-white p-4 rounded-lg shadow-lg inline-block">
-            <img :src="booking.qr_url" alt="QR Code" class="w-64 h-64 mx-auto">
-        </div>
+  <div class="w-full max-w-sm">
 
-        <!-- PIN -->
-        <div class="mt-6">
-            <div class="text-gray-500 text-sm">รหัส PIN</div>
-            <div class="text-7xl font-bold tracking-[0.3em] mt-2 text-primary-900"
-                 x-text="booking.pin"></div>
-        </div>
-
-        <!-- Locker ID -->
-        <div class="mt-4 text-2xl">
-            ตู้: <span class="font-bold" x-text="booking.locker_id"></span>
-        </div>
-
-        <!-- Warning / Instructions -->
-        <div class="mt-6 p-4 bg-primary-50 border-l-4 border-primary-500 text-left rounded">
-            <p class="font-bold text-primary-900">📸 กรุณาทำตามขั้นตอน</p>
-            <ol class="list-decimal ml-6 mt-2 text-sm">
-                <li>ถ่ายรูปหน้าจอนี้</li>
-                <li>ส่งรูปให้ลูกค้าทาง LINE</li>
-                <li>รอลูกค้ายืนยันก่อนกดปุ่มข้างล่าง</li>
-            </ol>
-        </div>
-
-        <!-- Buttons -->
-        <div class="mt-6 flex gap-4">
-            <a href="{% url 'kiosk:home' %}"
-               class="btn-touch flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-3 rounded text-center">
-                ยกเลิก
-            </a>
-            <a href="{% url 'kiosk:rider_confirm' %}"
-               class="btn-touch flex-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-3 rounded font-bold text-center">
-                ส่งรูปแล้ว →
-            </a>
-        </div>
-
-        <div class="mt-4">
-            <a href="{% url 'kiosk:rider_select_size' %}"
-               class="text-sm text-gray-500 hover:text-gray-700">← กลับ (เลือกขนาดใหม่)</a>
-        </div>
+    <!-- Header -->
+    <div class="text-center mb-4">
+      <div class="text-sm text-gray-500 mb-1">Step 2 of 4</div>
+      <h1 class="text-3xl font-bold text-gray-800">QR Code และ PIN</h1>
+      <p class="text-gray-500 mt-1">ถ่ายรูปหน้าจอนี้แล้วส่งให้ลูกค้า</p>
     </div>
+
+    <!-- QR + PIN card -->
+    <div class="bg-white rounded-2xl shadow-lg border-2 border-primary-100 p-6 mb-4 text-center">
+
+      <!-- QR Code -->
+      <div class="inline-block bg-gray-50 rounded-xl p-4 border border-gray-200 mb-4">
+        <img :src="booking.qr_url || '/static/images/logo-placeholder.txt'"
+             alt="QR Code"
+             class="w-48 h-48 mx-auto object-contain">
+      </div>
+
+      <!-- PIN -->
+      <div class="mb-3">
+        <div class="text-gray-500 text-sm mb-1">รหัส PIN</div>
+        <div class="text-6xl font-bold tracking-[0.25em] text-primary-900"
+             x-text="booking.pin || '----'"></div>
+      </div>
+
+      <!-- Locker ID -->
+      <div class="bg-primary-50 rounded-xl py-2 px-4 inline-block">
+        <span class="text-gray-500 text-sm">ตู้หมายเลข: </span>
+        <span class="font-bold text-primary-800" x-text="booking.locker_id || '--'"></span>
+      </div>
+    </div>
+
+    <!-- Instruction -->
+    <div class="bg-amber-50 border-l-4 border-amber-400 rounded-xl p-4 mb-4">
+      <p class="font-bold text-amber-800 mb-1">📸 ขั้นตอนต่อไป</p>
+      <ol class="list-decimal ml-5 text-sm text-amber-700 space-y-0.5">
+        <li>ถ่ายรูปหน้าจอนี้</li>
+        <li>ส่งรูปให้ลูกค้าทาง LINE</li>
+        <li>รอลูกค้ายืนยันก่อนกด "ส่งรูปแล้ว"</li>
+      </ol>
+    </div>
+
+    <!-- Buttons -->
+    <div class="flex gap-3 mb-4">
+      <a href="{% url 'kiosk:home' %}"
+         class="flex-1 btn-touch bg-white border-2 border-gray-200 text-gray-600 font-medium
+                py-3 rounded-xl text-center hover:bg-gray-50 active:scale-95 transition-all">
+        ยกเลิก
+      </a>
+      <a href="{% url 'kiosk:rider_confirm' %}"
+         class="flex-1 btn-touch bg-gradient-to-r from-primary-600 to-primary-500 text-white font-bold
+                py-3 rounded-xl text-center hover:from-primary-700 hover:to-primary-600 active:scale-95 transition-all shadow-md">
+        ส่งรูปแล้ว →
+      </a>
+    </div>
+
+    <div class="text-center">
+      <a href="{% url 'kiosk:rider_select_size' %}"
+         class="text-gray-400 hover:text-gray-600 text-sm underline underline-offset-2">
+        ← เลือกขนาดใหม่
+      </a>
+    </div>
+
+  </div>
 </div>
 
 <script>
 function qrDisplay() {
-    return {
-        booking: { qr_url: '', pin: '----', locker_id: '--' },
+  return {
+    booking: { qr_url: '', pin: '----', locker_id: '--' },
 
-        init() {
-            const data = sessionStorage.getItem('booking');
-            if (!data) {
-                Alpine.store('toast').error('ไม่พบข้อมูลการจอง');
-                setTimeout(() => {
-                    window.location.href = '{% url "kiosk:home" %}';
-                }, 2000);
-                return;
-            }
-            this.booking = JSON.parse(data);
-        }
-    };
+    init() {
+      const data = sessionStorage.getItem('booking');
+      if (!data) {
+        Alpine.store('toast').error('ไม่พบข้อมูลการจอง');
+        setTimeout(() => { window.location.href = '{% url "kiosk:home" %}'; }, 2000);
+        return;
+      }
+      this.booking = JSON.parse(data);
+    }
+  };
 }
 </script>
 {% endblock %}

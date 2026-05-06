@@ -1,130 +1,156 @@
 {% extends "base.html" %}
 
-{% block title %}ฝากอาหาร - Rider{% endblock %}
+{% block title %}ฝากอาหาร - ไรเดอร์{% endblock %}
 
 {% block content %}
-<div class="container mx-auto p-4 font-thai"
+<div class="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 flex items-center justify-center p-4"
      x-data="depositCapture()"
      x-init="startCamera()"
      @beforeunload.window="cleanup()">
-    <div class="text-center text-gray-600 mb-2">Step 4 of 4</div>
-    <h1 class="text-2xl font-bold mb-2 text-center">ไรเดอร์ - ฝากอาหารและถ่ายรูป</h1>
-    <p class="text-center text-success-600 mb-6 font-medium">✅ ตู้เปิดเรียบร้อยแล้ว</p>
 
-    <div class="max-w-xl mx-auto">
-        <!-- Instructions -->
-        <ol class="bg-primary-50 border-l-4 border-primary-500 p-4 rounded mb-6 list-decimal ml-6 text-sm">
-            <li>วางอาหารในตู้</li>
-            <li>ปิดประตูตู้</li>
-            <li>ถ่ายรูปยืนยันการฝาก</li>
-            <li>กดปุ่ม "เสร็จสิ้น"</li>
-        </ol>
+  <div class="w-full max-w-sm">
 
-        <!-- Camera / Photo preview -->
-        <div class="bg-black rounded-lg overflow-hidden aspect-video shadow-lg">
-            <video x-ref="video" x-show="!photoTaken"
-                   autoplay playsinline class="w-full h-full object-cover"></video>
-            <img x-show="photoTaken" :src="photoData"
-                 class="w-full h-full object-cover" alt="ภาพที่ถ่าย">
-        </div>
-        <canvas x-ref="canvas" class="hidden"></canvas>
-
-        <!-- Camera permission error -->
-        <div x-show="cameraError"
-             class="mt-4 p-3 bg-danger-50 border-l-4 border-danger-500 text-sm rounded">
-            <p class="font-bold text-danger-700">ไม่สามารถเปิดกล้องได้</p>
-            <p x-text="cameraError"></p>
-        </div>
-
-        <!-- Action buttons -->
-        <div class="mt-4">
-            <template x-if="!photoTaken && !cameraError">
-                <button @click="takePhoto()"
-                        class="btn-touch w-full bg-primary-600 hover:bg-primary-700 text-white px-4 py-3 rounded font-bold">
-                    📷 ถ่ายรูปยืนยัน
-                </button>
-            </template>
-
-            <template x-if="photoTaken">
-                <div class="flex gap-3">
-                    <button @click="retake()"
-                            class="btn-touch flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-3 rounded">
-                        ถ่ายใหม่
-                    </button>
-                    <button @click="submit()"
-                            :disabled="submitting"
-                            class="btn-touch flex-1 bg-success-600 hover:bg-success-700 text-white px-4 py-3 rounded font-bold disabled:bg-gray-400">
-                        <span x-show="!submitting">เสร็จสิ้น ✓</span>
-                        <span x-show="submitting">กำลังบันทึก...</span>
-                    </button>
-                </div>
-            </template>
-        </div>
-
-        <div class="mt-6">
-            <a href="{% url 'kiosk:rider_confirm' %}"
-               class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm inline-block">← กลับ</a>
-        </div>
+    <!-- Header -->
+    <div class="text-center mb-4">
+      <div class="text-sm text-gray-500 mb-1">Step 4 of 4</div>
+      <h1 class="text-3xl font-bold text-gray-800">ฝากอาหารและถ่ายรูป</h1>
+      <p class="text-success-600 font-medium mt-1">✅ ตู้เปิดเรียบร้อยแล้ว</p>
     </div>
+
+    <!-- Instruction -->
+    <div class="bg-primary-50 border-l-4 border-primary-400 rounded-xl p-4 mb-4">
+      <ol class="list-decimal ml-4 text-sm text-primary-800 space-y-0.5">
+        <li>วางอาหารในตู้</li>
+        <li>ปิดประตูตู้</li>
+        <li>ถ่ายรูปยืนยันการฝาก</li>
+        <li>กดปุ่ม "เสร็จสิ้น"</li>
+      </ol>
+    </div>
+
+    <!-- Camera card -->
+    <div class="bg-white rounded-2xl shadow-lg border-2 border-primary-100 overflow-hidden mb-4">
+      <div class="relative bg-black aspect-video">
+        <video x-ref="video" x-show="!photoTaken"
+               autoplay playsinline class="w-full h-full object-cover"></video>
+        <img x-show="photoTaken" :src="photoData"
+             class="w-full h-full object-cover" alt="ภาพยืนยัน">
+
+        <!-- Camera error -->
+        <div x-show="cameraError"
+             class="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 text-white p-6 text-center">
+          <span class="text-4xl mb-2">📷</span>
+          <p class="font-bold">เปิดกล้องไม่ได้</p>
+          <p class="text-gray-300 text-sm mt-1" x-text="cameraError"></p>
+        </div>
+      </div>
+
+      <!-- Buttons inside card -->
+      <div class="p-4">
+        <template x-if="!photoTaken && !cameraError">
+          <button @click="takePhoto()"
+                  class="btn-touch w-full bg-gradient-to-r from-primary-600 to-primary-500 text-white
+                         font-bold py-3 rounded-xl shadow-md hover:from-primary-700 hover:to-primary-600
+                         active:scale-95 transition-all">
+            📷 ถ่ายรูปยืนยัน
+          </button>
+        </template>
+
+        <template x-if="photoTaken">
+          <div class="flex gap-3">
+            <button @click="retake()"
+                    class="btn-touch flex-1 bg-white border-2 border-gray-200 text-gray-600 font-medium
+                           py-3 rounded-xl hover:bg-gray-50 active:scale-95 transition-all">
+              ถ่ายใหม่
+            </button>
+            <button @click="submitDeposit()"
+                    :disabled="submitting"
+                    class="btn-touch flex-1 bg-gradient-to-r from-success-600 to-success-500 text-white
+                           font-bold py-3 rounded-xl shadow-md active:scale-95 transition-all
+                           disabled:opacity-40 disabled:cursor-not-allowed">
+              <span x-show="!submitting">เสร็จสิ้น ✓</span>
+              <span x-show="submitting" class="flex items-center justify-center gap-2">
+                <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                บันทึก...
+              </span>
+            </button>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <canvas x-ref="canvas" class="hidden"></canvas>
+
+    <!-- Back -->
+    <div class="text-center">
+      <a href="{% url 'kiosk:rider_confirm' %}"
+         class="text-gray-400 hover:text-gray-600 text-sm underline underline-offset-2">
+        ← กลับ
+      </a>
+    </div>
+
+  </div>
 </div>
 
 <script>
 function depositCapture() {
-    return {
-        stream: null,
-        photoTaken: false,
-        photoData: '',
-        submitting: false,
-        cameraError: '',
+  return {
+    stream: null,
+    photoTaken: false,
+    photoData: '',
+    submitting: false,
+    cameraError: '',
 
-        async startCamera() {
-            try {
-                this.stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment' }
-                });
-                this.$refs.video.srcObject = this.stream;
-            } catch (e) {
-                this.cameraError = e.message || 'กรุณาอนุญาตให้ใช้กล้อง';
-            }
-        },
+    async startCamera() {
+      try {
+        this.stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' }
+        });
+        this.$refs.video.srcObject = this.stream;
+      } catch (e) {
+        this.cameraError = e.message || 'กรุณาอนุญาตให้ใช้กล้อง';
+      }
+    },
 
-        takePhoto() {
-            const video = this.$refs.video;
-            const canvas = this.$refs.canvas;
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            this.photoData = canvas.toDataURL('image/jpeg', 0.7);
-            this.photoTaken = true;
-        },
+    takePhoto() {
+      const video = this.$refs.video;
+      const canvas = this.$refs.canvas;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      this.photoData = canvas.toDataURL('image/jpeg', 0.7);
+      this.photoTaken = true;
+    },
 
-        retake() {
-            this.photoTaken = false;
-            this.photoData = '';
-        },
+    retake() {
+      this.photoTaken = false;
+      this.photoData = '';
+    },
 
-        async submit() {
-            this.submitting = true;
-            const booking = JSON.parse(sessionStorage.getItem('booking') || '{}');
-            try {
-                const url = `/kiosk/api/lockers/${booking.locker_id}/deposit/`;
-                await this.$api.post(url, { photo: this.photoData });
-                this.cleanup();
-                sessionStorage.setItem('deposit_time', new Date().toISOString());
-                window.location.href = '{% url "kiosk:rider_success" %}';
-            } catch (e) {
-                Alpine.store('toast').error('บันทึกไม่สำเร็จ: ' + e.message);
-                this.submitting = false;
-            }
-        },
+    async submitDeposit() {
+      this.submitting = true;
+      const booking = JSON.parse(sessionStorage.getItem('booking') || '{}');
+      try {
+        const url = `/api/lockers/${booking.locker_id}/deposit/`;
+        await this.$api.post(url, { photo: this.photoData });
+        this.cleanup();
+        sessionStorage.setItem('deposit_time', new Date().toISOString());
+        window.location.href = '{% url "kiosk:rider_success" %}';
+      } catch (e) {
+        Alpine.store('toast').error('บันทึกไม่สำเร็จ: ' + e.message);
+        this.submitting = false;
+      }
+    },
 
-        cleanup() {
-            if (this.stream) {
-                this.stream.getTracks().forEach(t => t.stop());
-                this.stream = null;
-            }
-        }
-    };
+    cleanup() {
+      if (this.stream) {
+        this.stream.getTracks().forEach(t => t.stop());
+        this.stream = null;
+      }
+    }
+  };
 }
 </script>
 {% endblock %}

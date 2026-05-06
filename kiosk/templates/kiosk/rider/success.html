@@ -1,85 +1,100 @@
 {% extends "base.html" %}
 
-{% block title %}ส่งมอบสำเร็จ - Rider{% endblock %}
+{% block title %}ส่งมอบสำเร็จ - ไรเดอร์{% endblock %}
 
 {% block content %}
-<div class="container mx-auto p-4 font-thai" x-data="successScreen()" x-init="init()">
-    <div class="max-w-xl mx-auto text-center">
-        <!-- Checkmark -->
-        <div class="text-6xl mb-2">✅</div>
-        <h1 class="text-3xl font-bold text-success-600 mb-6">✓ ส่งมอบสำเร็จ!</h1>
+<div class="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 flex items-center justify-center p-4"
+     x-data="riderSuccess()"
+     x-init="init()">
 
-        <!-- Transaction summary -->
-        <div class="bg-white rounded-lg shadow-lg p-6 text-left space-y-3">
-            <div class="flex justify-between">
-                <span class="text-gray-600">หมายเลขตู้:</span>
-                <span class="font-bold" x-text="booking.locker_id || '-'"></span>
-            </div>
-            <div class="flex justify-between">
-                <span class="text-gray-600">รหัส PIN:</span>
-                <span class="font-bold" x-text="booking.pin || '-'"></span>
-            </div>
-            <div class="flex justify-between">
-                <span class="text-gray-600">เวลาฝาก:</span>
-                <span x-text="formattedTime"></span>
-            </div>
-            <div class="flex justify-between">
-                <span class="text-gray-600">รูปยืนยัน:</span>
-                <span class="text-success-600 font-medium">✓ บันทึกแล้ว</span>
-            </div>
-        </div>
+  <div class="w-full max-w-sm">
 
-        <!-- Auto-redirect notice -->
-        <div class="mt-6 text-gray-600">
-            กำลังกลับสู่หน้าหลักใน
-            <span x-text="countdown" class="font-bold text-primary-700"></span> วินาที
-        </div>
-
-        <a href="{% url 'kiosk:home' %}"
-           class="btn-touch bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded inline-block mt-4 font-medium">
-            ← กลับหน้าหลัก
-        </a>
+    <!-- Success icon -->
+    <div class="text-center mb-6">
+      <div class="text-7xl mb-4">✅</div>
+      <h1 class="text-3xl font-bold text-success-700">ส่งมอบสำเร็จ!</h1>
+      <p class="text-gray-500 mt-1">อาหารถูกฝากในตู้เรียบร้อยแล้ว</p>
     </div>
+
+    <!-- Summary card -->
+    <div class="bg-white rounded-2xl shadow-lg border-2 border-success-100 p-6 mb-6 space-y-3">
+      <div class="flex justify-between items-center">
+        <span class="text-gray-500">หมายเลขตู้</span>
+        <span class="font-bold text-lg" x-text="booking.locker_id || '-'"></span>
+      </div>
+      <div class="border-t border-gray-100"></div>
+      <div class="flex justify-between items-center">
+        <span class="text-gray-500">รหัส PIN</span>
+        <span class="font-bold tracking-widest text-primary-800" x-text="booking.pin || '-'"></span>
+      </div>
+      <div class="border-t border-gray-100"></div>
+      <div class="flex justify-between items-center">
+        <span class="text-gray-500">เวลาฝาก</span>
+        <span x-text="formattedTime"></span>
+      </div>
+      <div class="border-t border-gray-100"></div>
+      <div class="flex justify-between items-center">
+        <span class="text-gray-500">รูปยืนยัน</span>
+        <span class="text-success-600 font-medium flex items-center gap-1">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+          </svg>
+          บันทึกแล้ว
+        </span>
+      </div>
+    </div>
+
+    <!-- Countdown -->
+    <div class="text-center mb-4">
+      <p class="text-gray-500 text-sm">
+        กลับหน้าหลักอัตโนมัติใน
+        <span class="font-bold text-primary-700" x-text="countdown"></span> วินาที
+      </p>
+    </div>
+
+    <a href="{% url 'kiosk:home' %}"
+       class="block w-full btn-touch text-center bg-gradient-to-r from-primary-600 to-primary-500 text-white
+              font-bold py-3 rounded-xl shadow-md hover:from-primary-700 hover:to-primary-600
+              active:scale-95 transition-all">
+      ← กลับหน้าหลัก
+    </a>
+
+  </div>
 </div>
 
 <script>
-function successScreen() {
-    return {
-        booking: {},
-        depositTime: '',
-        countdown: 10,
-        _interval: null,
+function riderSuccess() {
+  return {
+    booking: {},
+    depositTime: '',
+    countdown: 10,
+    _interval: null,
 
-        init() {
-            this.booking = JSON.parse(sessionStorage.getItem('booking') || '{}');
-            this.depositTime = sessionStorage.getItem('deposit_time') || new Date().toISOString();
+    init() {
+      this.booking = JSON.parse(sessionStorage.getItem('booking') || '{}');
+      this.depositTime = sessionStorage.getItem('deposit_time') || new Date().toISOString();
+      sessionStorage.removeItem('booking');
+      sessionStorage.removeItem('deposit_time');
 
-            // เคลียร์ session ของ flow นี้
-            sessionStorage.removeItem('booking');
-            sessionStorage.removeItem('deposit_time');
-
-            // นับถอยหลัง redirect
-            this._interval = setInterval(() => {
-                this.countdown--;
-                if (this.countdown <= 0) {
-                    clearInterval(this._interval);
-                    window.location.href = '{% url "kiosk:home" %}';
-                }
-            }, 1000);
-        },
-
-        get formattedTime() {
-            if (!this.depositTime) return '-';
-            try {
-                return new Date(this.depositTime).toLocaleString('th-TH', {
-                    year: 'numeric', month: 'long', day: 'numeric',
-                    hour: '2-digit', minute: '2-digit'
-                });
-            } catch (e) {
-                return this.depositTime;
-            }
+      this._interval = setInterval(() => {
+        this.countdown--;
+        if (this.countdown <= 0) {
+          clearInterval(this._interval);
+          window.location.href = '{% url "kiosk:home" %}';
         }
-    };
+      }, 1000);
+    },
+
+    get formattedTime() {
+      try {
+        return new Date(this.depositTime).toLocaleString('th-TH', {
+          hour: '2-digit', minute: '2-digit'
+        });
+      } catch (e) {
+        return '-';
+      }
+    }
+  };
 }
 </script>
 {% endblock %}

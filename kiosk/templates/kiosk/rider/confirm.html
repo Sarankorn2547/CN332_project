@@ -1,86 +1,114 @@
 {% extends "base.html" %}
 
-{% block title %}ยืนยันการส่งรูป - Rider{% endblock %}
+{% block title %}ยืนยันก่อนเปิดตู้ - ไรเดอร์{% endblock %}
 
 {% block content %}
-<div class="container mx-auto p-4 font-thai" x-data="confirmDialog()">
-    <div class="text-center text-gray-600 mb-2">Step 3 of 4</div>
-    <h1 class="text-2xl font-bold mb-4 text-center">ไรเดอร์ - ยืนยันก่อนเปิดตู้</h1>
+<div class="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 flex items-center justify-center p-4"
+     x-data="confirmDialog()">
 
-    <div class="max-w-xl mx-auto">
-        <!-- Checklist -->
-        <div class="bg-white rounded-lg shadow-lg p-6 space-y-4">
-            <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" x-model="checks.photo"
-                       class="w-6 h-6 accent-success-600">
-                <span class="text-lg">ถ่ายรูป QR และ PIN เรียบร้อยแล้ว</span>
-            </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" x-model="checks.sent"
-                       class="w-6 h-6 accent-success-600">
-                <span class="text-lg">ส่งรูปให้ลูกค้าทาง LINE แล้ว</span>
-            </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" x-model="checks.received"
-                       class="w-6 h-6 accent-success-600">
-                <span class="text-lg">ลูกค้ายืนยันว่าได้รับรูปแล้ว</span>
-            </label>
-        </div>
+  <div class="w-full max-w-sm">
 
-        <!-- Warning -->
-        <div class="mt-6 p-4 bg-danger-50 border-l-4 border-danger-500 rounded">
-            <p class="text-danger-700">
-                ⚠️ เมื่อกดปุ่ม "เปิดตู้" ระบบจะปลดล็อกทันที
-                กรุณาแน่ใจว่าทุกขั้นตอนเสร็จสิ้นแล้ว
-            </p>
-        </div>
-
-        <!-- Action buttons -->
-        <div class="mt-6 flex gap-4">
-            <a href="{% url 'kiosk:rider_qr_display' %}"
-               class="btn-touch flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-3 rounded text-center">
-                ← กลับ
-            </a>
-            <button @click="openLocker()"
-                    :disabled="!allChecked || submitting"
-                    :class="(allChecked && !submitting)
-                            ? 'bg-danger-600 hover:bg-danger-700'
-                            : 'bg-gray-300 cursor-not-allowed'"
-                    class="btn-touch flex-1 text-white px-4 py-3 rounded font-bold">
-                <span x-show="!submitting">เปิดตู้</span>
-                <span x-show="submitting">กำลังเปิด...</span>
-            </button>
-        </div>
+    <!-- Header -->
+    <div class="text-center mb-6">
+      <div class="text-sm text-gray-500 mb-1">Step 3 of 4</div>
+      <div class="text-4xl mb-2">✅</div>
+      <h1 class="text-3xl font-bold text-gray-800">ยืนยันก่อนเปิดตู้</h1>
+      <p class="text-gray-500 mt-1">ตรวจสอบให้ครบก่อนกดเปิด</p>
     </div>
+
+    <!-- Checklist card -->
+    <div class="bg-white rounded-2xl shadow-lg border-2 border-primary-100 p-6 mb-4 space-y-4">
+
+      <label class="flex items-center gap-4 cursor-pointer group">
+        <input type="checkbox" x-model="checks.photo" class="w-6 h-6 accent-success-600 rounded">
+        <span class="text-gray-700 text-lg group-hover:text-gray-900 transition-colors">
+          ถ่ายรูป QR และ PIN เรียบร้อยแล้ว
+        </span>
+      </label>
+
+      <div class="border-t border-gray-100"></div>
+
+      <label class="flex items-center gap-4 cursor-pointer group">
+        <input type="checkbox" x-model="checks.sent" class="w-6 h-6 accent-success-600 rounded">
+        <span class="text-gray-700 text-lg group-hover:text-gray-900 transition-colors">
+          ส่งรูปให้ลูกค้าทาง LINE แล้ว
+        </span>
+      </label>
+
+      <div class="border-t border-gray-100"></div>
+
+      <label class="flex items-center gap-4 cursor-pointer group">
+        <input type="checkbox" x-model="checks.received" class="w-6 h-6 accent-success-600 rounded">
+        <span class="text-gray-700 text-lg group-hover:text-gray-900 transition-colors">
+          ลูกค้ายืนยันว่าได้รับรูปแล้ว
+        </span>
+      </label>
+
+    </div>
+
+    <!-- Warning -->
+    <div class="bg-danger-50 border-l-4 border-danger-500 rounded-xl p-4 mb-6">
+      <p class="text-danger-700 text-sm">
+        ⚠️ เมื่อกดปุ่ม "เปิดตู้" ระบบจะปลดล็อกทันที กรุณาแน่ใจว่าทุกขั้นตอนเสร็จสิ้น
+      </p>
+    </div>
+
+    <!-- Buttons -->
+    <div class="flex gap-3">
+      <a href="{% url 'kiosk:rider_qr_display' %}"
+         class="flex-1 btn-touch bg-white border-2 border-gray-200 text-gray-600 font-medium
+                py-3 rounded-xl text-center hover:bg-gray-50 active:scale-95 transition-all">
+        ← กลับ
+      </a>
+      <button @click="openLocker()"
+              :disabled="!allChecked || submitting"
+              class="flex-1 btn-touch text-white font-bold py-3 rounded-xl shadow-md
+                     active:scale-95 transition-all
+                     disabled:opacity-40 disabled:cursor-not-allowed"
+              :class="allChecked && !submitting
+                ? 'bg-gradient-to-r from-danger-600 to-danger-500 hover:from-danger-700 hover:to-danger-600'
+                : 'bg-gray-300'">
+        <span x-show="!submitting">🔓 เปิดตู้</span>
+        <span x-show="submitting" class="flex items-center justify-center gap-2">
+          <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg>
+          กำลังเปิด...
+        </span>
+      </button>
+    </div>
+
+  </div>
 </div>
 
 <script>
 function confirmDialog() {
-    return {
-        checks: { photo: false, sent: false, received: false },
-        submitting: false,
+  return {
+    checks: { photo: false, sent: false, received: false },
+    submitting: false,
 
-        get allChecked() {
-            return this.checks.photo && this.checks.sent && this.checks.received;
-        },
+    get allChecked() {
+      return this.checks.photo && this.checks.sent && this.checks.received;
+    },
 
-        async openLocker() {
-            const booking = JSON.parse(sessionStorage.getItem('booking') || '{}');
-            if (!booking.locker_id) {
-                Alpine.store('toast').error('ไม่พบข้อมูลการจอง');
-                return;
-            }
-            this.submitting = true;
-            try {
-                const url = `/kiosk/api/lockers/${booking.locker_id}/open/`;
-                await this.$api.post(url, {});
-                window.location.href = '{% url "kiosk:rider_deposit" %}';
-            } catch (e) {
-                Alpine.store('toast').error('เปิดตู้ไม่สำเร็จ: ' + e.message);
-                this.submitting = false;
-            }
-        }
-    };
+    async openLocker() {
+      const booking = JSON.parse(sessionStorage.getItem('booking') || '{}');
+      if (!booking.locker_id) {
+        Alpine.store('toast').error('ไม่พบข้อมูลการจอง');
+        return;
+      }
+      this.submitting = true;
+      try {
+        const url = `/api/lockers/${booking.locker_id}/open/`;
+        await this.$api.post(url, {});
+        window.location.href = '{% url "kiosk:rider_deposit" %}';
+      } catch (e) {
+        Alpine.store('toast').error('เปิดตู้ไม่สำเร็จ: ' + e.message);
+        this.submitting = false;
+      }
+    }
+  };
 }
 </script>
 {% endblock %}

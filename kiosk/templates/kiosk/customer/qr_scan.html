@@ -1,23 +1,160 @@
 {% extends "base.html" %}
 
-{% block title %}สแกน QR Code - Customer{% endblock %}
+{% block title %}สแกน QR Code - ลูกบ้าน{% endblock %}
 
 {% block content %}
-<div class="container mx-auto p-4">
-    <h1 class="text-2xl font-bold mb-4">ลูกบ้าน - สแกน QR Code</h1>
-    
-    <!-- TODO: Implement QR code scanner with camera -->
-    <div class="bg-gray-200 h-64 flex items-center justify-center rounded">
-        <p class="text-gray-600">📷 Camera viewfinder will appear here</p>
+<div class="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 flex items-center justify-center p-4"
+     x-data="qrScanner()"
+     x-init="startCamera()"
+     @beforeunload.window="cleanup()">
+
+  <div class="w-full max-w-sm">
+
+    <!-- Header -->
+    <div class="text-center mb-4">
+      <div class="text-sm text-gray-500 mb-1">Step 1 of 3</div>
+      <h1 class="text-3xl font-bold text-gray-800">สแกน QR Code</h1>
+      <p class="text-gray-500 mt-1">ชี้กล้องไปที่ QR Code ที่ได้รับจากไรเดอร์</p>
     </div>
-    
-    <div class="mt-4 space-y-2">
-        <a href="{% url 'kiosk:customer_pin_entry' %}" class="block bg-gray-500 text-white px-4 py-2 rounded text-center">
-            🔢 ใช้รหัส PIN แทน
-        </a>
-        <a href="{% url 'kiosk:customer_method_select' %}" class="block bg-gray-300 text-gray-700 px-4 py-2 rounded text-center">
-            ← กลับ
-        </a>
+
+    <!-- Camera viewfinder -->
+    <div class="bg-white rounded-2xl shadow-lg border-2 border-primary-200 overflow-hidden mb-4">
+      <div class="relative aspect-square bg-black">
+        <video x-ref="video" x-show="!cameraError"
+               autoplay playsinline class="w-full h-full object-cover"></video>
+
+        <!-- Scan overlay -->
+        <div x-show="!cameraError" class="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div class="w-48 h-48 border-4 border-primary-400 rounded-2xl opacity-80">
+            <div class="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-primary-500 rounded-tl-xl"></div>
+            <div class="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-primary-500 rounded-tr-xl"></div>
+            <div class="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-primary-500 rounded-bl-xl"></div>
+            <div class="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-primary-500 rounded-br-xl"></div>
+          </div>
+        </div>
+
+        <!-- Camera error -->
+        <div x-show="cameraError"
+             class="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 text-white p-6 text-center">
+          <span class="text-4xl mb-3">📷</span>
+          <p class="font-bold text-lg">เปิดกล้องไม่ได้</p>
+          <p class="text-gray-300 text-sm mt-1" x-text="cameraError"></p>
+        </div>
+
+        <!-- Scanning indicator -->
+        <div x-show="scanning && !cameraError"
+             class="absolute bottom-3 left-0 right-0 flex justify-center">
+          <div class="bg-black/60 text-white text-xs px-3 py-1 rounded-full flex items-center gap-2">
+            <div class="w-2 h-2 bg-primary-400 rounded-full animate-pulse"></div>
+            กำลังสแกน...
+          </div>
+        </div>
+      </div>
+
+      <!-- Status message -->
+      <div x-show="statusMsg"
+           x-transition
+           class="px-4 py-3 text-center text-sm font-medium"
+           :class="statusType === 'error' ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'"
+           x-text="statusMsg">
+      </div>
     </div>
+
+    <!-- Manual / Switch -->
+    <a href="{% url 'kiosk:customer_pin_entry' %}"
+       class="block w-full text-center bg-white border-2 border-gray-200 text-gray-700 font-medium
+              py-3 rounded-xl hover:bg-gray-50 active:scale-95 transition-all shadow-sm mb-4">
+      🔢 ใช้รหัส PIN แทน
+    </a>
+
+    <!-- Back -->
+    <div class="text-center">
+      <a href="{% url 'kiosk:customer_method_select' %}"
+         class="text-gray-500 hover:text-gray-700 text-sm underline underline-offset-2">
+        ← กลับเลือกวิธียืนยัน
+      </a>
+    </div>
+
+  </div>
 </div>
+
+<canvas id="qr-canvas" class="hidden"></canvas>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function qrScanner() {
+  return {
+    stream: null,
+    scanning: false,
+    cameraError: '',
+    statusMsg: '',
+    statusType: '',
+    _scanInterval: null,
+
+    async startCamera() {
+      try {
+        this.stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' }
+        });
+        this.$refs.video.srcObject = this.stream;
+        this.scanning = true;
+        this._scanInterval = setInterval(() => this.scanFrame(), 500);
+      } catch (e) {
+        this.cameraError = e.message || 'กรุณาอนุญาตให้ใช้กล้อง';
+      }
+    },
+
+    scanFrame() {
+      const video = this.$refs.video;
+      if (!video || video.readyState < 2) return;
+      const canvas = document.getElementById('qr-canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      // QR scanning จะเชื่อม jsQR ใน Sprint 4
+      // const code = jsQR(ctx.getImageData(...), ...)
+      // if (code) this.onDetected(code.data)
+    },
+
+    async onDetected(code) {
+      if (!this.scanning) return;
+      this.scanning = false;
+      clearInterval(this._scanInterval);
+      try {
+        const res = await fetch('/api/lockers/verify-qr/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content,
+          },
+          body: JSON.stringify({ code }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.valid) {
+          this.statusMsg = 'QR Code ไม่ถูกต้อง กรุณาลองใหม่';
+          this.statusType = 'error';
+          setTimeout(() => { this.statusMsg = ''; this.scanning = true; this._scanInterval = setInterval(() => this.scanFrame(), 500); }, 2000);
+          return;
+        }
+        sessionStorage.setItem('pickup', JSON.stringify(data));
+        this.cleanup();
+        window.location.href = '{% url "kiosk:customer_success" %}';
+      } catch (e) {
+        this.statusMsg = 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้';
+        this.statusType = 'error';
+        this.scanning = true;
+      }
+    },
+
+    cleanup() {
+      clearInterval(this._scanInterval);
+      if (this.stream) {
+        this.stream.getTracks().forEach(t => t.stop());
+        this.stream = null;
+      }
+    },
+  };
+}
+</script>
 {% endblock %}
