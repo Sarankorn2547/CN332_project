@@ -21,6 +21,13 @@ class LockerSerializer(serializers.ModelSerializer):
         model = Locker
         fields = '__all__'
 
+class LockerUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Locker
+        fields = '__all__'
+        # id/building are structural and immutable; passcode/qr_data are managed by LockerService
+        read_only_fields = ('id', 'building', 'passcode', 'qr_data')
+
 class LineUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = LineUser
