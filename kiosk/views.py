@@ -3,8 +3,12 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 from django.views.decorators.csrf import csrf_exempt
-from foodlocker.models import Project, Building, Room, LineUser
+from foodlocker.models import Project, Building, Room, LineUser, Locker
 
+# log in page
+@require_GET
+def login_page(request):
+    return render(request, 'kiosk/login.html')
 
 # ============================================================================
 # Main Kiosk Interface
@@ -148,9 +152,22 @@ def htmx_get_locker_sizes(request):
     building_id = request.GET.get('building_id')
     # TODO: Fetch locker availability from database
     # availability = get_locker_availability(building_id)
-    return render(request, 'fragments/locker_sizes.html', {
-        'sizes': []  # Placeholder
-    })
+    SIZE_META = {
+        'S': '25×30 cm',
+        'M': '35×40 cm', 
+        'L': '45×50 cm',
+        'XL': '55×60 cm',
+    }
+    sizes_data = []
+    for code, dimensions in SIZE_META.items():
+        count = Locker.objects.filter(
+            building_id=building_id, size=code, status='AVAILABLE'
+        ).count() if building_id else 0
+        sizes_data.append({'code': code, 'dimensions': dimensions, 'available': count})
+    
+    if request.headers.get('Accept') == 'application/json':
+        return JsonResponse({'sizes': sizes_data})
+    return render(request, 'fragments/locker_sizes.html', {'sizes': sizes_data})
 
 @require_POST
 def htmx_qr_display(request):
