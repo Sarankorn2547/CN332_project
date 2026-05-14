@@ -16,6 +16,7 @@ from .serializers import (
     LineUserSerializer,
     LockerLogSerializer,
 )
+from .line_service import LineService
 from .services import LockerService
 
 
@@ -236,6 +237,50 @@ class LockerViewSet(
             return Response(serializer.data, status=status.HTTP_200_OK)
         except ValueError as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class LineWebhookView(APIView):
+    def post(self, request):
+        signature = request.headers.get('X-Line-Signature', '')
+        body = request.body
+
+        if not LineService.verify_signature(body, signature):
+            return Response({'error': 'Invalid signature'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        events = request.data.get('events', [])
+        for event in events:
+            # Event handling can be extended here per event type
+            pass
+
+        return Response({'status': 'ok'}, status=status.HTTP_200_OK)
+
+
+class LinePushView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        to = request.data.get('to')
+        text = request.data.get('message')
+        image_url = request.data.get('image_url')
+
+        if not to:
+            return Response({'error': 'to is required'}, status=status.HTTP_400_BAD_REQUEST)
+        if not text and not image_url:
+            return Response(
+                {'error': 'message or image_url is required'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            if text and image_url:
+                result = LineService.push_text_and_image(to, text, image_url)
+            elif text:
+                result = LineService.push_text(to, text)
+            else:
+                result = LineService.push_image(to, image_url)
+            return Response({'status': 'ok', 'result': result}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class LineUserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = LineUser.objects.all()
