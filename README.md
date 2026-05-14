@@ -135,7 +135,7 @@ Direct Links to Screens:
 | Role | Sprint 1 | Sprint 2 | Sprint 3 | Sprint 4 | Sprint 5 | Total |
 |------|----------|----------|----------|----------|----------|-------|
 | DevOps | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **20%** |
-| Backend A | ✅ 100% | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **40%** |
+| Backend A | ✅ 100% | ✅ 100% | ✅ 100% | ⬜ 0% | ⬜ 0% | **60%** |
 | Backend B | ✅ 100% | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **40%** |
 | Frontend A | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
 | Frontend B | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
@@ -462,10 +462,10 @@ flowchart TD
 | 🟠 P2 | [x] `GET /api/users/status/?line_user_id=` | S2 | ✅ |
 | 🟠 P2 | [x] Authentication/Session (JWT simplejwt) | S2 | ✅ |
 | 🟠 P2 | [x] Tests: User registration flow (pytest-django) | S2 | ✅ |
-| 🟡 P3 | [ ] `GET /api/lockers/` (list by building) | S3 | ⬜ |
-| 🟡 P3 | [ ] `GET /api/lockers/{id}/` (locker detail) | S3 | ⬜ |
-| 🟡 P3 | [ ] `PUT /api/lockers/{id}/` (admin update) | S3 | ⬜ |
-| 🟡 P3 | [ ] Tests: Locker CRUD (pytest) | S3 | ⬜ |
+| 🟡 P3 | [x] `GET /api/lockers/` (list by building) | S3 | ✅ |
+| 🟡 P3 | [x] `GET /api/lockers/{id}/` (locker detail) | S3 | ✅ |
+| 🟡 P3 | [x] `PUT /api/lockers/{id}/` (admin update) | S3 | ✅ |
+| 🟡 P3 | [x] Tests: Locker CRUD (pytest) | S3 | ✅ |
 | 🟢 P4 | [ ] LINE webhook: `POST /api/line/webhook/` (HMAC verify) | S4 | ⬜ |
 | 🟢 P4 | [ ] LINE push: `POST /api/line/push/` (text + QR image) | S4 | ⬜ |
 | 🟢 P4 | [ ] Tests: LINE webhook (mock LINE events) | S4 | ⬜ |
@@ -602,12 +602,12 @@ flowchart TD
 ### ✏️ Sprint 3 — Update (Week 5-6)
 
 - [ ] อัปเดตโดย DevOps:
-- [ ] อัปเดตโดย Backend A:
+- [x] อัปเดตโดย Backend A: Implemented Locker CRUD APIs. Added `GET /api/lockers/` with `?building_id=` filter, `GET /api/lockers/{id}/` (detail), and `PUT /api/lockers/{id}/` (admin update, requires JWT). Upgraded `LockerViewSet` from `ReadOnlyModelViewSet` to include `UpdateModelMixin`. Added `LockerUpdateSerializer` with `id`, `building`, `passcode`, `qr_data` as read-only (structural/service-managed fields). List/retrieve remain public. Added `tests/test_lockers.py` with 12 tests covering list, filter, retrieve, unauthenticated PUT, authenticated PUT/PATCH, read-only field enforcement, and all valid status choices. Full suite: 25 passed.
 - [ ] อัปเดตโดย Backend B:
 - [ ] อัปเดตโดย Frontend A:
 - [ ] อัปเดตโดย Frontend B:
 
-**% ที่ทำได้จริง sprint นี้:** `_____ %`
+**% ที่ทำได้จริง sprint นี้:** `20 %`
 
 ---
 
@@ -747,5 +747,5 @@ Examples: `feat(api): add locker book endpoint` · `fix(fe): qr scan camera perm
 
 ---
 
-*Last Updated: 2026-03-09*  
-*Next Update Due: Sprint 1 complete (Week 2)*
+*Last Updated: 2026-05-03*  
+*Next Update Due: Sprint 3 complete (Week 6)*
