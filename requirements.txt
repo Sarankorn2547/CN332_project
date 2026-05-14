@@ -6,4 +6,5 @@ PyJWT==2.12.1
 pytest==9.0.3
 pytest-django==4.12.0
 sqlparse==0.5.5
+requests==2.32.3
 tzdata==2025.3
