@@ -466,9 +466,9 @@ flowchart TD
 | 🟡 P3 | [x] `GET /api/lockers/{id}/` (locker detail) | S3 | ✅ |
 | 🟡 P3 | [x] `PUT /api/lockers/{id}/` (admin update) | S3 | ✅ |
 | 🟡 P3 | [x] Tests: Locker CRUD (pytest) | S3 | ✅ |
-| 🟢 P4 | [ ] LINE webhook: `POST /api/line/webhook/` (HMAC verify) | S4 | ⬜ |
-| 🟢 P4 | [ ] LINE push: `POST /api/line/push/` (text + QR image) | S4 | ⬜ |
-| 🟢 P4 | [ ] Tests: LINE webhook (mock LINE events) | S4 | ⬜ |
+| 🟢 P4 | [x] LINE webhook: `POST /api/line/webhook/` (HMAC verify) | S4 | ✅ |
+| 🟢 P4 | [x] LINE push: `POST /api/line/push/` (text + QR image) | S4 | ✅ |
+| 🟢 P4 | [x] Tests: LINE webhook (mock LINE events) | S4 | ✅ |
 | 🔵 P5 | [ ] API documentation (drf-spectacular) | S5 | ⬜ |
 | 🔵 P5 | [ ] Bug fixes + code review | S5 | ⬜ |
 
@@ -614,7 +614,7 @@ flowchart TD
 ### ✏️ Sprint 4 — Update (Week 7-8)
 
 - [ ] อัปเดตโดย DevOps:
-- [ ] อัปเดตโดย Backend A:
+- [x] อัปเดตโดย Backend A: Implemented LINE Messaging API integration. Added `POST /api/line/webhook/` with HMAC-SHA256 signature verification (`X-Line-Signature` header). Added `POST /api/line/push/` (JWT-protected) supporting text, image, and text+image push messages via LINE Messaging API. Added `LineService` class in `foodlocker/line_service.py`. Added `requests==2.32.3` dependency. Added `LINE_CHANNEL_SECRET` and `LINE_CHANNEL_ACCESS_TOKEN` settings (via env vars). Added `tests/test_line.py` with 8 tests: valid/invalid/missing signature, follow event, message event, push text (mocked), push auth guard, push missing `to`. Full suite: 33 passed.
 - [ ] อัปเดตโดย Backend B:
 - [ ] อัปเดตโดย Frontend A:
 - [ ] อัปเดตโดย Frontend B:
