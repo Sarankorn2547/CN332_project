@@ -137,7 +137,7 @@ Direct Links to Screens:
 | DevOps | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **20%** |
 | Backend A | ✅ 100% | 🔄 25% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **25%** |
 | Backend B | ✅ 100% | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **40%** |
-| Frontend A | ✅ 100% | ✅ 100% | 🔄 75% | 🔄 33% | ⬜ 0% | **75%** |
+| Frontend A | ✅ 100% | ✅ 100% | 🔄 75% | 🔄 50% | ⬜ 0% | **~78%** |
 | Frontend B | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
 | **Overall** | | | | | | **32% / 100%** |
 
@@ -483,8 +483,8 @@ flowchart TD
 | 🟡 P3 | [x] Kiosk: แสดง QR Code + PIN (template เสร็จ อ่านจาก sessionStorage) | S3 | ✅ |
 | 🟡 P3 | [x] Kiosk: ปุ่ม "Open Locker" → call API (stub `/api/lockers/<id>/open/` พร้อม) | S3 | ✅ |
 | 🟡 P3 | [ ] `/login`: auth flow + token store | S3 | ⬜ |
-| 🟢 P4 | [ ] Kiosk: Customer Tab — Scan QR (camera) (ยังเป็น placeholder เท่านั้น) | S4 | ⬜ |
-| 🟢 P4 | [ ] Kiosk: WebSocket / SSE real-time state | S4 | ⬜ |
+| 🟢 P4 | [ ] Kiosk: Customer Tab — Scan QR (camera) (UI + กล้อง + onDetected พร้อม — ต้องเชื่อม jsQR library) | S4 | 🔄 |
+| 🟢 P4 | [ ] Kiosk: WebSocket / SSE real-time state (รอ Backend B: Django Channels + Redis) | S4 | ⬜ |
 | 🟢 P4 | [x] Kiosk: Confirm deposit flow (กล้อง + ถ่ายรูป + ส่ง base64 ไป API ครบ) | S4 | ✅ |
 | 🔵 P5 | [ ] E2E test: Rider + Customer flow | S5 | ⬜ |
 | 🔵 P5 | [ ] Mobile responsive + UX polish | S5 | ⬜ |
@@ -579,10 +579,10 @@ flowchart TD
 - [ ] อัปเดตโดย DevOps:
 - [ ] อัปเดตโดย Backend A:
 - [ ] อัปเดตโดย Backend B:
-- [x] อัปเดตโดย Frontend A: deposit.html เสร็จสมบูรณ์ (กล้อง + takePhoto + submit base64 → API); Customer QR scan ยังเป็น placeholder; WebSocket ยังไม่ได้ทำ
+- [x] อัปเดตโดย Frontend A: deposit.html เสร็จสมบูรณ์ (กล้อง + takePhoto + submit base64 → API); Customer pages ครบ (method_select, pin_entry, success — UI + logic พร้อม); qr_scan.html — camera setup + onDetected function พร้อม แต่ยังต้องเชื่อม jsQR library; WebSocket ยังไม่ได้ทำ (รอ Backend B); พบ bug: API URL ขาด `/kiosk/` prefix ใน verify-qr และ deposit calls
 - [ ] อัปเดตโดย Frontend B:
 
-**% ที่ทำได้จริง sprint นี้:** `_____ %`
+**% ที่ทำได้จริง sprint นี้:** `50 %`
 
 ---
 

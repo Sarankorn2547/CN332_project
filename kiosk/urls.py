@@ -4,6 +4,10 @@ from . import views
 app_name = 'kiosk'
 
 urlpatterns = [
+
+    # Login page
+    path('login/', views.login_page, name='login'),
+    
     # Main kiosk interface
     path('', views.kiosk_home, name='home'),
     
