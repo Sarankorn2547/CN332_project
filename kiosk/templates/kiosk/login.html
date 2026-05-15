@@ -5,9 +5,7 @@
      x-data="loginForm()">
   <div class="w-full max-w-sm bg-white rounded-2xl shadow-lg p-8">
     <h1 class="text-2xl font-bold text-center mb-6">เข้าสู่ระบบ</h1>
-    <input x-model="username" type="text" placeholder="Username"
-           class="w-full border-2 rounded-xl p-3 mb-3"/>
-    <input x-model="password" type="password" placeholder="Password"
+    <input x-model="lineUserId" type="text" placeholder="LINE User ID"
            class="w-full border-2 rounded-xl p-3 mb-4"/>
     <button @click="login()" :disabled="loading"
             class="w-full bg-primary-500 text-white font-bold py-3 rounded-xl">
@@ -22,17 +20,17 @@
 <script>
 function loginForm() {
   return {
-    username: '', password: '', loading: false, errorMsg: '',
+    lineUserId: '', loading: false, errorMsg: '',
     async login() {
       this.loading = true; this.errorMsg = '';
       try {
         const res = await fetch('/api/token/', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({username: this.username, password: this.password})
+          body: JSON.stringify({ line_user_id: this.lineUserId })  // ← แก้ตรงนี้
         });
         const data = await res.json();
-        if (!res.ok) { this.errorMsg = data.detail || 'เข้าสู่ระบบไม่สำเร็จ'; return; }
+        if (!res.ok) { this.errorMsg = data.error || 'ไม่พบผู้ใช้งาน'; return; }
         sessionStorage.setItem('jwt', data.access);
         window.location.href = '/kiosk/';
       } catch(e) {
@@ -41,5 +39,6 @@ function loginForm() {
     }
   }
 }
+
 </script>
 {% endblock %}
