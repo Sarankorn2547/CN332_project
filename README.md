@@ -137,7 +137,7 @@ Direct Links to Screens:
 | DevOps | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **20%** |
 | Backend A | ✅ 100% | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **40%** |
 | Backend B | ✅ 100% | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **40%** |
-| Frontend A | ✅ 100% | ✅ 100% | 🔄 75% | 🔄 50% | ⬜ 0% | **~78%** |
+| Frontend A | ✅ 100% | ✅ 100% | ✅ 100% | 🔄 75% | ⬜ 0% | **~88%** |
 | Frontend B | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
 | **Overall** | | | | | | **32% / 100%** |
 
@@ -482,8 +482,8 @@ flowchart TD
 | 🟡 P3 | [x] Kiosk: Rider Tab — เลือก Type + Size (Alpine.js component + loadSizes() + selectSize()) | S3 | ✅ |
 | 🟡 P3 | [x] Kiosk: แสดง QR Code + PIN (template เสร็จ อ่านจาก sessionStorage) | S3 | ✅ |
 | 🟡 P3 | [x] Kiosk: ปุ่ม "Open Locker" → call API (stub `/api/lockers/<id>/open/` พร้อม) | S3 | ✅ |
-| 🟡 P3 | [ ] `/login`: auth flow + token store | S3 | ⬜ |
-| 🟢 P4 | [ ] Kiosk: Customer Tab — Scan QR (camera) (UI + กล้อง + onDetected พร้อม — ต้องเชื่อม jsQR library) | S4 | 🔄 |
+| 🟡 P3 | [x] `/login`: หน้า login + เชื่อม `POST /api/token/` (LINE User ID → JWT) + เก็บ token ใน sessionStorage | S3 | ✅ |
+| 🟢 P4 | [x] Kiosk: Customer Tab — Scan QR (camera) (jsQR library เชื่อมแล้ว + onDetected → verify-qr API ครบ) | S4 | ✅ |
 | 🟢 P4 | [ ] Kiosk: WebSocket / SSE real-time state (รอ Backend B: Django Channels + Redis) | S4 | ⬜ |
 | 🟢 P4 | [x] Kiosk: Confirm deposit flow (กล้อง + ถ่ายรูป + ส่ง base64 ไป API ครบ) | S4 | ✅ |
 | 🔵 P5 | [ ] E2E test: Rider + Customer flow | S5 | ⬜ |
@@ -567,7 +567,7 @@ flowchart TD
 - [ ] อัปเดตโดย DevOps:
 - [ ] อัปเดตโดย Backend A:
 - [ ] อัปเดตโดย Backend B:
-- [x] อัปเดตโดย Frontend A: Rider flow เสร็จ 3/4 — select_size.html (Alpine.js + loadSizes/selectSize), qr_display.html (QR+PIN+instructions), rider_confirm.html, HTMX endpoints stubs ครบ; ยังขาด /login auth flow
+- [x] อัปเดตโดย Frontend A: Rider flow เสร็จ 3/4 — select_size.html (Alpine.js + loadSizes/selectSize), qr_display.html (QR+PIN+instructions), rider_confirm.html, HTMX endpoints stubs ครบ; เพิ่ม `/kiosk/login/` — หน้า login เชื่อม `POST /api/token/` ด้วย LINE User ID, JWT เก็บใน sessionStorage, redirect ไป `/kiosk/` หลัง login สำเร็จ
 - [ ] อัปเดตโดย Frontend B:
 
 **% ที่ทำได้จริง sprint นี้:** `_____ %`
@@ -579,10 +579,10 @@ flowchart TD
 - [ ] อัปเดตโดย DevOps:
 - [ ] อัปเดตโดย Backend A:
 - [ ] อัปเดตโดย Backend B:
-- [x] อัปเดตโดย Frontend A: deposit.html เสร็จสมบูรณ์ (กล้อง + takePhoto + submit base64 → API); Customer pages ครบ (method_select, pin_entry, success — UI + logic พร้อม); qr_scan.html — camera setup + onDetected function พร้อม แต่ยังต้องเชื่อม jsQR library; WebSocket ยังไม่ได้ทำ (รอ Backend B); พบ bug: API URL ขาด `/kiosk/` prefix ใน verify-qr และ deposit calls
+- [x] อัปเดตโดย Frontend A: deposit.html เสร็จสมบูรณ์ (กล้อง + takePhoto + submit base64 → API); Customer pages ครบ (method_select, pin_entry, success — UI + logic พร้อม); แก้ jsQR library bug (split script tag) — qr_scan.html ใช้งานได้ครบทั้ง camera + onDetected → verify-qr API; แก้ API URL prefix `/kiosk/` ครบทุก endpoint; แก้ kiosk mount path ใน config/urls.py เป็น `kiosk/` (เดิมเป็น root); Merge `feature/be-jwt` — JWT endpoint พร้อมใช้งาน; WebSocket ยังไม่ได้ทำ (รอ Backend B)
 - [ ] อัปเดตโดย Frontend B:
 
-**% ที่ทำได้จริง sprint นี้:** `50 %`
+**% ที่ทำได้จริง sprint นี้:** `75 %`
 
 ---
 
