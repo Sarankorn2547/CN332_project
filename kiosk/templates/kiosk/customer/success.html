@@ -39,13 +39,30 @@
       </div>
     </div>
 
-    <!-- Reminder -->
-    <div class="bg-primary-50 border-l-4 border-primary-400 rounded-xl p-4 mb-6">
-      <p class="text-primary-800 text-sm font-medium">📌 อย่าลืมปิดประตูตู้หลังรับอาหารเรียบร้อยแล้ว</p>
+    <!-- Reminder + close door button -->
+    <div x-show="!doorClosed">
+      <div class="bg-amber-50 border-l-4 border-amber-400 rounded-xl p-4 mb-4">
+        <p class="text-amber-800 text-sm font-medium">📌 กรุณารับอาหารแล้วปิดประตูตู้ก่อนกดปุ่มด้านล่าง</p>
+      </div>
+      <button @click="confirmPickup()"
+              :disabled="pickingUp"
+              class="w-full btn-touch bg-gradient-to-r from-success-600 to-success-500 text-white
+                     font-bold py-4 rounded-xl text-lg shadow-md
+                     hover:from-success-700 hover:to-success-600 active:scale-95 transition-all
+                     disabled:opacity-50 disabled:cursor-not-allowed">
+        <span x-show="!pickingUp">✅ รับอาหารและปิดประตูแล้ว</span>
+        <span x-show="pickingUp" class="flex items-center justify-center gap-2">
+          <svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg>
+          กำลังอัปเดต...
+        </span>
+      </button>
     </div>
 
-    <!-- Countdown + button -->
-    <div class="text-center">
+    <!-- Countdown + home button (shown after door closed) -->
+    <div x-show="doorClosed" class="text-center">
       <p class="text-gray-500 text-sm mb-3">
         กลับหน้าหลักอัตโนมัติใน
         <span class="font-bold text-primary-700" x-text="countdown"></span> วินาที
@@ -69,11 +86,28 @@ function customerSuccess() {
     pickup: {},
     countdown: 10,
     _interval: null,
+    doorClosed: false,
+    pickingUp: false,
 
     init() {
       this.pickup = JSON.parse(sessionStorage.getItem('pickup') || '{}');
       sessionStorage.removeItem('pickup');
+    },
 
+    async confirmPickup() {
+      this.pickingUp = true;
+      try {
+        await this.$api.post(`/kiosk/api/lockers/${this.pickup.locker_id}/pickup/`, {});
+      } catch (e) {
+        Alpine.store('toast').error('อัปเดตสถานะไม่สำเร็จ');
+      } finally {
+        this.pickingUp = false;
+        this.doorClosed = true;
+        this._startCountdown();
+      }
+    },
+
+    _startCountdown() {
       this._interval = setInterval(() => {
         this.countdown--;
         if (this.countdown <= 0) {
@@ -85,12 +119,8 @@ function customerSuccess() {
 
     get formattedTime() {
       try {
-        return new Date().toLocaleString('th-TH', {
-          hour: '2-digit', minute: '2-digit'
-        });
-      } catch (e) {
-        return '-';
-      }
+        return new Date().toLocaleString('th-TH', { hour: '2-digit', minute: '2-digit' });
+      } catch (e) { return '-'; }
     },
   };
 }

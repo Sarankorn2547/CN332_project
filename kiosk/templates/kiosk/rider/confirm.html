@@ -100,7 +100,7 @@ function confirmDialog() {
       }
       this.submitting = true;
       try {
-        const url = `/api/lockers/${booking.locker_id}/open/`;
+        const url = `/kiosk/api/lockers/${booking.locker_id}/open/`;
         await this.$api.post(url, {});
         window.location.href = '{% url "kiosk:rider_deposit" %}';
       } catch (e) {

@@ -36,13 +36,11 @@ def registration_page(request):
 # Rider Flow Views
 # ============================================================================
 
+KIOSK_BUILDING_ID = '1'
+
 @require_GET
 def rider_select_size(request):
-    """
-    Rider Step 1: Select locker size
-    Displays available locker sizes (S, M, L, XL) with availability counts
-    """
-    return render(request, 'kiosk/rider/select_size.html')
+    return render(request, 'kiosk/rider/select_size.html', {'building_id': KIOSK_BUILDING_ID})
 
 @require_GET
 def rider_qr_display(request):
@@ -255,6 +253,16 @@ def api_deposit(request, locker_id):
 
     # TODO: decode base64, save เป็นไฟล์, update booking status
     return JsonResponse({'status': 'deposited', 'locker_id': locker_id})
+
+
+@csrf_exempt
+@require_POST
+def api_pickup(request, locker_id):
+    """POST /kiosk/api/lockers/<locker_id>/pickup/
+    ลูกบ้านปิดประตูแล้ว — reset ตู้กลับเป็น AVAILABLE
+    """
+    # TODO: เรียก LockerService.pickup(locker_id)
+    return JsonResponse({'status': 'available', 'locker_id': locker_id})
 
 
 @csrf_exempt

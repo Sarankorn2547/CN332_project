@@ -133,7 +133,7 @@ function depositCapture() {
       this.submitting = true;
       const booking = JSON.parse(sessionStorage.getItem('booking') || '{}');
       try {
-        const url = `/api/lockers/${booking.locker_id}/deposit/`;
+        const url = `/kiosk/api/lockers/${booking.locker_id}/deposit/`;
         await this.$api.post(url, { photo: this.photoData });
         this.cleanup();
         sessionStorage.setItem('deposit_time', new Date().toISOString());

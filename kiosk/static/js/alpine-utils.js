@@ -82,7 +82,7 @@ document.addEventListener('alpine:init', () => {
         if (res.status === 401) {
           sessionStorage.removeItem('jwt');
           Alpine.store('toast').error('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่');
-          setTimeout(() => { window.location.href = '/login/'; }, 1500);
+          setTimeout(() => { window.location.href = '/kiosk/login/'; }, 1500);
           return null;
         }
 
