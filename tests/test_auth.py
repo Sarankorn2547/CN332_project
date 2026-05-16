@@ -76,3 +76,15 @@ def test_refresh_token(client, line_user):
     )
     assert response.status_code == 200
     assert 'access' in response.data
+
+
+@pytest.mark.django_db
+def test_invalid_jwt_token_returns_401(client, building):
+    payload = {'building_id': building.id, 'size': 'M', 'type': 'FOOD'}
+    response = client.post(
+        '/api/lockers/book/',
+        data=payload,
+        content_type='application/json',
+        HTTP_AUTHORIZATION='Bearer this.is.not.a.real.jwt',
+    )
+    assert response.status_code == 401

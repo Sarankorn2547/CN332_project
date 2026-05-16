@@ -135,11 +135,11 @@ Direct Links to Screens:
 | Role | Sprint 1 | Sprint 2 | Sprint 3 | Sprint 4 | Sprint 5 | Total |
 |------|----------|----------|----------|----------|----------|-------|
 | DevOps | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **20%** |
-| Backend A | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ⬜ 0% | **80%** |
+| Backend A | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | **100%** |
 | Backend B | ✅ 100% | ✅ 100% | 🔄 67% | ✅ 100% | ⬜ 0% | **73%** |
 | Frontend A | ✅ 100% | ✅ 100% | 🔄 75% | 🔄 33% | ⬜ 0% | **75%** |
 | Frontend B | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
-| **Overall** | | | | | | **32% / 100%** |
+| **Overall** | | | | | | **36% / 100%** |
 
 > ✅ Done · 🔄 In Progress · ⬜ Pending · ❌ Blocked
 
@@ -432,8 +432,8 @@ flowchart TD
 | 🟢 P4 | [x] LINE webhook: `POST /api/line/webhook/` (HMAC verify) | S4 | ✅ |
 | 🟢 P4 | [x] LINE push: `POST /api/line/push/` (text + QR image) | S4 | ✅ |
 | 🟢 P4 | [x] Tests: LINE webhook (mock LINE events) | S4 | ✅ |
-| 🔵 P5 | [ ] API documentation (drf-spectacular) | S5 | ⬜ |
-| 🔵 P5 | [ ] Bug fixes + code review | S5 | ⬜ |
+| 🔵 P5 | [x] API documentation (drf-spectacular) | S5 | ✅ |
+| 🔵 P5 | [x] Bug fixes + code review | S5 | ✅ |
 
 ---
 
@@ -589,12 +589,12 @@ flowchart TD
 ### ✏️ Sprint 5 — Update (Week 9-10)
 
 - [ ] อัปเดตโดย DevOps:
-- [ ] อัปเดตโดย Backend A:
+- [x] อัปเดตโดย Backend A: Fixed critical bug in `LockerService.book_locker()` where `actor_id` was hardcoded as `"system"`, causing `UserStatusView` to always return `NO_ACTIVE_LOCKER` after booking. Added `actor_id` parameter to `book_locker()` and updated `LockerViewSet.book()` to pass `request.user.line_user_id`. Added `drf-spectacular==0.28.0` for interactive API docs at `/api/schema/swagger-ui/` and `/api/schema/redoc/`. Added `@extend_schema` decorators to all 5 custom `APIView` classes and 5 `LockerViewSet` custom actions. Created `docs/API.md` with full written API reference (all 17 endpoints, request/response format, curl examples). Added 16 new tests: 14 locker workflow action tests (book/open/deposit/verify-qr/pickup), 1 `UserStatusView` HAS_ACTIVE_LOCKER regression test, 1 invalid-JWT 401 test. Full suite: **49 passed, 0 failed**.
 - [ ] อัปเดตโดย Backend B:
 - [ ] อัปเดตโดย Frontend A:
 - [ ] อัปเดตโดย Frontend B:
 
-**% ที่ทำได้จริง sprint นี้:** `_____ %`
+**% ที่ทำได้จริง sprint นี้:** `100 %`
 
 ---
 

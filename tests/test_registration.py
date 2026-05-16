@@ -1,5 +1,6 @@
 import pytest
 from django.urls import reverse
+from foodlocker.models import LockerLog
 
 
 @pytest.mark.django_db
@@ -67,3 +68,20 @@ def test_user_status_not_found(client):
 def test_user_status_missing_param(client):
     response = client.get(reverse('user-status'))
     assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_user_status_has_active_locker(client, line_user, locker):
+    locker.status = 'BOOKED'
+    locker.save()
+    LockerLog.objects.create(
+        locker=locker,
+        action='ACTION_BOOK',
+        actor_id=line_user.line_user_id,
+    )
+    url = reverse('user-status') + f'?line_user_id={line_user.line_user_id}'
+    response = client.get(url)
+    assert response.status_code == 200
+    assert response.data['status'] == 'HAS_ACTIVE_LOCKER'
+    assert len(response.data['lockers']) == 1
+    assert response.data['lockers'][0]['id'] == locker.id
