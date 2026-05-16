@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'foodlocker',
     'kiosk', 
+    'locker_wall', 
 ]
 
 MIDDLEWARE = [
@@ -60,7 +61,8 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'kiosk' / 'templates'],
+        'DIRS': [BASE_DIR / 'kiosk' / 'templates',
+        BASE_DIR / 'locker_wall' / 'templates',],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -122,7 +124,10 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [BASE_DIR / 'kiosk' / 'static']
+STATICFILES_DIRS = [
+    BASE_DIR / 'kiosk' / 'static',
+    BASE_DIR / 'locker_wall' / 'static',  
+]
 
 # Static files finders
 STATICFILES_FINDERS = [

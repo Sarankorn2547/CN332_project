@@ -31,6 +31,7 @@ router.register(r'locker-logs', views.LockerLogViewSet)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('kiosk/', include('kiosk.urls')),
+    path('locker/', include('locker_wall.urls')),
     path('api/', include(router.urls)),
     path('api/users/status/', views.UserStatusView.as_view(), name='user-status'),
     path('api/users/register/', views.UserRegisterView.as_view(), name='user-register'),
@@ -38,4 +39,6 @@ urlpatterns = [
     path('api/token/refresh/', views.LineUserTokenRefreshView.as_view(), name='token-refresh'),
     path('api/line/webhook/', views.LineWebhookView.as_view(), name='line-webhook'),
     path('api/line/push/', views.LinePushView.as_view(), name='line-push'),
+    path('api/system/reset/', views.SystemResetView.as_view(), name='system-reset'),
+    path('api/admin/cli/', views.AdminCLIView.as_view(), name='admin-cli'),
 ]

@@ -1,4 +1,7 @@
+import shlex
+
 from rest_framework import viewsets, mixins, status
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -17,6 +20,7 @@ from .serializers import (
     LockerLogSerializer,
 )
 from .line_service import LineService
+from .authentication import LineUserJWTAuthentication
 from .services import LockerService
 
 
@@ -289,3 +293,150 @@ class LineUserViewSet(viewsets.ReadOnlyModelViewSet):
 class LockerLogViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = LockerLog.objects.all()
     serializer_class = LockerLogSerializer
+
+
+class SystemResetView(APIView):
+    """Reset lockers to AVAILABLE state. Scope: LOCKER | BUILDING | PROJECT | ALL."""
+
+    authentication_classes = [LineUserJWTAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        actor_id = getattr(request.user, 'line_user_id', None) or getattr(request.user, 'username', 'system')
+
+        try:
+            result = LockerService.reset_lockers(
+                request.data.get('scope'),
+                locker_id=request.data.get('locker_id'),
+                building_id=request.data.get('building_id'),
+                project_id=request.data.get('project_id'),
+                actor_id=actor_id,
+            )
+        except Locker.DoesNotExist as e:
+            return Response({'error': str(e)}, status=status.HTTP_404_NOT_FOUND)
+        except ValueError as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response({
+            'message': f"{result['reset_count']} locker(s) reset successfully",
+            **result,
+        }, status=status.HTTP_200_OK)
+
+
+class AdminCLIView(APIView):
+    """Execute admin CLI commands: list, open <id>, reset <scope>."""
+
+    authentication_classes = [LineUserJWTAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        command = request.data.get('command')
+        if not isinstance(command, str) or not command.strip():
+            return Response(
+                {'error': 'command is required'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            tokens = shlex.split(command)
+        except ValueError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        action = tokens[0].lower()
+        args = tokens[1:]
+        actor_id = getattr(request.user, 'line_user_id', None) or getattr(request.user, 'username', 'system')
+
+        try:
+            if action == 'list':
+                return self._list(args)
+            if action == 'open':
+                return self._open(args, actor_id)
+            if action == 'reset':
+                return self._reset(args, actor_id)
+        except Locker.DoesNotExist as e:
+            return Response({'error': str(e)}, status=status.HTTP_404_NOT_FOUND)
+        except ValueError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(
+            {'error': f"Unknown command '{action}'. Supported commands: list, open, reset."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    def _list(self, args):
+        filters = self._parse_options(args, allowed={'--building', '--status', '--type'})
+        queryset = Locker.objects.all().order_by('building_id', 'local_id', 'id')
+
+        building_id = filters.get('--building')
+        if building_id:
+            queryset = queryset.filter(building_id=building_id)
+
+        locker_status = filters.get('--status')
+        if locker_status:
+            queryset = queryset.filter(status=locker_status.upper())
+
+        locker_type = filters.get('--type')
+        if locker_type:
+            queryset = queryset.filter(type=locker_type.upper())
+
+        return Response({
+            'command': 'list',
+            'count': queryset.count(),
+            'lockers': LockerSerializer(queryset, many=True).data,
+        }, status=status.HTTP_200_OK)
+
+    def _open(self, args, actor_id):
+        if len(args) != 1:
+            raise ValueError('Usage: open <locker_id>')
+
+        locker = LockerService.open_locker(args[0], actor_id=actor_id)
+        return Response({
+            'command': 'open',
+            'message': f"Locker {locker.id} opened successfully",
+            'locker': LockerSerializer(locker).data,
+        }, status=status.HTTP_200_OK)
+
+    def _reset(self, args, actor_id):
+        if not args:
+            raise ValueError('Usage: reset <locker_id> | reset --building=<id> | reset --project=<id> | reset --all')
+        if len(args) != 1:
+            raise ValueError('Usage: reset <locker_id> | reset --building=<id> | reset --project=<id> | reset --all')
+
+        if args[0] == '--all':
+            result = LockerService.reset_lockers('ALL', actor_id=actor_id)
+        elif args[0].startswith('--building='):
+            result = LockerService.reset_lockers(
+                'BUILDING',
+                building_id=args[0].split('=', 1)[1],
+                actor_id=actor_id,
+            )
+        elif args[0].startswith('--project='):
+            result = LockerService.reset_lockers(
+                'PROJECT',
+                project_id=args[0].split('=', 1)[1],
+                actor_id=actor_id,
+            )
+        elif args[0].startswith('--'):
+            raise ValueError('Usage: reset <locker_id> | reset --building=<id> | reset --project=<id> | reset --all')
+        else:
+            result = LockerService.reset_lockers('LOCKER', locker_id=args[0], actor_id=actor_id)
+
+        return Response({
+            'command': 'reset',
+            'message': f"{result['reset_count']} locker(s) reset successfully",
+            **result,
+        }, status=status.HTTP_200_OK)
+
+    def _parse_options(self, args, allowed):
+        filters = {}
+        for arg in args:
+            if '=' not in arg:
+                raise ValueError(f"Invalid option '{arg}'. Use --name=value format.")
+            key, value = arg.split('=', 1)
+            if key not in allowed:
+                raise ValueError(f"Unsupported option '{key}'.")
+            filters[key] = value
+        return filters

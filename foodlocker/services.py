@@ -1,10 +1,12 @@
 import uuid
 import random
 import time
-from django.db import models
+from django.db import models, transaction
 from .models import Locker, LockerLog
 
 class LockerService:
+    RESET_SCOPES = {"LOCKER", "BUILDING", "PROJECT", "ALL"}
+
     @staticmethod
     def book_locker(building_id: str, size: str, locker_type: str) -> Locker:
         locker = Locker.objects.filter(
@@ -141,3 +143,67 @@ class LockerService:
         )
 
         return locker
+
+    @staticmethod
+    def reset_lockers(
+        scope: str,
+        *,
+        locker_id: str = None,
+        building_id: str = None,
+        project_id: str = None,
+        actor_id: str = "system",
+    ) -> dict:
+        normalized_scope = (scope or "").upper()
+        if normalized_scope not in LockerService.RESET_SCOPES:
+            raise ValueError("scope must be one of LOCKER, BUILDING, PROJECT, or ALL.")
+
+        queryset = Locker.objects.all()
+        metadata = {"scope": normalized_scope}
+
+        if normalized_scope == "LOCKER":
+            if not locker_id:
+                raise ValueError("locker_id is required for LOCKER scope.")
+            queryset = queryset.filter(id=locker_id)
+            metadata["locker_id"] = locker_id
+        elif normalized_scope == "BUILDING":
+            if not building_id:
+                raise ValueError("building_id is required for BUILDING scope.")
+            queryset = queryset.filter(building_id=building_id)
+            metadata["building_id"] = building_id
+        elif normalized_scope == "PROJECT":
+            if not project_id:
+                raise ValueError("project_id is required for PROJECT scope.")
+            queryset = queryset.filter(building__project_id=project_id)
+            metadata["project_id"] = project_id
+
+        locker_ids = list(queryset.values_list("id", flat=True))
+        if normalized_scope == "LOCKER" and not locker_ids:
+            raise Locker.DoesNotExist(f"Locker with id '{locker_id}' not found.")
+
+        reset_fields = {
+            "status": Locker.Status.AVAILABLE,
+            "passcode": "",
+            "qr_data": "",
+            "is_door_open": False,
+            "has_object": False,
+            "is_locked": True,
+            "deposit_start_time": None,
+        }
+
+        with transaction.atomic():
+            reset_count = queryset.update(**reset_fields)
+            LockerLog.objects.bulk_create([
+                LockerLog(
+                    locker_id=target_id,
+                    action="ACTION_RESET",
+                    actor_id=actor_id,
+                    metadata=metadata,
+                )
+                for target_id in locker_ids
+            ])
+
+        return {
+            "scope": normalized_scope,
+            "reset_count": reset_count,
+            "locker_ids": locker_ids,
+        }

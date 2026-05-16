@@ -1,0 +1,430 @@
+{% extends "base.html" %}
+
+{% block title %}FoodLocker CLI{% endblock %}
+
+{% block extra_head %}
+<meta name="color-scheme" content="dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
+<style>
+    * { transition: none !important; }
+
+    body {
+        background: #000;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        /* Fallback then dvh for keyboard-aware height on mobile */
+        height: 100vh;
+        height: 100dvh;
+    }
+
+    .term-font {
+        font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    }
+
+    #output::-webkit-scrollbar { width: 6px; }
+    #output::-webkit-scrollbar-track { background: #000; }
+    #output::-webkit-scrollbar-thumb { background: #1a5c1a; border-radius: 3px; }
+
+    @keyframes blink {
+        0%, 49% { opacity: 1; }
+        50%, 100% { opacity: 0; }
+    }
+
+    .cursor-blink { animation: blink 1s step-end infinite; }
+
+    .term-input {
+        background: transparent;
+        border: none;
+        outline: none;
+        color: #00ff41;
+        caret-color: transparent;
+        width: 100%;
+    }
+
+    .line-green  { color: #00ff41; }
+    .line-red    { color: #ff4444; }
+    .line-yellow { color: #ffcc00; }
+    .line-cyan   { color: #00e5ff; }
+    .line-dim    { color: #4caf50; opacity: 0.65; }
+
+    /* ── Mobile ─────────────────────────────────────── */
+    @media (max-width: 768px) {
+        /* Prevent iOS auto-zoom on input focus */
+        .term-input { font-size: 16px; }
+
+        /* Slightly larger output text for readability */
+        #output { font-size: 14px; }
+
+        /* Wide table output scrolls horizontally */
+        #output > div { min-width: max-content; }
+        #output { overflow-x: auto; }
+
+        /* Tighter prompt area */
+        .flex.items-center.px-4.py-3 { padding: 0.5rem 0.75rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div
+    x-data="terminal('{{ csrf_token }}')"
+    x-init="boot()"
+    @keydown.window="handleKey($event)"
+    class="term-font flex flex-col"
+    style="height:100vh; height:100dvh; background:#000; color:#00ff41;"
+>
+    <!-- Output area -->
+    <div id="output"
+         class="flex-1 overflow-y-auto px-4 pt-4 pb-2 text-sm leading-relaxed"
+         style="white-space:pre-wrap; word-break:break-all;">
+        <template x-for="(line, i) in lines" :key="i">
+            <div :class="line.cls" x-html="line.text"></div>
+        </template>
+    </div>
+
+    <!-- Input line -->
+    <div class="flex items-center px-4 py-3 border-t border-green-900 shrink-0">
+        <span class="line-green mr-1 select-none">foodlocker@admin:~$</span>
+        <span class="line-green mr-0 select-none">&nbsp;</span>
+        <div class="relative flex-1">
+            <input
+                id="term-input"
+                x-ref="input"
+                x-model="current"
+                @keydown.enter.prevent="submit()"
+                @keydown.up.prevent="historyUp()"
+                @keydown.down.prevent="historyDown()"
+                @keydown.tab.prevent=""
+                class="term-input text-sm w-full"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+            >
+            <!-- fake cursor -->
+            <span
+                class="cursor-blink absolute top-0 pointer-events-none line-green text-sm"
+                :style="'left:' + cursorLeft + 'ch'"
+                aria-hidden="true"
+            >█</span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function terminal(csrf) {
+    return {
+        lines: [],
+        current: '',
+        history: [],
+        histIdx: -1,
+        pendingConfirm: null,
+        csrf: csrf,
+
+        // pixel-width of text before cursor — we fake it with ch units
+        get cursorLeft() {
+            return this.current.length;
+        },
+
+        boot() {
+            this.print('FoodLocker Terminal v1.0', 'line-green');
+            this.print('Type <span class="line-cyan">help</span> for available commands.', 'line-dim');
+            this.print('', 'line-green');
+            this.$nextTick(() => this.focus());
+        },
+
+        focus() {
+            this.$refs.input && this.$refs.input.focus();
+        },
+
+        handleKey(e) {
+            // re-focus if user types anywhere
+            if (!['INPUT','TEXTAREA'].includes(e.target.tagName)) {
+                this.$refs.input && this.$refs.input.focus();
+            }
+        },
+
+        print(text, cls = 'line-green') {
+            this.lines.push({ text, cls });
+            this.$nextTick(() => {
+                const el = document.getElementById('output');
+                if (el) el.scrollTop = el.scrollHeight;
+            });
+        },
+
+        echo(text, cls) { this.print(text, cls); },
+
+        async submit() {
+            const cmd = this.current.trim();
+            this.current = '';
+            this.histIdx = -1;
+
+            // echo the typed line
+            this.print('foodlocker@admin:~$ ' + cmd, 'line-dim');
+
+            if (!cmd) return;
+
+            // push to history (avoid consecutive duplicates)
+            if (this.history[0] !== cmd) this.history.unshift(cmd);
+            if (this.history.length > 50) this.history.pop();
+
+            // pending confirmation flow (reset --all)
+            if (this.pendingConfirm) {
+                const fn = this.pendingConfirm;
+                this.pendingConfirm = null;
+                if (cmd === 'YES') {
+                    await fn();
+                } else {
+                    this.print('Aborted.', 'line-yellow');
+                }
+                return;
+            }
+
+            await this.dispatch(cmd);
+        },
+
+        async dispatch(raw) {
+            const parts = raw.trim().split(/\s+/);
+            const cmd = parts[0].toLowerCase();
+
+            switch (cmd) {
+                case 'help':    this.cmdHelp(); break;
+                case 'clear':   this.lines = []; break;
+                case 'exit':    window.location.href = '/locker/dashboard/'; break;
+                case 'list':    await this.cmdList(parts.slice(1)); break;
+                case 'open':    await this.cmdOpen(parts[1]); break;
+                case 'reset':   await this.cmdReset(parts.slice(1)); break;
+                case 'logs':    await this.cmdLogs(parts.slice(1)); break;
+                case 'status':  await this.cmdStatus(); break;
+                default:
+                    this.print(`bash: command not found: ${cmd}`, 'line-red');
+            }
+        },
+
+        // ── HELP ────────────────────────────────────────────────────────────
+        cmdHelp() {
+            const cmds = [
+                ['help',                    'Show this help'],
+                ['list',                    'List all lockers'],
+                ['list --status=available', 'Filter by status'],
+                ['open &lt;id&gt;',         'Open a locker'],
+                ['reset &lt;id&gt;',        'Reset a single locker'],
+                ['reset --building=&lt;id&gt;', 'Reset all lockers in a building'],
+                ['reset --all',             'Reset everything (confirm required)'],
+                ['logs',                    'Show last 20 log entries'],
+                ['logs --locker=&lt;id&gt;','Filter logs by locker'],
+                ['status',                  'System summary'],
+                ['clear',                   'Clear the terminal'],
+                ['exit',                    'Go back to dashboard'],
+            ];
+            this.print('', 'line-green');
+            this.print('<span class="line-cyan">Available commands:</span>', 'line-green');
+            cmds.forEach(([c, d]) => {
+                this.print(
+                    `  <span class="line-cyan">${c.padEnd(32)}</span>${d}`,
+                    'line-green'
+                );
+            });
+            this.print('', 'line-green');
+        },
+
+        // ── LIST ────────────────────────────────────────────────────────────
+        async cmdList(args) {
+            let url = '/api/lockers/';
+            const statusArg = args.find(a => a.startsWith('--status='));
+            if (statusArg) url += `?status=${statusArg.split('=')[1]}`;
+
+            this.print('Executing...', 'line-yellow');
+            try {
+                const data = await this.get(url);
+                const lockers = Array.isArray(data) ? data : (data.results || data.lockers || []);
+                if (!lockers.length) {
+                    this.print('No lockers found.', 'line-yellow');
+                    return;
+                }
+                this.print('', 'line-green');
+                this.print(
+                    '<span class="line-cyan">' +
+                    'ID'.padEnd(6) + 'Number'.padEnd(10) + 'Building'.padEnd(14) + 'Status'.padEnd(14) + 'User' +
+                    '</span>',
+                    'line-green'
+                );
+                this.print('─'.repeat(60), 'line-dim');
+                lockers.forEach(l => {
+                    const id   = String(l.id   ?? '').padEnd(6);
+                    const num  = String(l.locker_number ?? l.number ?? '').padEnd(10);
+                    const bld  = String(l.building_name ?? l.building ?? '').padEnd(14);
+                    const st   = String(l.status ?? '').padEnd(14);
+                    const user = String(l.current_user ?? l.user ?? '-');
+                    const cls  = l.status === 'available' ? 'line-green'
+                               : l.status === 'occupied'  ? 'line-yellow'
+                               : 'line-red';
+                    this.print(`${id}${num}${bld}${st}${user}`, cls);
+                });
+                this.print('', 'line-green');
+            } catch (e) {
+                this.print('Error: ' + e.message, 'line-red');
+            }
+        },
+
+        // ── OPEN ────────────────────────────────────────────────────────────
+        async cmdOpen(id) {
+            if (!id) { this.print('Usage: open <id>', 'line-red'); return; }
+            this.print(`Opening locker ${id}...`, 'line-yellow');
+            try {
+                const data = await this.post(`/api/lockers/${id}/open/`, {});
+                this.print(data.message ?? `Locker ${id} opened.`, 'line-green');
+            } catch (e) {
+                this.print('Error: ' + e.message, 'line-red');
+            }
+        },
+
+        // ── RESET ───────────────────────────────────────────────────────────
+        async cmdReset(args) {
+            if (!args.length) { this.print('Usage: reset <id> | reset --building=<id> | reset --all', 'line-red'); return; }
+
+            if (args[0] === '--all') {
+                this.print('⚠  This will reset ALL lockers!', 'line-yellow');
+                this.print('Are you sure? Type <span class="line-cyan">YES</span> to confirm:', 'line-yellow');
+                this.pendingConfirm = async () => {
+                    this.print('Resetting all lockers...', 'line-yellow');
+                    try {
+                        const data = await this.post('/api/system/reset/', { scope: 'all' });
+                        this.print(data.message ?? 'All lockers reset.', 'line-green');
+                    } catch (e) {
+                        this.print('Error: ' + e.message, 'line-red');
+                    }
+                };
+                return;
+            }
+
+            const bldArg = args.find(a => a.startsWith('--building='));
+            if (bldArg) {
+                const bldId = bldArg.split('=')[1];
+                this.print(`Resetting building ${bldId}...`, 'line-yellow');
+                try {
+                    const data = await this.post('/api/system/reset/', { scope: 'building', building_id: bldId });
+                    this.print(data.message ?? `Building ${bldId} reset.`, 'line-green');
+                } catch (e) {
+                    this.print('Error: ' + e.message, 'line-red');
+                }
+                return;
+            }
+
+            // reset <id>
+            const id = args[0];
+            this.print(`Resetting locker ${id}...`, 'line-yellow');
+            try {
+                const data = await this.post('/api/system/reset/', { scope: 'locker', locker_id: id });
+                this.print(data.message ?? `Locker ${id} reset.`, 'line-green');
+            } catch (e) {
+                this.print('Error: ' + e.message, 'line-red');
+            }
+        },
+
+        // ── LOGS ────────────────────────────────────────────────────────────
+        async cmdLogs(args) {
+            let url = '/api/locker-logs/?limit=20';
+            const lockerArg = args.find(a => a.startsWith('--locker='));
+            if (lockerArg) url += `&locker=${lockerArg.split('=')[1]}`;
+
+            this.print('Fetching logs...', 'line-yellow');
+            try {
+                const data = await this.get(url);
+                const logs = Array.isArray(data) ? data : (data.results ?? data.logs ?? []);
+                if (!logs.length) { this.print('No logs found.', 'line-yellow'); return; }
+                this.print('', 'line-green');
+                this.print(
+                    '<span class="line-cyan">' +
+                    'Time'.padEnd(22) + 'Locker'.padEnd(10) + 'Action'.padEnd(16) + 'User' +
+                    '</span>',
+                    'line-green'
+                );
+                this.print('─'.repeat(60), 'line-dim');
+                logs.forEach(l => {
+                    const ts     = String(l.timestamp ?? l.created_at ?? '').slice(0, 19).replace('T', ' ').padEnd(22);
+                    const locker = String(l.locker ?? l.locker_id ?? '').padEnd(10);
+                    const action = String(l.action ?? l.event ?? '').padEnd(16);
+                    const user   = String(l.user ?? l.performed_by ?? '-');
+                    this.print(`${ts}${locker}${action}${user}`, 'line-green');
+                });
+                this.print('', 'line-green');
+            } catch (e) {
+                this.print('Error: ' + e.message, 'line-red');
+            }
+        },
+
+        // ── STATUS ──────────────────────────────────────────────────────────
+        async cmdStatus() {
+            this.print('Fetching system status...', 'line-yellow');
+            try {
+                const data = await this.get('/api/lockers/');
+                const lockers = Array.isArray(data) ? data : (data.results ?? data.lockers ?? []);
+                const total     = lockers.length;
+                const available = lockers.filter(l => l.status === 'available').length;
+                const occupied  = lockers.filter(l => l.status === 'occupied').length;
+                const locked    = lockers.filter(l => l.status === 'locked').length;
+                const other     = total - available - occupied - locked;
+                this.print('', 'line-green');
+                this.print('<span class="line-cyan">System Status</span>', 'line-green');
+                this.print('─'.repeat(30), 'line-dim');
+                this.print(`Total     : ${total}`,     'line-green');
+                this.print(`Available : ${available}`, 'line-green');
+                this.print(`Occupied  : ${occupied}`,  'line-yellow');
+                this.print(`Locked    : ${locked}`,    'line-red');
+                if (other) this.print(`Other     : ${other}`, 'line-dim');
+                this.print('', 'line-green');
+            } catch (e) {
+                this.print('Error: ' + e.message, 'line-red');
+            }
+        },
+
+        // ── HISTORY ─────────────────────────────────────────────────────────
+        historyUp() {
+            if (!this.history.length) return;
+            this.histIdx = Math.min(this.histIdx + 1, this.history.length - 1);
+            this.current = this.history[this.histIdx];
+        },
+
+        historyDown() {
+            if (this.histIdx <= 0) { this.histIdx = -1; this.current = ''; return; }
+            this.histIdx -= 1;
+            this.current = this.history[this.histIdx];
+        },
+
+        // ── HTTP HELPERS ────────────────────────────────────────────────────
+        async get(url) {
+            const r = await fetch(url, {
+                headers: { 'X-CSRFToken': this.csrf, 'Accept': 'application/json' },
+                credentials: 'same-origin',
+            });
+            if (!r.ok) throw new Error(`HTTP ${r.status} ${r.statusText}`);
+            return r.json();
+        },
+
+        async post(url, body) {
+            const r = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': this.csrf,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify(body),
+            });
+            if (!r.ok) {
+                let msg = `HTTP ${r.status} ${r.statusText}`;
+                try { const j = await r.json(); msg = j.detail ?? j.message ?? j.error ?? msg; } catch {}
+                throw new Error(msg);
+            }
+            return r.json();
+        },
+    };
+}
+</script>
+{% endblock %}
