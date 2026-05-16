@@ -3,6 +3,7 @@
 {% block title %}FoodLocker CLI{% endblock %}
 
 {% block extra_head %}
+<meta name="color-scheme" content="dark">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
 <style>
@@ -13,6 +14,9 @@
         margin: 0;
         padding: 0;
         overflow: hidden;
+        /* Fallback then dvh for keyboard-aware height on mobile */
+        height: 100vh;
+        height: 100dvh;
     }
 
     .term-font {
@@ -44,6 +48,22 @@
     .line-yellow { color: #ffcc00; }
     .line-cyan   { color: #00e5ff; }
     .line-dim    { color: #4caf50; opacity: 0.65; }
+
+    /* ── Mobile ─────────────────────────────────────── */
+    @media (max-width: 768px) {
+        /* Prevent iOS auto-zoom on input focus */
+        .term-input { font-size: 16px; }
+
+        /* Slightly larger output text for readability */
+        #output { font-size: 14px; }
+
+        /* Wide table output scrolls horizontally */
+        #output > div { min-width: max-content; }
+        #output { overflow-x: auto; }
+
+        /* Tighter prompt area */
+        .flex.items-center.px-4.py-3 { padding: 0.5rem 0.75rem; }
+    }
 </style>
 {% endblock %}
 
@@ -53,7 +73,7 @@
     x-init="boot()"
     @keydown.window="handleKey($event)"
     class="term-font flex flex-col"
-    style="height:100vh; background:#000; color:#00ff41;"
+    style="height:100vh; height:100dvh; background:#000; color:#00ff41;"
 >
     <!-- Output area -->
     <div id="output"
