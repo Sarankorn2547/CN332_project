@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'channels',
     'rest_framework',
     'rest_framework_simplejwt',
+    'drf_spectacular',
     'foodlocker',
     'kiosk', 
     'locker_wall', 
@@ -147,6 +148,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'foodlocker.authentication.LineUserJWTAuthentication',
     ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 SIMPLE_JWT = {
@@ -178,3 +180,14 @@ else:
             'BACKEND': 'channels.layers.InMemoryChannelLayer',
         },
     }
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Food Locker API',
+    'DESCRIPTION': (
+        'Smart food locker system for food delivery in residential buildings. '
+        'Supports rider deposit flow, customer pickup flow, '
+        'LINE user registration, and JWT authentication.'
+    ),
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}

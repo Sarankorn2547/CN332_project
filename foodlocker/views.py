@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView as BaseTokenRefreshView
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
 from .models import Project, Building, Room, Locker, LineUser, LockerLog
 from .serializers import (
     ProjectSerializer,
@@ -43,6 +44,17 @@ def _actor_id(request, fallback='system'):
 
 
 class LineUserTokenView(APIView):
+    @extend_schema(
+        summary="Obtain JWT token pair",
+        description="Issue an access + refresh JWT pair for a registered LINE user.",
+        request={"application/json": {"type": "object", "properties": {"line_user_id": {"type": "string"}}, "required": ["line_user_id"]}},
+        responses={
+            200: OpenApiResponse(description="Returns access and refresh tokens."),
+            400: OpenApiResponse(description="line_user_id is missing."),
+            404: OpenApiResponse(description="User not found."),
+        },
+        auth=[],
+    )
     def post(self, request):
         line_user_id = request.data.get('line_user_id')
         if not line_user_id:
@@ -72,6 +84,23 @@ class LineUserTokenRefreshView(BaseTokenRefreshView):
 
 
 class UserRegisterView(APIView):
+    @extend_schema(
+        summary="Register a LINE user",
+        description="Create a new LineUser linking a LINE user ID to a project, building, and room.",
+        request={"application/json": {"type": "object", "properties": {
+            "line_user_id": {"type": "string"},
+            "project_id": {"type": "string"},
+            "building_id": {"type": "string"},
+            "room_no": {"type": "string"},
+            "display_name": {"type": "string"},
+        }, "required": ["line_user_id", "project_id", "building_id", "room_no", "display_name"]}},
+        responses={
+            201: LineUserSerializer,
+            400: OpenApiResponse(description="Missing fields or duplicate line_user_id."),
+            404: OpenApiResponse(description="Project or Building not found."),
+        },
+        auth=[],
+    )
     def post(self, request):
         # Extract required fields from request
         line_user_id = request.data.get('line_user_id')
@@ -121,6 +150,17 @@ class UserRegisterView(APIView):
 
 
 class UserStatusView(APIView):
+    @extend_schema(
+        summary="Get user locker status",
+        description="Returns whether the user has an active (non-AVAILABLE) locker and its details.",
+        parameters=[OpenApiParameter(name='line_user_id', location=OpenApiParameter.QUERY, required=True, type=str, description="LINE user ID")],
+        responses={
+            200: OpenApiResponse(description="Returns status (HAS_ACTIVE_LOCKER or NO_ACTIVE_LOCKER) and list of active lockers."),
+            400: OpenApiResponse(description="line_user_id parameter missing."),
+            404: OpenApiResponse(description="User not found."),
+        },
+        auth=[],
+    )
     def get(self, request):
         line_user_id = request.query_params.get('line_user_id')
         if not line_user_id:
@@ -223,6 +263,14 @@ class LockerViewSet(
             actor_id=_request_actor_id(self.request, default='admin'),
         )
 
+    @extend_schema(
+        summary="Book an available locker",
+        description="Find and book an AVAILABLE locker by building, size, and type. Actor is derived from the authenticated JWT user.",
+        responses={
+            200: OpenApiResponse(description="Returns locker_id, qr_data, and passcode."),
+            400: OpenApiResponse(description="Missing fields or no available locker found."),
+        },
+    )
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
     def book(self, request):
         building_id = request.data.get('building_id')
@@ -247,6 +295,14 @@ class LockerViewSet(
         except ValueError as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(
+        summary="Open a locker door",
+        description="Unlock and open the door of a BOOKED or OCCUPIED locker.",
+        responses={
+            200: LockerSerializer,
+            400: OpenApiResponse(description="Locker not found or invalid status."),
+        },
+    )
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def open(self, request, pk=None):
         try:
@@ -256,6 +312,14 @@ class LockerViewSet(
         except ValueError as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(
+        summary="Confirm food deposit",
+        description="Confirm that food has been placed in a BOOKED locker (door must be open). Transitions status to OCCUPIED.",
+        responses={
+            200: LockerSerializer,
+            400: OpenApiResponse(description="Locker not found, wrong status, or door not open."),
+        },
+    )
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def deposit(self, request, pk=None):
         try:
@@ -265,6 +329,18 @@ class LockerViewSet(
         except ValueError as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(
+        summary="Verify QR code or passcode",
+        description="Verify the customer's QR code or passcode and open the OCCUPIED locker for pickup.",
+        request={"application/json": {"type": "object", "properties": {
+            "qr_data": {"type": "string"},
+            "passcode": {"type": "string"},
+        }}},
+        responses={
+            200: LockerSerializer,
+            400: OpenApiResponse(description="Invalid QR/passcode or locker not occupied."),
+        },
+    )
     @action(detail=False, methods=['post'], url_path='verify-qr', permission_classes=[IsAuthenticated])
     def verify_qr(self, request):
         qr_data = request.data.get('qr_data')
@@ -281,6 +357,14 @@ class LockerViewSet(
         except ValueError as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(
+        summary="Confirm customer pickup",
+        description="Confirm that the customer has retrieved the food. Resets the locker to AVAILABLE.",
+        responses={
+            200: LockerSerializer,
+            400: OpenApiResponse(description="Locker not found or not in OCCUPIED status."),
+        },
+    )
     @action(detail=True, methods=['post'], url_path='pickup', permission_classes=[IsAuthenticated])
     def pickup(self, request, pk=None):
         actor_id = request.data.get('actor_id') or _actor_id(request, fallback='customer')
@@ -292,6 +376,15 @@ class LockerViewSet(
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class LineWebhookView(APIView):
+    @extend_schema(
+        summary="LINE Messaging API webhook",
+        description="Receives webhook events from the LINE platform. Validates the HMAC-SHA256 X-Line-Signature header.",
+        responses={
+            200: OpenApiResponse(description="Webhook received and processed."),
+            401: OpenApiResponse(description="Invalid or missing X-Line-Signature."),
+        },
+        auth=[],
+    )
     def post(self, request):
         signature = request.headers.get('X-Line-Signature', '')
         body = request.body
@@ -310,6 +403,21 @@ class LineWebhookView(APIView):
 class LinePushView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="Send LINE push message",
+        description="Push a text message, an image, or both to a LINE user. Requires JWT authentication.",
+        request={"application/json": {"type": "object", "properties": {
+            "to": {"type": "string", "description": "LINE user ID of the recipient"},
+            "message": {"type": "string", "description": "Text message to send"},
+            "image_url": {"type": "string", "description": "Public URL of image to send"},
+        }, "required": ["to"]}},
+        responses={
+            200: OpenApiResponse(description="Message sent successfully."),
+            400: OpenApiResponse(description="Missing required fields."),
+            401: OpenApiResponse(description="JWT authentication required."),
+            500: OpenApiResponse(description="LINE API error."),
+        },
+    )
     def post(self, request):
         to = request.data.get('to')
         text = request.data.get('message')

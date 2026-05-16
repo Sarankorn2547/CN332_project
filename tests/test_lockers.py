@@ -1,5 +1,6 @@
 import pytest
 from django.urls import reverse
+from foodlocker.models import LockerLog
 
 
 def _get_token(client, line_user):
@@ -193,3 +194,205 @@ def test_update_locker_valid_status_choices(client, locker, line_user):
         )
         assert response.status_code == 200
         assert response.data['status'] == new_status
+
+
+# ─── Locker Workflow Actions ─────────────────────────────────────────────────
+
+@pytest.mark.django_db
+def test_book_locker_success(client, locker, line_user):
+    token = _get_token(client, line_user)
+    response = client.post(
+        '/api/lockers/book/',
+        data={'building_id': locker.building_id, 'size': locker.size, 'type': locker.type},
+        content_type='application/json',
+        HTTP_AUTHORIZATION=f'Bearer {token}',
+    )
+    assert response.status_code == 200
+    assert 'locker_id' in response.data
+    assert 'qr_data' in response.data
+    assert 'passcode' in response.data
+
+
+@pytest.mark.django_db
+def test_book_locker_logs_actor_id(client, locker, line_user):
+    """After booking, LockerLog must record the authenticated user's line_user_id as actor_id."""
+    token = _get_token(client, line_user)
+    client.post(
+        '/api/lockers/book/',
+        data={'building_id': locker.building_id, 'size': locker.size, 'type': locker.type},
+        content_type='application/json',
+        HTTP_AUTHORIZATION=f'Bearer {token}',
+    )
+    log = LockerLog.objects.filter(action='ACTION_BOOK').first()
+    assert log is not None
+    assert log.actor_id == line_user.line_user_id
+
+
+@pytest.mark.django_db
+def test_book_locker_no_available(client, locker, line_user):
+    locker.status = 'BOOKED'
+    locker.save()
+    token = _get_token(client, line_user)
+    response = client.post(
+        '/api/lockers/book/',
+        data={'building_id': locker.building_id, 'size': locker.size, 'type': locker.type},
+        content_type='application/json',
+        HTTP_AUTHORIZATION=f'Bearer {token}',
+    )
+    assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_book_locker_missing_fields(client, line_user):
+    token = _get_token(client, line_user)
+    response = client.post(
+        '/api/lockers/book/',
+        data={'building_id': 'bld-001'},
+        content_type='application/json',
+        HTTP_AUTHORIZATION=f'Bearer {token}',
+    )
+    assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_book_locker_unauthenticated(client, locker):
+    response = client.post(
+        '/api/lockers/book/',
+        data={'building_id': locker.building_id, 'size': locker.size, 'type': locker.type},
+        content_type='application/json',
+    )
+    assert response.status_code == 401
+
+
+@pytest.mark.django_db
+def test_open_locker_success(client, locker, line_user):
+    locker.status = 'BOOKED'
+    locker.save()
+    token = _get_token(client, line_user)
+    response = client.post(
+        f'/api/lockers/{locker.id}/open/',
+        content_type='application/json',
+        HTTP_AUTHORIZATION=f'Bearer {token}',
+    )
+    assert response.status_code == 200
+    assert response.data['is_door_open'] is True
+
+
+@pytest.mark.django_db
+def test_open_locker_not_found(client, line_user):
+    token = _get_token(client, line_user)
+    response = client.post(
+        '/api/lockers/GHOST-LCK/open/',
+        content_type='application/json',
+        HTTP_AUTHORIZATION=f'Bearer {token}',
+    )
+    assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_deposit_success(client, locker, line_user):
+    locker.status = 'BOOKED'
+    locker.is_door_open = True
+    locker.save()
+    token = _get_token(client, line_user)
+    response = client.post(
+        f'/api/lockers/{locker.id}/deposit/',
+        content_type='application/json',
+        HTTP_AUTHORIZATION=f'Bearer {token}',
+    )
+    assert response.status_code == 200
+    assert response.data['status'] == 'OCCUPIED'
+    assert response.data['has_object'] is True
+
+
+@pytest.mark.django_db
+def test_deposit_door_not_open(client, locker, line_user):
+    locker.status = 'BOOKED'
+    locker.is_door_open = False
+    locker.save()
+    token = _get_token(client, line_user)
+    response = client.post(
+        f'/api/lockers/{locker.id}/deposit/',
+        content_type='application/json',
+        HTTP_AUTHORIZATION=f'Bearer {token}',
+    )
+    assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_verify_qr_with_qr_data(client, locker, line_user):
+    locker.status = 'OCCUPIED'
+    locker.qr_data = 'test-qr-abc'
+    locker.passcode = '000000'
+    locker.save()
+    token = _get_token(client, line_user)
+    response = client.post(
+        '/api/lockers/verify-qr/',
+        data={'qr_data': 'test-qr-abc'},
+        content_type='application/json',
+        HTTP_AUTHORIZATION=f'Bearer {token}',
+    )
+    assert response.status_code == 200
+    assert response.data['is_door_open'] is True
+
+
+@pytest.mark.django_db
+def test_verify_qr_with_passcode(client, locker, line_user):
+    locker.status = 'OCCUPIED'
+    locker.qr_data = 'test-qr-xyz'
+    locker.passcode = '123456'
+    locker.save()
+    token = _get_token(client, line_user)
+    response = client.post(
+        '/api/lockers/verify-qr/',
+        data={'passcode': '123456'},
+        content_type='application/json',
+        HTTP_AUTHORIZATION=f'Bearer {token}',
+    )
+    assert response.status_code == 200
+    assert response.data['is_door_open'] is True
+
+
+@pytest.mark.django_db
+def test_verify_qr_invalid(client, locker, line_user):
+    locker.status = 'OCCUPIED'
+    locker.qr_data = 'correct-qr'
+    locker.passcode = '999999'
+    locker.save()
+    token = _get_token(client, line_user)
+    response = client.post(
+        '/api/lockers/verify-qr/',
+        data={'qr_data': 'wrong-qr'},
+        content_type='application/json',
+        HTTP_AUTHORIZATION=f'Bearer {token}',
+    )
+    assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_pickup_success(client, locker, line_user):
+    locker.status = 'OCCUPIED'
+    locker.has_object = True
+    locker.save()
+    token = _get_token(client, line_user)
+    response = client.post(
+        f'/api/lockers/{locker.id}/pickup/',
+        content_type='application/json',
+        HTTP_AUTHORIZATION=f'Bearer {token}',
+    )
+    assert response.status_code == 200
+    assert response.data['status'] == 'AVAILABLE'
+    assert response.data['has_object'] is False
+
+
+@pytest.mark.django_db
+def test_pickup_wrong_status(client, locker, line_user):
+    locker.status = 'BOOKED'
+    locker.save()
+    token = _get_token(client, line_user)
+    response = client.post(
+        f'/api/lockers/{locker.id}/pickup/',
+        content_type='application/json',
+        HTTP_AUTHORIZATION=f'Bearer {token}',
+    )
+    assert response.status_code == 400

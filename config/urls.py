@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 from foodlocker import views
 
 router = routers.DefaultRouter()
@@ -39,6 +40,9 @@ urlpatterns = [
     path('api/line/push/', views.LinePushView.as_view(), name='line-push'),
     path('api/system/reset/', views.SystemResetView.as_view(), name='system-reset'),
     path('api/admin/cli/', views.AdminCLIView.as_view(), name='admin-cli'),
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
     path('locker/', include('locker_wall.urls')),
     path('', include('kiosk.urls')),
 ]
