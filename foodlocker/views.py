@@ -35,6 +35,14 @@ def _request_actor_id(request, default='system'):
     )
 
 
+def _actor_id(request, fallback='system'):
+    return (
+        getattr(request.user, 'line_user_id', None)
+        or getattr(request.user, 'username', None)
+        or fallback
+    )
+
+
 class LineUserTokenView(APIView):
     @extend_schema(
         summary="Obtain JWT token pair",
@@ -165,10 +173,15 @@ class UserStatusView(APIView):
             return Response({'detail': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
         # Find lockers associated with the user that are not 'AVAILABLE'
-        locker_ids = LockerLog.objects.filter(actor_id=line_user_id).values_list('locker_id', flat=True).distinct()
-        active_lockers = Locker.objects.filter(id__in=locker_ids).exclude(status="AVAILABLE")
+        locker_ids = LockerLog.objects.filter(actor_id=line_user_id).values('locker_id')
+        active_lockers = list(
+            Locker.objects
+            .filter(id__in=locker_ids)
+            .exclude(status=Locker.Status.AVAILABLE)
+            .order_by('building_id', 'local_id', 'id')
+        )
 
-        if not active_lockers.exists():
+        if not active_lockers:
             return Response({
                 "status": "NO_ACTIVE_LOCKER",
                 "lockers": []
@@ -217,10 +230,19 @@ class LockerViewSet(
     serializer_class = LockerSerializer
 
     def get_queryset(self):
-        qs = Locker.objects.all()
+        qs = Locker.objects.all().order_by('building_id', 'local_id', 'id')
         building_id = self.request.query_params.get('building_id')
         if building_id:
             qs = qs.filter(building_id=building_id)
+        locker_status = self.request.query_params.get('status')
+        if locker_status:
+            qs = qs.filter(status=locker_status.upper())
+        locker_type = self.request.query_params.get('type')
+        if locker_type:
+            qs = qs.filter(type=locker_type.upper())
+        size = self.request.query_params.get('size')
+        if size:
+            qs = qs.filter(size=size.upper())
         return qs
 
     def get_permissions(self):
@@ -261,9 +283,9 @@ class LockerViewSet(
         try:
             locker = LockerService.book_locker(
                 building_id,
-                size,
-                locker_type,
-                actor_id=_request_actor_id(request),
+                size.upper(),
+                locker_type.upper(),
+                actor_id=_actor_id(request),
             )
             return Response({
                 'locker_id': locker.id,
@@ -284,7 +306,7 @@ class LockerViewSet(
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def open(self, request, pk=None):
         try:
-            locker = LockerService.open_locker(locker_id=pk, actor_id=_request_actor_id(request))
+            locker = LockerService.open_locker(locker_id=pk, actor_id=_actor_id(request))
             serializer = self.get_serializer(locker)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except ValueError as e:
@@ -301,7 +323,7 @@ class LockerViewSet(
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def deposit(self, request, pk=None):
         try:
-            locker = LockerService.confirm_deposit(locker_id=pk, actor_id=_request_actor_id(request))
+            locker = LockerService.confirm_deposit(locker_id=pk, actor_id=_actor_id(request))
             serializer = self.get_serializer(locker)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except ValueError as e:
@@ -328,7 +350,7 @@ class LockerViewSet(
             locker = LockerService.verify_qr(
                 qr_data=qr_data,
                 passcode=passcode,
-                actor_id=_request_actor_id(request, default='customer'),
+                actor_id=_actor_id(request, fallback='customer'),
             )
             serializer = self.get_serializer(locker)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -345,7 +367,7 @@ class LockerViewSet(
     )
     @action(detail=True, methods=['post'], url_path='pickup', permission_classes=[IsAuthenticated])
     def pickup(self, request, pk=None):
-        actor_id = _request_actor_id(request, default='customer')
+        actor_id = request.data.get('actor_id') or _actor_id(request, fallback='customer')
         try:
             locker = LockerService.pickup_locker(locker_id=pk, actor_id=actor_id)
             serializer = self.get_serializer(locker)
@@ -517,10 +539,11 @@ class AdminCLIView(APIView):
         if locker_type:
             queryset = queryset.filter(type=locker_type.upper())
 
+        lockers = list(queryset)
         return Response({
             'command': 'list',
-            'count': queryset.count(),
-            'lockers': LockerSerializer(queryset, many=True).data,
+            'count': len(lockers),
+            'lockers': LockerSerializer(lockers, many=True).data,
         }, status=status.HTTP_200_OK)
 
     def _open(self, args, actor_id):
