@@ -42,7 +42,7 @@
         <template x-for="size in sizes" :key="size.code">
           <button @click="selectSize(size)"
                   :disabled="size.available === 0"
-                  class="btn-touch p-5 rounded-xl border-2 min-h-[110px] shadow-sm transition-all active:scale-95"
+                  class="btn-touch p-5 rounded-xl border-2 min-h-[110px] text-sm shadow-sm transition-all active:scale-95"
                   :class="size.available > 0
                     ? 'bg-success-50 border-success-400 text-success-800 hover:bg-success-100'
                     : 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'">
