@@ -67,6 +67,15 @@ class Locker(models.Model):
 
     deposit_start_time = models.BigIntegerField(blank=True, null=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=["building", "status"], name="locker_bldg_status_idx"),
+            models.Index(fields=["type", "status"], name="locker_type_status_idx"),
+            models.Index(fields=["deposit_start_time"], name="locker_deposit_idx"),
+            models.Index(fields=["qr_data"], name="locker_qr_idx"),
+            models.Index(fields=["passcode"], name="locker_pin_idx"),
+        ]
+
     def __str__(self):
         return self.id
 
@@ -114,6 +123,13 @@ class LockerLog(models.Model):
     actor_id = models.TextField()
 
     metadata = models.JSONField(blank=True, null=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["locker", "action"], name="llog_locker_action_idx"),
+            models.Index(fields=["actor_id"], name="llog_actor_idx"),
+            models.Index(fields=["created_at"], name="llog_created_idx"),
+        ]
 
     def __str__(self):
         return f"{self.action} - {self.locker_id}"

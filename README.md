@@ -136,10 +136,10 @@ Direct Links to Screens:
 |------|----------|----------|----------|----------|----------|-------|
 | DevOps | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **20%** |
 | Backend A | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ⬜ 0% | **80%** |
-| Backend B | ✅ 100% | ✅ 100% | 🔄 67% | ⬜ 0% | ⬜ 0% | **53%** |
+| Backend B | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | 🔄 50% | **90%** |
 | Frontend A | ✅ 100% | ✅ 100% | 🔄 75% | 🔄 33% | ⬜ 0% | **75%** |
 | Frontend B | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
-| **Overall** | | | | | | **32% / 100%** |
+| **Overall** | | | | | | **53% / 100%** |
 
 > ✅ Done · 🔄 In Progress · ⬜ Pending · ❌ Blocked
 
@@ -454,11 +454,11 @@ flowchart TD
 | 🟠 P2 | [x] `POST /api/lockers/{id}/pickup/` (remove object + reset) | S2 | ✅ |
 | 🟡 P3 | [x] `POST /api/system/reset/` (scope: ALL/BUILDING/PROJECT) | S3 | ✅ |
 | 🟡 P3 | [x] `POST /api/admin/cli/` (list, open, reset commands) | S3 | ✅ |
-| 🟡 P3 | [ ] Celery task: abandon check >24h (FOOD lockers) | S3 | ⬜ |
-| 🟢 P4 | [ ] Django Channels: WebSocket `/ws/lockers/{building_id}/` | S4 | ⬜ |
-| 🟢 P4 | [ ] Redis channel layer config | S4 | ⬜ |
-| 🟢 P4 | [ ] Integration tests: full locker workflow | S4 | ⬜ |
-| 🔵 P5 | [ ] Query optimization + database indexes | S5 | ⬜ |
+| 🟡 P3 | [x] Celery task: abandon check >24h (FOOD lockers) | S3 | ✅ |
+| 🟢 P4 | [x] Django Channels: WebSocket `/ws/lockers/{building_id}/` | S4 | ✅ |
+| 🟢 P4 | [x] Redis channel layer config | S4 | ✅ |
+| 🟢 P4 | [x] Integration tests: full locker workflow | S4 | ✅ |
+| 🔵 P5 | [x] Query optimization + database indexes | S5 | ✅ |
 | 🔵 P5 | [ ] Bug fixes + PR review | S5 | ⬜ |
 
 ---
@@ -558,7 +558,7 @@ flowchart TD
 - [x] อัปเดตโดย Frontend A: ทำ `/register` ครบ — LINE LIFF integration (dev fallback), HTMX cascade Project→Building→Room ดึง DB จริง, บันทึก LineUser ผ่าน `POST /api/users/register/`, Success/Error/Loading state ครบ
 - [ ] อัปเดตโดย Frontend B:
 
-**% ที่ทำได้จริง sprint นี้:** `20 %`
+**% ที่ทำได้จริง sprint นี้:** `60 %`
 
 ---
 
@@ -566,11 +566,11 @@ flowchart TD
 
 - [ ] อัปเดตโดย DevOps:
 - [x] อัปเดตโดย Backend A: Implemented Locker CRUD APIs. Added `GET /api/lockers/` with `?building_id=` filter, `GET /api/lockers/{id}/` (detail), and `PUT /api/lockers/{id}/` (admin update, requires JWT). Upgraded `LockerViewSet` from `ReadOnlyModelViewSet` to include `UpdateModelMixin`. Added `LockerUpdateSerializer` with `id`, `building`, `passcode`, `qr_data` as read-only (structural/service-managed fields). List/retrieve remain public. Added `tests/test_lockers.py` with 12 tests covering list, filter, retrieve, unauthenticated PUT, authenticated PUT/PATCH, read-only field enforcement, and all valid status choices. Full suite: 25 passed.
-- [x] อัปเดตโดย Backend B: Implemented System Reset API for LOCKER/BUILDING/PROJECT/ALL scopes, clears credentials/state, records `ACTION_RESET` logs, and added pytest coverage. Added `POST /api/admin/cli/` for `list`, `open <id>`, `reset <id>`, `reset --building=<id>`, `reset --project=<id>`, and `reset --all`. Remaining S3 Backend B: Celery abandoned-food task.
+- [x] อัปเดตโดย Backend B: Implemented System Reset API for LOCKER/BUILDING/PROJECT/ALL scopes, clears credentials/state, records `ACTION_RESET` logs, and added pytest coverage. Added `POST /api/admin/cli/` for `list`, `open <id>`, `reset <id>`, `reset --building=<id>`, `reset --project=<id>`, and `reset --all`. Added Celery abandoned-food check for FOOD lockers over 24h with `ACTION_ABANDONED` logs.
 - [x] อัปเดตโดย Frontend A: Rider flow เสร็จ 3/4 — select_size.html (Alpine.js + loadSizes/selectSize), qr_display.html (QR+PIN+instructions), rider_confirm.html, HTMX endpoints stubs ครบ; ยังขาด /login auth flow
 - [ ] อัปเดตโดย Frontend B:
 
-**% ที่ทำได้จริง sprint นี้:** `20 %`
+**% ที่ทำได้จริง sprint นี้:** `60 %`
 
 ---
 
@@ -578,7 +578,7 @@ flowchart TD
 
 - [ ] อัปเดตโดย DevOps:
 - [x] อัปเดตโดย Backend A: Implemented LINE Messaging API integration. Added `POST /api/line/webhook/` with HMAC-SHA256 signature verification (`X-Line-Signature` header). Added `POST /api/line/push/` (JWT-protected) supporting text, image, and text+image push messages via LINE Messaging API. Added `LineService` class in `foodlocker/line_service.py`. Added `requests==2.32.3` dependency. Added `LINE_CHANNEL_SECRET` and `LINE_CHANNEL_ACCESS_TOKEN` settings (via env vars). Added `tests/test_line.py` with 8 tests: valid/invalid/missing signature, follow event, message event, push text (mocked), push auth guard, push missing `to`. Full suite: 33 passed.
-- [ ] อัปเดตโดย Backend B:
+- [x] อัปเดตโดย Backend B: Implemented Django Channels WebSocket `/ws/lockers/{building_id}/`, Redis channel layer config, realtime locker state broadcasts, and full locker workflow integration tests.
 - [x] อัปเดตโดย Frontend A: deposit.html เสร็จสมบูรณ์ (กล้อง + takePhoto + submit base64 → API); Customer QR scan ยังเป็น placeholder; WebSocket ยังไม่ได้ทำ
 - [ ] อัปเดตโดย Frontend B:
 
@@ -590,7 +590,7 @@ flowchart TD
 
 - [ ] อัปเดตโดย DevOps:
 - [ ] อัปเดตโดย Backend A:
-- [ ] อัปเดตโดย Backend B:
+- [x] อัปเดตโดย Backend B: Added Backend B query indexes for locker lookup, abandoned-food checks, and log queries. Remaining Backend B S5 item: PR review handoff.
 - [ ] อัปเดตโดย Frontend A:
 - [ ] อัปเดตโดย Frontend B:
 

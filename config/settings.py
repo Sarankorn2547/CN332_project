@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import importlib.util
 import os
 from pathlib import Path
 from datetime import timedelta
@@ -32,7 +33,13 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
-INSTALLED_APPS = [
+OPTIONAL_APPS = []
+if importlib.util.find_spec('daphne'):
+    OPTIONAL_APPS.append('daphne')
+if importlib.util.find_spec('channels'):
+    OPTIONAL_APPS.append('channels')
+
+INSTALLED_APPS = OPTIONAL_APPS + [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -75,6 +82,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
+ASGI_APPLICATION = 'config.asgi.application'
 
 
 # Database
@@ -156,3 +164,33 @@ SIMPLE_JWT = {
 # LINE Messaging API
 LINE_CHANNEL_SECRET = os.environ.get('LINE_CHANNEL_SECRET', '')
 LINE_CHANNEL_ACCESS_TOKEN = os.environ.get('LINE_CHANNEL_ACCESS_TOKEN', '')
+
+# Backend B realtime/background infrastructure
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/0')
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [REDIS_URL],
+        },
+    },
+}
+
+LOCKER_WEBSOCKET_BROADCAST_ENABLED = os.environ.get(
+    'LOCKER_WEBSOCKET_BROADCAST_ENABLED',
+    '1',
+).lower() not in {'0', 'false', 'no'}
+
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', REDIS_URL)
+CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', REDIS_URL)
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_BEAT_SCHEDULE = {
+    'check-abandoned-food-lockers-hourly': {
+        'task': 'foodlocker.check_abandoned_food_lockers',
+        'schedule': 60 * 60,
+    },
+}
