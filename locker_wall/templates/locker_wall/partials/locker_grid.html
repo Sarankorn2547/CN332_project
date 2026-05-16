@@ -1,0 +1,41 @@
+{# Partial template — ใช้กับ HTMX polling และ filter #}
+{# ไม่ต้อง extend base.html เพราะเป็นแค่ fragment #}
+{% load static %}
+
+<template x-for="locker in filteredLockers" :key="locker.id">
+    <div class="flex flex-col items-center space-y-3">
+        <div class="relative w-44 h-44 bg-gray-800 border-4 border-gray-700 perspective-1000 shadow-2xl rounded-sm">
+            <div class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950">
+                <span class="text-[10px] text-gray-500" x-text="locker.size + ' | ' + locker.type"></span>
+                <div class="text-xs font-mono mt-1"
+                     :class="{
+                        'text-green-400': locker.status === 'available',
+                        'text-red-400':   locker.status === 'occupied',
+                        'text-yellow-400': locker.status === 'booked'
+                     }"
+                     x-text="locker.status.toUpperCase()">
+                </div>
+            </div>
+            <div class="absolute top-2 right-2 z-20">
+                <div class="w-3 h-3 rounded-full"
+                     :class="{
+                        'led-available': locker.status === 'available',
+                        'led-occupied':  locker.status === 'occupied',
+                        'led-booked':    locker.status === 'booked'
+                     }">
+                </div>
+            </div>
+            <div :class="locker.isOpen ? 'door-open' : ''"
+                 class="absolute inset-0 bg-blue-700 border-2 border-blue-900
+                        transition-door preserve-3d origin-left z-10
+                        flex items-center justify-center shadow-2xl cursor-pointer"
+                 @click="toggleDoor(locker)">
+                <div class="text-white font-bold text-xl select-none" x-text="locker.local_id"></div>
+                <div class="absolute right-2 w-1.5 h-8 bg-blue-900 rounded-full"></div>
+            </div>
+        </div>
+        <div class="text-center">
+            <div class="text-sm font-semibold text-gray-200" x-text="locker.local_id"></div>
+        </div>
+    </div>
+</template>

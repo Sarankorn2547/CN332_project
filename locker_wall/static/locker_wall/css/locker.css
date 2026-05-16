@@ -1,0 +1,68 @@
+:root {
+    --color-primary:   #dc2626;
+    --color-locker:    #374151;
+    --color-bg-dark:   #020617;
+    --color-available: #10b981;
+    --color-occupied:  #f43f5e;
+    --color-booked:    #fbbf24;
+}
+/* 3D Scene */
+.perspective-1000 {
+    perspective: 1000px;
+}
+
+.preserve-3d {
+    transform-style: preserve-3d;
+}
+
+/* ประตูเปิด — หมุนออกซ้าย */
+.door-open {
+    transform: rotateY(-110deg);
+}
+
+/* ความเร็วแอนิเมชันประตู */
+.transition-door {
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.led-available {
+    background-color: #10b981;
+    box-shadow: 0 0 10px #10b981, 0 0 20px #10b98155;
+}
+
+.led-occupied {
+    background-color: #f43f5e;
+    box-shadow: 0 0 10px #f43f5e, 0 0 20px #f43f5e55;
+}
+
+.led-booked {
+    background-color: #fbbf24;
+    box-shadow: 0 0 10px #fbbf24, 0 0 20px #fbbf2455;
+}
+
+.led-booked {
+    background-color: #eab308;
+    box-shadow: 0 0 10px #eab308, 0 0 20px #eab30855;
+}
+
+/* Filter tab active state */
+.tab-active {
+    background-color: #ffd93d;
+    color: #1e293b;
+    font-weight: 700;
+}
+
+/* Locker grid responsive */
+.locker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 2rem;
+    justify-items: center;
+}
+
+@media (max-width: 640px) {
+    .locker-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+}
