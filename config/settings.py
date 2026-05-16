@@ -162,6 +162,17 @@ SIMPLE_JWT = {
 LINE_CHANNEL_SECRET = os.environ.get('LINE_CHANNEL_SECRET', '')
 LINE_CHANNEL_ACCESS_TOKEN = os.environ.get('LINE_CHANNEL_ACCESS_TOKEN', '')
 
+# Celery / abandoned-food cleanup.
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL') or os.environ.get('REDIS_URL') or 'memory://'
+CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'cache+memory://')
+CELERY_TASK_ALWAYS_EAGER = os.environ.get('CELERY_TASK_ALWAYS_EAGER', 'False').lower() == 'true'
+CELERY_BEAT_SCHEDULE = {
+    'check-abandoned-food-lockers-hourly': {
+        'task': 'foodlocker.tasks.check_abandoned_food_lockers',
+        'schedule': 3600.0,
+    },
+}
+
 # Django Channels / realtime locker updates.
 # Set REDIS_URL in deployed environments, e.g. redis://redis:6379/0.
 REDIS_URL = os.environ.get('REDIS_URL')
