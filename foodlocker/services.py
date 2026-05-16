@@ -8,33 +8,34 @@ class LockerService:
     RESET_SCOPES = {"LOCKER", "BUILDING", "PROJECT", "ALL"}
 
     @staticmethod
-    def book_locker(building_id: str, size: str, locker_type: str) -> Locker:
-        locker = Locker.objects.filter(
-            building_id=building_id,
-            size=size,
-            type=locker_type,
-            status=Locker.Status.AVAILABLE
-        ).first()
+    def book_locker(building_id: str, size: str, locker_type: str, actor_id: str = "system") -> Locker:
+        with transaction.atomic():
+            locker = Locker.objects.select_for_update().filter(
+                building_id=building_id,
+                size=size,
+                type=locker_type,
+                status=Locker.Status.AVAILABLE
+            ).order_by("id").first()
 
-        if not locker:
-            raise ValueError(f"No available locker found for size '{size}' and type '{locker_type}' in building '{building_id}'.")
+            if not locker:
+                raise ValueError(f"No available locker found for size '{size}' and type '{locker_type}' in building '{building_id}'.")
 
-        passcode = f"{random.randint(0, 999999):06d}"
-        qr_data = str(uuid.uuid4())
+            passcode = f"{random.randint(0, 999999):06d}"
+            qr_data = str(uuid.uuid4())
 
-        locker.status = Locker.Status.BOOKED
-        locker.passcode = passcode
-        locker.qr_data = qr_data
-        locker.is_locked = True
-        locker.is_door_open = False
-        locker.save()
+            locker.status = Locker.Status.BOOKED
+            locker.passcode = passcode
+            locker.qr_data = qr_data
+            locker.is_locked = True
+            locker.is_door_open = False
+            locker.save(update_fields=["status", "passcode", "qr_data", "is_locked", "is_door_open"])
 
-        LockerLog.objects.create(
-            locker=locker,
-            action="ACTION_BOOK",
-            actor_id="system",
-            metadata={"size": size, "type": locker_type}
-        )
+            LockerLog.objects.create(
+                locker=locker,
+                action="ACTION_BOOK",
+                actor_id=actor_id,
+                metadata={"size": size, "type": locker_type}
+            )
 
         return locker
 
@@ -50,7 +51,7 @@ class LockerService:
 
         locker.is_door_open = True
         locker.is_locked = False
-        locker.save()
+        locker.save(update_fields=["is_door_open", "is_locked"])
 
         LockerLog.objects.create(
             locker=locker,
@@ -78,7 +79,13 @@ class LockerService:
         locker.is_door_open = False
         locker.is_locked = True
         locker.deposit_start_time = int(time.time())
-        locker.save()
+        locker.save(update_fields=[
+            "status",
+            "has_object",
+            "is_door_open",
+            "is_locked",
+            "deposit_start_time",
+        ])
 
         LockerLog.objects.create(
             locker=locker,
@@ -106,7 +113,7 @@ class LockerService:
 
         locker.is_door_open = True
         locker.is_locked = False
-        locker.save()
+        locker.save(update_fields=["is_door_open", "is_locked"])
 
         LockerLog.objects.create(
             locker=locker,
@@ -127,6 +134,9 @@ class LockerService:
         if locker.status != Locker.Status.OCCUPIED:
             raise ValueError(f"Locker '{locker_id}' must be OCCUPIED to pickup.")
 
+        if locker.is_locked or not locker.is_door_open:
+            raise ValueError(f"Locker '{locker_id}' must be unlocked before pickup.")
+
         locker.status = Locker.Status.AVAILABLE
         locker.passcode = ""
         locker.qr_data = ""
@@ -134,7 +144,15 @@ class LockerService:
         locker.is_door_open = False
         locker.is_locked = True
         locker.deposit_start_time = None
-        locker.save()
+        locker.save(update_fields=[
+            "status",
+            "passcode",
+            "qr_data",
+            "has_object",
+            "is_door_open",
+            "is_locked",
+            "deposit_start_time",
+        ])
 
         LockerLog.objects.create(
             locker=locker,
@@ -176,7 +194,7 @@ class LockerService:
             queryset = queryset.filter(building__project_id=project_id)
             metadata["project_id"] = project_id
 
-        locker_ids = list(queryset.values_list("id", flat=True))
+        locker_ids = list(queryset.order_by("id").values_list("id", flat=True))
         if normalized_scope == "LOCKER" and not locker_ids:
             raise Locker.DoesNotExist(f"Locker with id '{locker_id}' not found.")
 

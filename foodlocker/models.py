@@ -70,6 +70,14 @@ class Locker(models.Model):
     def __str__(self):
         return self.id
 
+    class Meta:
+        indexes = [
+            models.Index(fields=["building", "status", "type", "size"], name="locker_lookup_idx"),
+            models.Index(fields=["status", "qr_data"], name="locker_qr_lookup_idx"),
+            models.Index(fields=["status", "passcode"], name="locker_pin_lookup_idx"),
+            models.Index(fields=["building", "local_id"], name="locker_wall_order_idx"),
+        ]
+
 
 class LineUser(models.Model):
     id = models.BigAutoField(primary_key=True)
@@ -117,3 +125,9 @@ class LockerLog(models.Model):
 
     def __str__(self):
         return f"{self.action} - {self.locker_id}"
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["actor_id", "locker"], name="lockerlog_actor_locker_idx"),
+            models.Index(fields=["locker", "-created_at"], name="lockerlog_locker_created_idx"),
+        ]
