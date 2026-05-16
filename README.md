@@ -136,7 +136,7 @@ Direct Links to Screens:
 |------|----------|----------|----------|----------|----------|-------|
 | DevOps | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **20%** |
 | Backend A | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ⬜ 0% | **80%** |
-| Backend B | ✅ 100% | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **40%** |
+| Backend B | ✅ 100% | ✅ 100% | 🔄 33% | ⬜ 0% | ⬜ 0% | **47%** |
 | Frontend A | ✅ 100% | ✅ 100% | 🔄 75% | 🔄 33% | ⬜ 0% | **75%** |
 | Frontend B | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
 | **Overall** | | | | | | **32% / 100%** |
@@ -452,7 +452,7 @@ flowchart TD
 | 🟠 P2 | [x] `GET /api/master/rooms/?building_id=` | S2 | ✅ |
 | 🟠 P2 | [x] `POST /api/lockers/verify-qr/` (scan QR + passcode check) | S2 | ✅ |
 | 🟠 P2 | [x] `POST /api/lockers/{id}/pickup/` (remove object + reset) | S2 | ✅ |
-| 🟡 P3 | [ ] `POST /api/system/reset/` (scope: ALL/BUILDING/PROJECT) | S3 | ⬜ |
+| 🟡 P3 | [x] `POST /api/system/reset/` (scope: ALL/BUILDING/PROJECT) | S3 | ✅ |
 | 🟡 P3 | [ ] `POST /api/admin/cli/` (list, open, reset commands) | S3 | ⬜ |
 | 🟡 P3 | [ ] Celery task: abandon check >24h (FOOD lockers) | S3 | ⬜ |
 | 🟢 P4 | [ ] Django Channels: WebSocket `/ws/lockers/{building_id}/` | S4 | ⬜ |
@@ -566,7 +566,7 @@ flowchart TD
 
 - [ ] อัปเดตโดย DevOps:
 - [x] อัปเดตโดย Backend A: Implemented Locker CRUD APIs. Added `GET /api/lockers/` with `?building_id=` filter, `GET /api/lockers/{id}/` (detail), and `PUT /api/lockers/{id}/` (admin update, requires JWT). Upgraded `LockerViewSet` from `ReadOnlyModelViewSet` to include `UpdateModelMixin`. Added `LockerUpdateSerializer` with `id`, `building`, `passcode`, `qr_data` as read-only (structural/service-managed fields). List/retrieve remain public. Added `tests/test_lockers.py` with 12 tests covering list, filter, retrieve, unauthenticated PUT, authenticated PUT/PATCH, read-only field enforcement, and all valid status choices. Full suite: 25 passed.
-- [ ] อัปเดตโดย Backend B:
+- [x] อัปเดตโดย Backend B: Implemented System Reset API for LOCKER/BUILDING/PROJECT/ALL scopes, clears credentials/state, records `ACTION_RESET` logs, and added pytest coverage. Remaining S3 Backend B: CLI API + Celery abandoned-food task.
 - [x] อัปเดตโดย Frontend A: Rider flow เสร็จ 3/4 — select_size.html (Alpine.js + loadSizes/selectSize), qr_display.html (QR+PIN+instructions), rider_confirm.html, HTMX endpoints stubs ครบ; ยังขาด /login auth flow
 - [ ] อัปเดตโดย Frontend B:
 
