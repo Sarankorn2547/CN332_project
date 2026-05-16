@@ -3,6 +3,7 @@ import random
 import time
 from django.db import models, transaction
 from .models import Locker, LockerLog
+from .realtime import broadcast_locker_update
 
 class LockerService:
     RESET_SCOPES = {"LOCKER", "BUILDING", "PROJECT", "ALL"}
@@ -58,6 +59,7 @@ class LockerService:
             action="ACTION_OPEN",
             actor_id=actor_id
         )
+        broadcast_locker_update(locker, action="ACTION_OPEN", actor_id=actor_id)
 
         return locker
 
@@ -92,6 +94,7 @@ class LockerService:
             action="ACTION_DEPOSIT",
             actor_id=actor_id
         )
+        broadcast_locker_update(locker, action="ACTION_DEPOSIT", actor_id=actor_id)
 
         return locker
 
@@ -120,6 +123,12 @@ class LockerService:
             action="ACTION_VERIFY_QR",
             actor_id=actor_id,
             metadata={"method": "qr" if qr_data else "passcode"}
+        )
+        broadcast_locker_update(
+            locker,
+            action="ACTION_VERIFY_QR",
+            actor_id=actor_id,
+            metadata={"method": "qr" if qr_data else "passcode"},
         )
 
         return locker
@@ -159,6 +168,7 @@ class LockerService:
             action="ACTION_PICKUP",
             actor_id=actor_id
         )
+        broadcast_locker_update(locker, action="ACTION_PICKUP", actor_id=actor_id)
 
         return locker
 
@@ -219,6 +229,15 @@ class LockerService:
                 )
                 for target_id in locker_ids
             ])
+
+        reset_lockers = Locker.objects.filter(id__in=locker_ids).select_related("building")
+        for locker in reset_lockers:
+            broadcast_locker_update(
+                locker,
+                action="ACTION_RESET",
+                actor_id=actor_id,
+                metadata=metadata,
+            )
 
         return {
             "scope": normalized_scope,

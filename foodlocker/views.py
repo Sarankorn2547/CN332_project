@@ -22,6 +22,16 @@ from .serializers import (
 from .line_service import LineService
 from .authentication import LineUserJWTAuthentication
 from .services import LockerService
+from .realtime import broadcast_locker_update
+
+
+def _request_actor_id(request, default='system'):
+    return (
+        getattr(request.user, 'line_user_id', None)
+        or getattr(request.user, 'username', None)
+        or request.data.get('actor_id')
+        or default
+    )
 
 
 def _actor_id(request, fallback='system'):
@@ -204,6 +214,14 @@ class LockerViewSet(
         if self.action in ('update', 'partial_update'):
             return LockerUpdateSerializer
         return LockerSerializer
+
+    def perform_update(self, serializer):
+        locker = serializer.save()
+        broadcast_locker_update(
+            locker,
+            action='ACTION_UPDATE',
+            actor_id=_request_actor_id(self.request, default='admin'),
+        )
 
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
     def book(self, request):
