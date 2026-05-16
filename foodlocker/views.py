@@ -22,6 +22,16 @@ from .serializers import (
 from .line_service import LineService
 from .authentication import LineUserJWTAuthentication
 from .services import LockerService
+from .realtime import broadcast_locker_update
+
+
+def _request_actor_id(request, default='system'):
+    return (
+        getattr(request.user, 'line_user_id', None)
+        or getattr(request.user, 'username', None)
+        or request.data.get('actor_id')
+        or default
+    )
 
 
 class LineUserTokenView(APIView):
@@ -183,6 +193,14 @@ class LockerViewSet(
             return LockerUpdateSerializer
         return LockerSerializer
 
+    def perform_update(self, serializer):
+        locker = serializer.save()
+        broadcast_locker_update(
+            locker,
+            action='ACTION_UPDATE',
+            actor_id=_request_actor_id(self.request, default='admin'),
+        )
+
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
     def book(self, request):
         building_id = request.data.get('building_id')
@@ -193,7 +211,12 @@ class LockerViewSet(
             return Response({'error': 'building_id, size, and type are required'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            locker = LockerService.book_locker(building_id, size, locker_type)
+            locker = LockerService.book_locker(
+                building_id,
+                size,
+                locker_type,
+                actor_id=_request_actor_id(request),
+            )
             return Response({
                 'locker_id': locker.id,
                 'qr_data': locker.qr_data,
@@ -205,7 +228,7 @@ class LockerViewSet(
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def open(self, request, pk=None):
         try:
-            locker = LockerService.open_locker(locker_id=pk)
+            locker = LockerService.open_locker(locker_id=pk, actor_id=_request_actor_id(request))
             serializer = self.get_serializer(locker)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except ValueError as e:
@@ -214,7 +237,7 @@ class LockerViewSet(
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def deposit(self, request, pk=None):
         try:
-            locker = LockerService.confirm_deposit(locker_id=pk)
+            locker = LockerService.confirm_deposit(locker_id=pk, actor_id=_request_actor_id(request))
             serializer = self.get_serializer(locker)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except ValueError as e:
@@ -226,7 +249,11 @@ class LockerViewSet(
         passcode = request.data.get('passcode')
         
         try:
-            locker = LockerService.verify_qr(qr_data=qr_data, passcode=passcode)
+            locker = LockerService.verify_qr(
+                qr_data=qr_data,
+                passcode=passcode,
+                actor_id=_request_actor_id(request, default='customer'),
+            )
             serializer = self.get_serializer(locker)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except ValueError as e:
@@ -234,7 +261,7 @@ class LockerViewSet(
 
     @action(detail=True, methods=['post'], url_path='pickup', permission_classes=[IsAuthenticated])
     def pickup(self, request, pk=None):
-        actor_id = request.data.get('actor_id', 'customer')
+        actor_id = _request_actor_id(request, default='customer')
         try:
             locker = LockerService.pickup_locker(locker_id=pk, actor_id=actor_id)
             serializer = self.get_serializer(locker)
