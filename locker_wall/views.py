@@ -1,23 +1,35 @@
 import json
+import requests
 from django.shortcuts import render
 from foodlocker.models import Locker, Building
 
+_STATUS_MAP = {
+    'Available': 'available',
+    'In Use': 'occupied',
+    'Booked': 'booked',
+}
+
 
 def locker_wall(request):
-    lockers_data = [
-        {'id': '1', 'local_id': 'A-01', 'size': 'S', 'type': 'FOOD',
-         'status': 'available', 'isOpen': False, 'has_object': False},
-        {'id': '2', 'local_id': 'A-02', 'size': 'M', 'type': 'FOOD',
-         'status': 'occupied',  'isOpen': False, 'has_object': True},
-        {'id': '3', 'local_id': 'A-03', 'size': 'L', 'type': 'FOOD',
-         'status': 'booked',    'isOpen': True,  'has_object': False},
-        {'id': '4', 'local_id': 'A-04', 'size': 'S', 'type': 'ASSET',
-         'status': 'available', 'isOpen': False, 'has_object': False},
-        {'id': '5', 'local_id': 'B-01', 'size': 'M', 'type': 'LAUNDRY',
-         'status': 'occupied',  'isOpen': False, 'has_object': True},
-        {'id': '6', 'local_id': 'B-02', 'size': 'S', 'type': 'KEY',
-         'status': 'available', 'isOpen': False, 'has_object': False},
-    ]
+    try:
+        resp = requests.get('http://127.0.0.1:8000/api/lockers/', timeout=5)
+        resp.raise_for_status()
+        api_lockers = resp.json()
+        lockers_data = [
+            {
+                'id': str(locker.get('id', '')),
+                'local_id': locker.get('local_id', str(locker.get('id', ''))),
+                'size': locker.get('size', ''),
+                'type': locker.get('type', 'FOOD'),
+                'status': _STATUS_MAP.get(locker.get('status', ''), locker.get('status', 'available').lower()),
+                'isOpen': locker.get('is_door_open', False),
+                'has_object': locker.get('has_object', False),
+            }
+            for locker in api_lockers
+        ]
+    except Exception:
+        lockers_data = []
+
     return render(request, 'locker_wall/wall.html', {
         'lockers_json': json.dumps(lockers_data),
         'buildings': [],
@@ -25,31 +37,39 @@ def locker_wall(request):
     })
 
 
+def test_door(request):
+    return render(request, 'locker_wall/test_door.html')
+
+
 def locker_wall_partial(request):
     """
     HTMX partial: คืน HTML แค่ grid ของตู้ (ใช้สำหรับ polling / filter)
     """
-    building_id = request.GET.get('building_id', None)
-    locker_type = request.GET.get('type', None)
+    building_id = request.GET.get('building_id')
+    locker_type = request.GET.get('type')
 
     try:
-        lockers_qs = Locker.objects.all()
+        params = {}
         if building_id:
-            lockers_qs = lockers_qs.filter(building_id=building_id)
+            params['building_id'] = building_id
         if locker_type:
-            lockers_qs = lockers_qs.filter(type=locker_type)
+            params['type'] = locker_type
 
-        lockers_data = []
-        for locker in lockers_qs:
-            lockers_data.append({
-                'id': str(locker.id),
-                'local_id': locker.local_id or str(locker.id),
-                'size': locker.size,
-                'type': locker.type if hasattr(locker, 'type') else 'FOOD',
-                'status': locker.status.lower() if locker.status else 'available',
-                'isOpen': locker.is_door_open if hasattr(locker, 'is_door_open') else False,
-                'has_object': locker.has_object if hasattr(locker, 'has_object') else False,
-            })
+        resp = requests.get('http://127.0.0.1:8000/api/lockers/', params=params, timeout=5)
+        resp.raise_for_status()
+        api_lockers = resp.json()
+        lockers_data = [
+            {
+                'id': str(locker.get('id', '')),
+                'local_id': locker.get('local_id', str(locker.get('id', ''))),
+                'size': locker.get('size', ''),
+                'type': locker.get('type', ''),
+                'status': _STATUS_MAP.get(locker.get('status', ''), locker.get('status', 'available').lower()),
+                'isOpen': locker.get('is_door_open', False),
+                'has_object': locker.get('has_object', False),
+            }
+            for locker in api_lockers
+        ]
     except Exception:
         lockers_data = []
 

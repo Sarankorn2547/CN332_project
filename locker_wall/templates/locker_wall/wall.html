@@ -29,25 +29,15 @@
                 class="px-4 py-2 rounded-full text-sm font-medium transition-all">
             ทั้งหมด
         </button>
-        <button @click="filterType = 'FOOD'"
-                :class="filterType === 'FOOD' ? 'tab-active' : 'bg-slate-700 text-gray-300 hover:bg-slate-600'"
+        <button @click="filterType = 'Standard'"
+                :class="filterType === 'Standard' ? 'tab-active' : 'bg-slate-700 text-gray-300 hover:bg-slate-600'"
                 class="px-4 py-2 rounded-full text-sm font-medium transition-all">
-            🍱 Food
+            🗄 Standard
         </button>
-        <button @click="filterType = 'ASSET'"
-                :class="filterType === 'ASSET' ? 'tab-active' : 'bg-slate-700 text-gray-300 hover:bg-slate-600'"
+        <button @click="filterType = 'Refrigerated'"
+                :class="filterType === 'Refrigerated' ? 'tab-active' : 'bg-slate-700 text-gray-300 hover:bg-slate-600'"
                 class="px-4 py-2 rounded-full text-sm font-medium transition-all">
-            📦 Asset
-        </button>
-        <button @click="filterType = 'LAUNDRY'"
-                :class="filterType === 'LAUNDRY' ? 'tab-active' : 'bg-slate-700 text-gray-300 hover:bg-slate-600'"
-                class="px-4 py-2 rounded-full text-sm font-medium transition-all">
-            👕 Laundry
-        </button>
-        <button @click="filterType = 'KEY'"
-                :class="filterType === 'KEY' ? 'tab-active' : 'bg-slate-700 text-gray-300 hover:bg-slate-600'"
-                class="px-4 py-2 rounded-full text-sm font-medium transition-all">
-            🔑 Key
+            ❄️ Refrigerated
         </button>
     </div>
 
@@ -55,27 +45,24 @@
     <div class="grid grid-cols-3 gap-3 mb-6">
         <div class="bg-slate-800 rounded-xl p-3 text-center border border-green-500/30">
             <div class="text-2xl font-bold text-green-400"
-                 x-text="filteredLockers.filter(l => l.status === 'available').length"></div>
+                 x-text="filteredLockers.filter(l => l.status.toLowerCase() === 'available').length"></div>
             <div class="text-xs text-gray-400 mt-1">ว่าง</div>
         </div>
         <div class="bg-slate-800 rounded-xl p-3 text-center border border-red-500/30">
             <div class="text-2xl font-bold text-red-400"
-                 x-text="filteredLockers.filter(l => l.status === 'occupied').length"></div>
+                 x-text="filteredLockers.filter(l => l.status.toLowerCase() === 'occupied').length"></div>
             <div class="text-xs text-gray-400 mt-1">มีของ</div>
         </div>
         <div class="bg-slate-800 rounded-xl p-3 text-center border border-yellow-500/30">
             <div class="text-2xl font-bold text-yellow-400"
-                 x-text="filteredLockers.filter(l => l.status === 'booked').length"></div>
+                 x-text="filteredLockers.filter(l => l.status.toLowerCase() === 'booked').length"></div>
             <div class="text-xs text-gray-400 mt-1">จอง</div>
         </div>
     </div>
 
     <!-- ===== Locker Grid ===== -->
     <div class="locker-grid"
-         id="locker-grid"
-         hx-get="/locker/partial/"
-         hx-trigger="every 10s"
-         hx-swap="none">
+         id="locker-grid">
 
         <template x-for="locker in filteredLockers" :key="locker.id">
             <div class="flex flex-col items-center space-y-3">
@@ -88,9 +75,9 @@
                         <span class="text-[10px] text-gray-500 mb-1" x-text="locker.size + ' | ' + locker.type"></span>
                         <div class="text-xs font-mono mt-1"
                              :class="{
-                                'text-green-400': locker.status === 'available',
-                                'text-red-400':   locker.status === 'occupied',
-                                'text-yellow-400': locker.status === 'booked'
+                                'text-green-400':  locker.status.toLowerCase() === 'available',
+                                'text-red-400':    locker.status.toLowerCase() === 'occupied',
+                                'text-yellow-400': locker.status.toLowerCase() === 'booked'
                              }"
                              x-text="locker.status.toUpperCase()">
                         </div>
@@ -103,18 +90,17 @@
                     <div class="absolute top-2 right-2 z-20">
                         <div class="w-3 h-3 rounded-full transition-all duration-500"
                              :class="{
-                                'led-available': locker.status === 'available',
-                                'led-occupied':  locker.status === 'occupied',
-                                'led-booked':    locker.status === 'booked'
+                                'led-available': locker.status.toLowerCase() === 'available',
+                                'led-occupied':  locker.status.toLowerCase() === 'occupied',
+                                'led-booked':    locker.status.toLowerCase() === 'booked'
                              }">
                         </div>
                     </div>
 
                     <!-- ประตูตู้ (3D) -->
-                    <div :class="locker.isOpen ? 'door-open' : ''"
-                         class="absolute inset-0 bg-gray-700 border-2 border-gray-900
-                            transition-door preserve-3d origin-left z-10
-                            flex items-center justify-center shadow-2xl rounded-sm cursor-pointer"
+                    <div class="absolute inset-0 bg-gray-700 border-2 border-gray-900
+                            z-10 flex items-center justify-center shadow-2xl rounded-sm cursor-pointer transition-door"
+                         :class="{ 'door-open': locker.isOpen }"
                          @click="toggleDoor(locker)">
                         <!-- ชื่อตู้ -->
                         <div class="text-white font-bold text-xl select-none"
@@ -188,6 +174,11 @@ function lockerWallApp(initialLockers) {
 
         toggleDoor(locker) {
             locker.isOpen = !locker.isOpen;
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+            fetch(`/api/lockers/${locker.id}/open/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrfToken, 'Content-Type': 'application/json' },
+            }).catch(() => {});
         },
     }
 }
