@@ -37,6 +37,12 @@ class LockerService:
                 actor_id=actor_id,
                 metadata={"size": size, "type": locker_type}
             )
+            broadcast_locker_update(
+                locker,
+                action="ACTION_BOOK",
+                actor_id=actor_id,
+                metadata={"size": size, "type": locker_type},
+            )
 
         return locker
 
@@ -143,7 +149,7 @@ class LockerService:
         if locker.status != Locker.Status.OCCUPIED:
             raise ValueError(f"Locker '{locker_id}' must be OCCUPIED to pickup.")
 
-        if locker.is_locked or not locker.is_door_open:
+        if (locker.passcode or locker.qr_data) and (locker.is_locked or not locker.is_door_open):
             raise ValueError(f"Locker '{locker_id}' must be unlocked before pickup.")
 
         locker.status = Locker.Status.AVAILABLE
@@ -242,5 +248,69 @@ class LockerService:
         return {
             "scope": normalized_scope,
             "reset_count": reset_count,
+            "locker_ids": locker_ids,
+        }
+
+    @staticmethod
+    def clear_abandoned_food_lockers(
+        *,
+        now: int = None,
+        max_age_seconds: int = 24 * 60 * 60,
+        actor_id: str = "celery",
+    ) -> dict:
+        current_time = int(time.time()) if now is None else int(now)
+        threshold = current_time - max_age_seconds
+
+        queryset = Locker.objects.filter(
+            status=Locker.Status.OCCUPIED,
+            type="FOOD",
+            has_object=True,
+            deposit_start_time__isnull=False,
+            deposit_start_time__lte=threshold,
+        )
+
+        metadata = {
+            "reason": "ABANDONED_FOOD_TIMEOUT",
+            "max_age_seconds": max_age_seconds,
+            "threshold": threshold,
+        }
+
+        with transaction.atomic():
+            lockers = list(queryset.select_for_update().order_by("id"))
+            locker_ids = [locker.id for locker in lockers]
+
+            reset_count = queryset.filter(id__in=locker_ids).update(
+                status=Locker.Status.AVAILABLE,
+                passcode="",
+                qr_data="",
+                is_door_open=False,
+                has_object=False,
+                is_locked=True,
+                deposit_start_time=None,
+            )
+
+            LockerLog.objects.bulk_create([
+                LockerLog(
+                    locker_id=locker_id,
+                    action="ACTION_ABANDONED_TIMEOUT",
+                    actor_id=actor_id,
+                    metadata=metadata,
+                )
+                for locker_id in locker_ids
+            ])
+
+        reset_lockers = Locker.objects.filter(id__in=locker_ids).select_related("building")
+        for locker in reset_lockers:
+            broadcast_locker_update(
+                locker,
+                action="ACTION_ABANDONED_TIMEOUT",
+                actor_id=actor_id,
+                metadata=metadata,
+            )
+
+        return {
+            "checked_at": current_time,
+            "threshold": threshold,
+            "abandoned_count": reset_count,
             "locker_ids": locker_ids,
         }

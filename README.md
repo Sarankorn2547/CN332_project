@@ -136,10 +136,10 @@ Direct Links to Screens:
 |------|----------|----------|----------|----------|----------|-------|
 | DevOps | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **20%** |
 | Backend A | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | **100%** |
-| Backend B | ✅ 100% | ✅ 100% | 🔄 67% | 🔄 33% | ✅ 100% | **80%** |
+| Backend B | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | **100%** |
 | Frontend A | ✅ 100% | ✅ 100% | 🔄 75% | 🔄 33% | ⬜ 0% | **75%** |
 | Frontend B | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
-| **Overall** | | | | | | **51% / 100%** |
+| **Overall** | | | | | | **59% / 100%** |
 
 > ✅ Done · 🔄 In Progress · ⬜ Pending · ❌ Blocked
 
@@ -454,9 +454,9 @@ flowchart TD
 | 🟠 P2 | [x] `POST /api/lockers/{id}/pickup/` (remove object + reset) | S2 | ✅ |
 | 🟡 P3 | [x] `POST /api/system/reset/` (scope: ALL/BUILDING/PROJECT) | S3 | ✅ |
 | 🟡 P3 | [x] `POST /api/admin/cli/` (list, open, reset commands) | S3 | ✅ |
-| 🟡 P3 | [ ] Celery task: abandon check >24h (FOOD lockers) | S3 | ⬜ |
-| 🟢 P4 | [ ] Django Channels: WebSocket `/ws/lockers/{building_id}/` | S4 | ⬜ |
-| 🟢 P4 | [ ] Redis channel layer config | S4 | ⬜ |
+| 🟡 P3 | [x] Celery task: abandon check >24h (FOOD lockers) | S3 | ✅ |
+| 🟢 P4 | [x] Django Channels: WebSocket `/ws/lockers/{building_id}/` | S4 | ✅ |
+| 🟢 P4 | [x] Redis channel layer config | S4 | ✅ |
 | 🟢 P4 | [x] Integration tests: full locker workflow | S4 | ✅ |
 | 🔵 P5 | [x] Query optimization + database indexes | S5 | ✅ |
 | 🔵 P5 | [x] Bug fixes + PR review | S5 | ✅ |
@@ -578,7 +578,7 @@ flowchart TD
 
 - [ ] อัปเดตโดย DevOps:
 - [x] อัปเดตโดย Backend A: Implemented LINE Messaging API integration. Added `POST /api/line/webhook/` with HMAC-SHA256 signature verification (`X-Line-Signature` header). Added `POST /api/line/push/` (JWT-protected) supporting text, image, and text+image push messages via LINE Messaging API. Added `LineService` class in `foodlocker/line_service.py`. Added `requests==2.32.3` dependency. Added `LINE_CHANNEL_SECRET` and `LINE_CHANNEL_ACCESS_TOKEN` settings (via env vars). Added `tests/test_line.py` with 8 tests: valid/invalid/missing signature, follow event, message event, push text (mocked), push auth guard, push missing `to`. Full suite: 33 passed.
-- [x] อัปเดตโดย Backend B: Added full locker workflow integration coverage for rider booking/open/deposit through customer verify/pickup, including log actor checks and final locker reset assertions.
+- [x] อัปเดตโดย Backend B: Added full locker workflow integration coverage for rider booking/open/deposit through customer verify/pickup, including log actor checks and final locker reset assertions. Completed realtime WebSocket `/ws/lockers/{building_id}/` with Redis channel layer fallback and booking/open/deposit/verify/pickup/reset broadcasts.
 - [x] อัปเดตโดย Frontend A: deposit.html เสร็จสมบูรณ์ (กล้อง + takePhoto + submit base64 → API); Customer QR scan ยังเป็น placeholder; WebSocket ยังไม่ได้ทำ
 - [ ] อัปเดตโดย Frontend B:
 
@@ -590,7 +590,7 @@ flowchart TD
 
 - [ ] อัปเดตโดย DevOps:
 - [ ] อัปเดตโดย Backend A: Fixed critical bug in `LockerService.book_locker()` where `actor_id` was hardcoded as `"system"`, causing `UserStatusView` to always return `NO_ACTIVE_LOCKER` after booking. Added `actor_id` parameter to `book_locker()` and updated `LockerViewSet.book()` to pass `request.user.line_user_id`. Added `drf-spectacular==0.28.0` for interactive API docs at `/api/schema/swagger-ui/` and `/api/schema/redoc/`. Added `@extend_schema` decorators to all 5 custom `APIView` classes and 5 `LockerViewSet` custom actions. Created `docs/API.md` with full written API reference (all 17 endpoints, request/response format, curl examples). Added 16 new tests: 14 locker workflow action tests (book/open/deposit/verify-qr/pickup), 1 `UserStatusView` HAS_ACTIVE_LOCKER regression test, 1 invalid-JWT 401 test. Full suite: **49 passed, 0 failed**.
-- [x] อัปเดตโดย Backend B: Completed Sprint 5 performance/review work. Added hot-path indexes for locker booking, QR/PIN verification, locker wall ordering, and actor-based status lookup. Tightened service writes with transactional booking, deterministic reset ordering, request actor attribution, API filters for status/type/size, and a pickup guard that requires verified/unlocked lockers. Added full rider-to-customer integration coverage plus bounded-query performance tests. `pytest`: 74 passed.
+- [x] อัปเดตโดย Backend B: Completed Sprint 5 performance/review work. Added hot-path indexes for locker booking, QR/PIN verification, locker wall ordering, and actor-based status lookup. Tightened service writes with transactional booking, deterministic reset ordering, request actor attribution, API filters for status/type/size, and a pickup guard that requires verified/unlocked lockers. Added full rider-to-customer integration coverage plus bounded-query performance tests. Finished Celery abandoned-food cleanup for FOOD lockers older than 24h with reset logs and realtime broadcasts. `pytest`: 94 passed.
 - [ ] อัปเดตโดย Frontend A:
 - [ ] อัปเดตโดย Frontend B:
 
