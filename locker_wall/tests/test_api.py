@@ -47,6 +47,8 @@ class SystemResetEndpointTests(TestCase):
 
     def setUp(self):
         _, self.building, self.locker = _make_fixtures()
+        self.user = User.objects.create_user(username='admin', password='test-pass')
+        self.client.force_login(self.user)
 
     def test_reset_single_locker_returns_200(self):
         response = self.client.post(

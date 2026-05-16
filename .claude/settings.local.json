@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(pip install *)",
-      "Bash(python manage.py test locker_wall.tests --verbosity=2)"
-    ]
-  }
-}
