@@ -1,0 +1,226 @@
+/* Custom CSS for Food Locker System */
+
+/* Additional styles beyond TailwindCSS */
+
+/* Locker door animation */
+.locker-door {
+    transform-style: preserve-3d;
+    transition: transform 0.6s ease;
+}
+
+.locker-door.open {
+    transform: rotateY(-120deg);
+}
+
+/* LED indicator animations */
+.led-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    position: relative;
+}
+
+.led-indicator.available {
+    background-color: #4caf50;
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.8);
+    animation: pulse-green 2s infinite;
+}
+
+.led-indicator.occupied {
+    background-color: #ff5252;
+    box-shadow: 0 0 10px rgba(255, 82, 82, 0.8);
+}
+
+.led-indicator.booked {
+    background-color: #ffd93d;
+    box-shadow: 0 0 10px rgba(255, 217, 61, 0.8);
+    animation: pulse-yellow 1s infinite;
+}
+
+@keyframes pulse-green {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes pulse-yellow {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+/* QR Code display styling */
+.qr-display {
+    border: 4px dashed #ffd93d;
+    background: linear-gradient(135deg, #fffef7 0%, #fff9e6 100%);
+}
+
+.qr-box {
+    border: 4px solid #ff6b6b;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.2);
+}
+
+/* PIN code display */
+.pin-code {
+    font-size: 72px;
+    font-weight: bold;
+    color: #ff6b6b;
+    letter-spacing: 25px;
+    text-shadow: 3px 3px 6px rgba(255, 107, 107, 0.2);
+}
+
+/* Numeric keypad styling */
+.numpad-btn {
+    font-size: 32px;
+    font-weight: bold;
+    color: #ff6b6b;
+    box-shadow: 0 4px 12px rgba(255, 217, 61, 0.3);
+    transition: all 0.2s;
+}
+
+.numpad-btn:hover {
+    transform: scale(1.08);
+}
+
+.numpad-btn:active {
+    transform: scale(0.95);
+}
+
+/* Camera viewfinder */
+.camera-viewfinder {
+    position: relative;
+    overflow: hidden;
+}
+
+.camera-viewfinder::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 250px;
+    height: 250px;
+    border: 3px solid #ffd93d;
+    border-radius: 20px;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* Step indicator */
+.step-indicator {
+    display: flex;
+    justify-content: space-between;
+}
+
+.step {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    position: relative;
+}
+
+.step.active {
+    background: linear-gradient(135deg, #ffd93d 0%, #ffed4e 100%);
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.step::after {
+    content: '';
+    position: absolute;
+    right: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-left: 10px solid #f8f9fa;
+}
+
+.step.active::after {
+    border-left-color: #ffd93d;
+}
+
+.step:last-child::after {
+    display: none;
+}
+
+/* Success animation */
+@keyframes success-bounce {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.success-icon {
+    animation: success-bounce 0.6s ease;
+}
+
+/* Gradient backgrounds */
+.gradient-primary {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+}
+
+.gradient-success {
+    background: linear-gradient(135deg, #6bcf7f 0%, #4caf50 100%);
+}
+
+.gradient-warning {
+    background: linear-gradient(135deg, #ffd93d 0%, #ffc107 100%);
+}
+
+.gradient-danger {
+    background: linear-gradient(135deg, #c62828 0%, #e53935 100%);
+}
+
+/* Touch feedback */
+.touch-feedback:active {
+    transform: scale(0.95);
+    opacity: 0.8;
+}
+
+/* Responsive font sizes for Thai text */
+@media (max-width: 640px) {
+    .pin-code {
+        font-size: 56px;
+        letter-spacing: 15px;
+    }
+    
+    .numpad-btn {
+        font-size: 24px;
+    }
+}
+
+/* Accessibility improvements */
+.focus-visible:focus {
+    outline: 3px solid #ffd93d;
+    outline-offset: 2px;
+}
+
+/* Loading states */
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}

@@ -124,7 +124,7 @@ Direct Links to Screens:
 > **Duration:** 5 Sprints × 2 Weeks = ~10 Weeks (ทำงาน ~8 ชม./สัปดาห์)  
 > **Team:** 1 DevOps · 2 Backend · 2 Frontend  
 > **Backend Stack:** Django 5.x + DRF + PostgreSQL  
-> **Frontend Stack:** 🗳️ **ทีม Frontend เลือกเอง** — ดู [Frontend Tech Decision](#-frontend-tech-stack-decision) ด้านล่าง  # มาแก้ด้วย
+> **Frontend Stack:**  Django Templates + HTMX  | Server-side | Alpine.js
 
 ---
 
@@ -137,50 +137,13 @@ Direct Links to Screens:
 | DevOps | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **20%** |
 | Backend A | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ⬜ 0% | **80%** |
 | Backend B | ✅ 100% | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **40%** |
-| Frontend A | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
+| Frontend A | ✅ 100% | ✅ 100% | 🔄 75% | 🔄 33% | ⬜ 0% | **75%** |
 | Frontend B | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
-| **Overall** | | | | | | **24% / 100%** |
+| **Overall** | | | | | | **32% / 100%** |
 
 > ✅ Done · 🔄 In Progress · ⬜ Pending · ❌ Blocked
 
 ---
-
-
-
-## 🗳️ Frontend Tech Stack Decision
-
-> **ทีม Frontend ต้องตัดสินใจและ mark ✅ ตัวเลือกที่เลือกใน Sprint 1 ก่อนเริ่มงาน**
-
-### ตัวเลือกที่มี
-
-| # | Option | Framework | Animation | ความยากโปเจกต์ | เหมาะกับ |
-|---|--------|-----------|-----------|----------------|----------|
-| 🅐 | **Next.js 14+ (App Router)** | React | Framer Motion | ⭐⭐⭐ | ต่อยอดจาก codebase เดิมได้เลย |
-| 🅑 | **Vite + React (SPA)** | React | Framer Motion | ⭐⭐ | อยากมี freedom เต็มที่ ไม่ต้องการ SSR |
-| 🅒 | **SvelteKit** | Svelte | svelte/transition | ⭐⭐⭐⭐ | อยากลอง modern framework, bundle เล็ก |
-| 🅓 | **Django Templates + HTMX** | Server-side | Alpine.js | ⭐⭐ | ทีม backend-heavy, ไม่ต้องการ JS framework |
-
-### Trade-off เปรียบเทียบ
-
-| Criteria | 🅐 Next.js | 🅑 Vite+React | 🅒 SvelteKit | 🅓 Django+HTMX |
-|----------|-----------|--------------|-------------|----------------|
-| **ต่อยอด code เดิม** | ✅ ง่ายมาก | ✅ ง่าย | ❌ เขียนใหม่ | ❌ เขียนใหม่ |
-| **3D Animation ตู้** | ✅ Framer Motion | ✅ Framer Motion | 🟡 ต้อง custom | ❌ ยากมาก |
-| **QR Camera Scan** | ✅ `react-zxing` | ✅ `react-zxing` | 🟡 ต้อง custom | ❌ vanilla JS |
-| **Realtime (WebSocket)** | ✅ built-in | ✅ native WS | ✅ ง่ายมาก | 🟡 SSE/polling |
-| **Bundle Size** | 🟡 กลาง | 🟡 กลาง | ✅ เล็กกว่า | ✅ แทบไม่มี JS |
-
-### 🗳️ Decision Checklist (ทำ Sprint 1)
-
-- [ ] **ทีม FE A + FE B ประชุมเลือก stack ร่วมกัน**
-- [ ] **ตัวเลือกที่เลือก:** `_____ (A/B/C/D)`
-- [ ] **เหตุผล:** `_____`
-- [ ] **แจ้ง DevOps** เพื่ออัปเดต Dockerfile / nginx config ตามที่เลือก
-
-> 💡 **แนะนำ:** สำหรับ project นี้ที่มี Framer Motion 3D door + QR Camera **🅐 Next.js หรือ 🅑 Vite+React** เหมาะที่สุด
-
----
-
 
 
 ## 🗄️ ER Diagram (Database)
@@ -504,25 +467,25 @@ flowchart TD
 
 ### 🎨 Frontend A — Kiosk UI + Registration (คน A)
 
-> 🗳️ **ต้องตัดสินใจ Framework ก่อน** — ดู [Frontend Tech Decision](#-frontend-tech-stack-decision)
+> ✅ **ตัดสินใจ Framework แล้ว** — Django Templates + HTMX + Alpine.js + TailwindCSS
 
 | Priority | Task | Sprint | Status |
 |----------|------|--------|--------|
-| 🔴 P1 | [ ] **ประชุม + ตัดสินใจ Frontend Framework** ร่วมกับ FE B | S1 | ⬜ |
-| 🔴 P1 | [ ] Init project + TailwindCSS + State management | S1 | ⬜ |
-| 🔴 P1 | [ ] API client layer — connect ไปที่ Django DRF | S1 | ⬜ |
-| 🔴 P1 | [ ] Setup routing + Layout + global design system | S1 | ⬜ |
-| 🟠 P2 | [ ] `/register`: LINE LIFF integration | S2 | ⬜ |
-| 🟠 P2 | [ ] `/register`: Project → Building → Room cascade | S2 | ⬜ |
-| 🟠 P2 | [ ] `/register`: เชื่อม `POST /api/users/register/` | S2 | ⬜ |
-| 🟠 P2 | [ ] `/register`: Success/Error state | S2 | ⬜ |
-| 🟡 P3 | [ ] Kiosk: Rider Tab — เลือก Type + Size | S3 | ⬜ |
-| 🟡 P3 | [ ] Kiosk: แสดง QR Code | S3 | ⬜ |
-| 🟡 P3 | [ ] Kiosk: ปุ่ม "Open Locker" → call API | S3 | ⬜ |
+| 🔴 P1 | [x] **ประชุม + ตัดสินใจ Frontend Framework** ร่วมกับ FE B | S1 | ✅ |
+| 🔴 P1 | [x] Init project + TailwindCSS + State management (Alpine.js) | S1 | ✅ |
+| 🔴 P1 | [x] API client layer — HTMX fragments + Alpine.js `$api` helper + API stubs | S1 | ✅ |
+| 🔴 P1 | [x] Setup routing + Layout + global design system (base.html, urls.py) | S1 | ✅ |
+| 🟠 P2 | [x] `/register`: LINE LIFF integration (SDK + initLiff() + dev fallback กรอก ID มือ) | S2 | ✅ |
+| 🟠 P2 | [x] `/register`: Project → Building → Room cascade (HTMX ดึงจาก DB จริง) | S2 | ✅ |
+| 🟠 P2 | [x] `/register`: เชื่อม `POST /api/users/register/` (บันทึก LineUser ลง DB จริง) | S2 | ✅ |
+| 🟠 P2 | [x] `/register`: Success/Error state + Loading state | S2 | ✅ |
+| 🟡 P3 | [x] Kiosk: Rider Tab — เลือก Type + Size (Alpine.js component + loadSizes() + selectSize()) | S3 | ✅ |
+| 🟡 P3 | [x] Kiosk: แสดง QR Code + PIN (template เสร็จ อ่านจาก sessionStorage) | S3 | ✅ |
+| 🟡 P3 | [x] Kiosk: ปุ่ม "Open Locker" → call API (stub `/api/lockers/<id>/open/` พร้อม) | S3 | ✅ |
 | 🟡 P3 | [ ] `/login`: auth flow + token store | S3 | ⬜ |
-| 🟢 P4 | [ ] Kiosk: Customer Tab — Scan QR (camera) | S4 | ⬜ |
+| 🟢 P4 | [ ] Kiosk: Customer Tab — Scan QR (camera) (ยังเป็น placeholder เท่านั้น) | S4 | ⬜ |
 | 🟢 P4 | [ ] Kiosk: WebSocket / SSE real-time state | S4 | ⬜ |
-| 🟢 P4 | [ ] Kiosk: Confirm deposit flow | S4 | ⬜ |
+| 🟢 P4 | [x] Kiosk: Confirm deposit flow (กล้อง + ถ่ายรูป + ส่ง base64 ไป API ครบ) | S4 | ✅ |
 | 🔵 P5 | [ ] E2E test: Rider + Customer flow | S5 | ⬜ |
 | 🔵 P5 | [ ] Mobile responsive + UX polish | S5 | ⬜ |
 
@@ -577,9 +540,9 @@ flowchart TD
 
 ### ✏️ Sprint 1 — Update (Week 1-2)
 
-- [x] อัปเดตโดย DevOps: Initial Docker setup and CI/CD pipelines completed.
-- [x] อัปเดตโดย Backend A: Django project initialized with required models and serializers.
-- [x] อัปเดตโดย Backend B: Implemented LockerService state machine and core API endpoints (book, open, deposit).
+- [ ] อัปเดตโดย DevOps:
+- [ ] อัปเดตโดย Backend A:
+- [ ] อัปเดตโดย Backend B:
 - [ ] อัปเดตโดย Frontend A:
 - [ ] อัปเดตโดย Frontend B:
 
@@ -591,8 +554,8 @@ flowchart TD
 
 - [ ] อัปเดตโดย DevOps:
 - [x] อัปเดตโดย Backend A: Implemented JWT authentication using `djangorestframework-simplejwt`. Added `POST /api/token/` (issue token by `line_user_id`) and `POST /api/token/refresh/`. Protected locker operation endpoints (`book`, `open`, `deposit`, `verify-qr`, `pickup`) with `IsAuthenticated`. Added custom `LineUserJWTAuthentication` to resolve tokens against `LineUser` model. Set up `pytest-django` with 13 passing tests covering registration flow and JWT auth flow.
-- [x] อัปเดตโดย Backend B: Implemented Master API filters, and the verify_qr and pickup_locker state machine and API endpoints. 
-- [ ] อัปเดตโดย Frontend A:
+- [x] อัปเดตโดย Backend B: Implemented Master API filters, and the verify_qr and pickup_locker state machine and API endpoints.
+- [x] อัปเดตโดย Frontend A: ทำ `/register` ครบ — LINE LIFF integration (dev fallback), HTMX cascade Project→Building→Room ดึง DB จริง, บันทึก LineUser ผ่าน `POST /api/users/register/`, Success/Error/Loading state ครบ
 - [ ] อัปเดตโดย Frontend B:
 
 **% ที่ทำได้จริง sprint นี้:** `20 %`
@@ -604,7 +567,7 @@ flowchart TD
 - [ ] อัปเดตโดย DevOps:
 - [x] อัปเดตโดย Backend A: Implemented Locker CRUD APIs. Added `GET /api/lockers/` with `?building_id=` filter, `GET /api/lockers/{id}/` (detail), and `PUT /api/lockers/{id}/` (admin update, requires JWT). Upgraded `LockerViewSet` from `ReadOnlyModelViewSet` to include `UpdateModelMixin`. Added `LockerUpdateSerializer` with `id`, `building`, `passcode`, `qr_data` as read-only (structural/service-managed fields). List/retrieve remain public. Added `tests/test_lockers.py` with 12 tests covering list, filter, retrieve, unauthenticated PUT, authenticated PUT/PATCH, read-only field enforcement, and all valid status choices. Full suite: 25 passed.
 - [ ] อัปเดตโดย Backend B:
-- [ ] อัปเดตโดย Frontend A:
+- [x] อัปเดตโดย Frontend A: Rider flow เสร็จ 3/4 — select_size.html (Alpine.js + loadSizes/selectSize), qr_display.html (QR+PIN+instructions), rider_confirm.html, HTMX endpoints stubs ครบ; ยังขาด /login auth flow
 - [ ] อัปเดตโดย Frontend B:
 
 **% ที่ทำได้จริง sprint นี้:** `20 %`
@@ -616,7 +579,7 @@ flowchart TD
 - [ ] อัปเดตโดย DevOps:
 - [x] อัปเดตโดย Backend A: Implemented LINE Messaging API integration. Added `POST /api/line/webhook/` with HMAC-SHA256 signature verification (`X-Line-Signature` header). Added `POST /api/line/push/` (JWT-protected) supporting text, image, and text+image push messages via LINE Messaging API. Added `LineService` class in `foodlocker/line_service.py`. Added `requests==2.32.3` dependency. Added `LINE_CHANNEL_SECRET` and `LINE_CHANNEL_ACCESS_TOKEN` settings (via env vars). Added `tests/test_line.py` with 8 tests: valid/invalid/missing signature, follow event, message event, push text (mocked), push auth guard, push missing `to`. Full suite: 33 passed.
 - [ ] อัปเดตโดย Backend B:
-- [ ] อัปเดตโดย Frontend A:
+- [x] อัปเดตโดย Frontend A: deposit.html เสร็จสมบูรณ์ (กล้อง + takePhoto + submit base64 → API); Customer QR scan ยังเป็น placeholder; WebSocket ยังไม่ได้ทำ
 - [ ] อัปเดตโดย Frontend B:
 
 **% ที่ทำได้จริง sprint นี้:** `_____ %`
@@ -747,5 +710,5 @@ Examples: `feat(api): add locker book endpoint` · `fix(fe): qr scan camera perm
 
 ---
 
-*Last Updated: 2026-05-03*  
+*Last Updated: 2026-05-16*  
 *Next Update Due: Sprint 3 complete (Week 6)*

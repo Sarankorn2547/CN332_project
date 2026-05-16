@@ -1,0 +1,4 @@
+<option value="">— เลือกห้อง —</option>
+{% for room in rooms %}
+<option value="{{ room.unit_number }}">{{ room.unit_number }} (ชั้น {{ room.floor }})</option>
+{% endfor %}

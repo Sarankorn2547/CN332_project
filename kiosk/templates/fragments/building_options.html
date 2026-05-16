@@ -1,0 +1,4 @@
+<option value="">— เลือกอาคาร —</option>
+{% for building in buildings %}
+<option value="{{ building.id }}">{{ building.name }}</option>
+{% endfor %}
