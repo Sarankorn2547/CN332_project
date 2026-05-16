@@ -1,0 +1,873 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Admin Dashboard — Food Locker{% endblock %}
+
+{% block extra_head %}
+<style>
+  body { background: #0f172a; color: #e2e8f0; }
+
+  .tab-btn {
+    padding: 0.6rem 1.4rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    border: none;
+    outline: none;
+  }
+  .tab-btn.active {
+    background: #ffd93d;
+    color: #0f172a;
+  }
+  .tab-btn:not(.active) {
+    background: #1e293b;
+    color: #94a3b8;
+  }
+  .tab-btn:not(.active):hover {
+    background: #334155;
+    color: #e2e8f0;
+  }
+
+  .card {
+    background: #1e293b;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    border: 1px solid #334155;
+  }
+
+  .stat-card {
+    background: #1e293b;
+    border-radius: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid #334155;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .stat-label { font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat-value { font-size: 2rem; font-weight: 700; line-height: 1; }
+
+  /* status colors */
+  .sq-available { background: #22c55e; }
+  .sq-occupied  { background: #f59e0b; }
+  .sq-locked    { background: #ef4444; }
+  .sq-open      { background: #3b82f6; }
+  .sq-unknown   { background: #475569; }
+
+  .badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .badge-available { background: #166534; color: #86efac; }
+  .badge-occupied  { background: #92400e; color: #fde68a; }
+  .badge-locked    { background: #7f1d1d; color: #fca5a5; }
+  .badge-open      { background: #1e3a8a; color: #93c5fd; }
+  .badge-unknown   { background: #1e293b; color: #94a3b8; }
+
+  input[type="text"], input[type="search"], select, textarea {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 0.5rem;
+    color: #e2e8f0;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    outline: none;
+    width: 100%;
+    font-family: inherit;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: #ffd93d;
+    box-shadow: 0 0 0 2px rgba(255, 217, 61, 0.2);
+  }
+  select option { background: #1e293b; }
+
+  .btn-primary {
+    background: #ffd93d;
+    color: #0f172a;
+    font-weight: 700;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.55rem 1.2rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-family: inherit;
+    transition: background 0.15s;
+  }
+  .btn-primary:hover { background: #f6c90e; }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-danger {
+    background: #ef4444;
+    color: #fff;
+    font-weight: 700;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.55rem 1.2rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-family: inherit;
+    transition: background 0.15s;
+  }
+  .btn-danger:hover { background: #dc2626; }
+
+  .btn-outline {
+    background: transparent;
+    border: 1px solid #475569;
+    color: #94a3b8;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    padding: 0.45rem 1rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-family: inherit;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn-outline:hover { border-color: #ffd93d; color: #ffd93d; }
+
+  .btn-sm {
+    padding: 0.3rem 0.7rem;
+    font-size: 0.8rem;
+    border-radius: 0.375rem;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+  th { background: #0f172a; color: #64748b; font-size: 0.78rem; text-transform: uppercase;
+       letter-spacing: 0.05em; padding: 0.6rem 1rem; text-align: left; }
+  td { padding: 0.65rem 1rem; border-top: 1px solid #1e293b; font-size: 0.88rem; }
+  tr:hover td { background: #1e293b; }
+
+  .timeline-item {
+    display: flex;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #1e293b;
+  }
+  .timeline-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    margin-top: 0.35rem;
+    flex-shrink: 0;
+  }
+
+  /* LINE bubble preview */
+  .line-bubble-wrap {
+    background: #1a1a2e;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    min-height: 120px;
+    display: flex;
+    align-items: flex-end;
+  }
+  .line-bubble {
+    background: #ffffff;
+    color: #111;
+    border-radius: 1.25rem 1.25rem 1.25rem 0.25rem;
+    padding: 0.75rem 1rem;
+    max-width: 80%;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+  .line-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: #06c755;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+    align-self: flex-end;
+  }
+
+  .confirm-overlay {
+    position: fixed; inset: 0; z-index: 60;
+    background: rgba(0,0,0,0.6);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .confirm-box {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 1rem;
+    padding: 2rem;
+    max-width: 420px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  /* scrollable table wrapper */
+  .table-wrap { overflow-x: auto; border-radius: 0.75rem; border: 1px solid #334155; }
+
+  .htmx-request #line-submit-btn { opacity: 0.6; pointer-events: none; }
+
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .animate-in { animation: fadeSlideIn 0.2s ease both; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div x-data="dashboard" class="min-h-screen" style="background:#0f172a;">
+
+  <!-- ── Header ── -->
+  <header class="flex items-center justify-between px-6 py-4 border-b border-slate-700" style="background:#0f172a;">
+    <div class="flex items-center gap-3">
+      <span class="text-2xl">🍱</span>
+      <div>
+        <h1 class="text-lg font-bold text-yellow-300 leading-tight">Food Locker Admin</h1>
+        <p class="text-xs text-slate-500">Dashboard ควบคุมระบบตู้ล็อกเกอร์</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="text-sm text-slate-400">ยินดีต้อนรับ, <strong class="text-slate-200">{{ request.user.username }}</strong></span>
+      <a href="/locker/" class="btn-outline btn-sm">← ย้อนกลับ</a>
+    </div>
+  </header>
+
+  <!-- ── Tab Bar ── -->
+  <nav class="flex gap-2 px-6 pt-5 pb-0">
+    <template x-for="(tab, idx) in tabs" :key="idx">
+      <button class="tab-btn" :class="{ active: activeTab === idx }" @click="activeTab = idx" x-text="tab"></button>
+    </template>
+    <button @click="loadAll()" class="btn-outline btn-sm ml-auto self-center" title="Refresh data">↺ รีเฟรช</button>
+  </nav>
+
+  <!-- ── Loading bar ── -->
+  <div x-show="loading" class="h-0.5 bg-yellow-400 mx-6 mt-1 rounded animate-pulse"></div>
+
+  <main class="px-6 py-6 space-y-6">
+
+    <!-- ═══════════════════════════════════════════
+         TAB 0 — Locker Overview
+    ═══════════════════════════════════════════ -->
+    <div x-show="activeTab === 0" class="animate-in space-y-6">
+
+      <!-- Stat cards -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div class="stat-card">
+          <span class="stat-label">Total</span>
+          <span class="stat-value text-slate-200" x-text="stats.total"></span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Available</span>
+          <span class="stat-value text-green-400" x-text="stats.available"></span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Occupied</span>
+          <span class="stat-value text-yellow-400" x-text="stats.occupied"></span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Locked</span>
+          <span class="stat-value text-red-400" x-text="stats.locked"></span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Open</span>
+          <span class="stat-value text-blue-400" x-text="stats.open"></span>
+        </div>
+      </div>
+
+      <!-- Mini grid map -->
+      <div class="card">
+        <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">แผนผังตู้</h2>
+        <div class="flex flex-wrap gap-1.5">
+          <template x-for="locker in lockers" :key="locker.id">
+            <div
+              class="w-7 h-7 rounded flex items-center justify-center cursor-pointer text-xs font-bold text-white"
+              :class="statusSquareClass(locker.status)"
+              :title="`#${locker.local_id || locker.id} — ${locker.status}`"
+              @click="quickFilter(locker)"
+            ></div>
+          </template>
+          <div x-show="lockers.length === 0" class="text-slate-500 text-sm py-2">ไม่มีข้อมูล</div>
+        </div>
+        <!-- Legend -->
+        <div class="flex flex-wrap gap-4 mt-4 text-xs text-slate-400">
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded sq-available inline-block"></span> Available</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded sq-occupied  inline-block"></span> Occupied</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded sq-locked    inline-block"></span> Locked</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded sq-open      inline-block"></span> Open</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded sq-unknown   inline-block"></span> Other</span>
+        </div>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="card">
+        <div class="flex flex-wrap gap-3 items-end">
+          <div class="flex-1 min-w-[160px]">
+            <label class="block text-xs text-slate-400 mb-1">ค้นหา Locker ID</label>
+            <input type="search" placeholder="เช่น L-01" x-model="filterSearch" @input="applyFilters()">
+          </div>
+          <div class="flex-1 min-w-[140px]">
+            <label class="block text-xs text-slate-400 mb-1">อาคาร</label>
+            <select x-model="filterBuilding" @change="applyFilters()">
+              <option value="">ทั้งหมด</option>
+              <template x-for="b in buildings" :key="b.id">
+                <option :value="b.id" x-text="b.name || b.id"></option>
+              </template>
+            </select>
+          </div>
+          <div class="flex-1 min-w-[140px]">
+            <label class="block text-xs text-slate-400 mb-1">สถานะ</label>
+            <select x-model="filterStatus" @change="applyFilters()">
+              <option value="">ทั้งหมด</option>
+              <option value="available">Available</option>
+              <option value="occupied">Occupied</option>
+              <option value="locked">Locked</option>
+              <option value="open">Open</option>
+            </select>
+          </div>
+          <button @click="clearFilters()" class="btn-outline btn-sm self-end">ล้างตัวกรอง</button>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Locker ID</th>
+              <th>อาคาร</th>
+              <th>ขนาด</th>
+              <th>ประเภท</th>
+              <th>สถานะ</th>
+              <th>ประตู</th>
+              <th>การดำเนินการ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="locker in filteredLockers" :key="locker.id">
+              <tr>
+                <td class="font-mono text-yellow-300 font-semibold" x-text="locker.local_id || locker.id"></td>
+                <td class="text-slate-300" x-text="lockerBuilding(locker)"></td>
+                <td class="text-slate-300" x-text="locker.size || '—'"></td>
+                <td class="text-slate-300" x-text="locker.type || '—'"></td>
+                <td>
+                  <span class="badge" :class="badgeClass(locker.status)" x-text="locker.status"></span>
+                </td>
+                <td>
+                  <span x-text="locker.is_door_open ? '🔓 เปิด' : '🔒 ปิด'" class="text-sm"></span>
+                </td>
+                <td>
+                  <button
+                    class="btn-primary btn-sm"
+                    @click="openLocker(locker)"
+                    :disabled="openingId === locker.id"
+                    x-text="openingId === locker.id ? 'กำลังเปิด...' : 'เปิดประตู'"
+                  ></button>
+                </td>
+              </tr>
+            </template>
+            <tr x-show="filteredLockers.length === 0">
+              <td colspan="7" class="text-center text-slate-500 py-6">ไม่พบข้อมูลตู้</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="text-xs text-slate-500" x-text="`แสดง ${filteredLockers.length} จาก ${lockers.length} ตู้`"></p>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════════
+         TAB 1 — Logs Viewer
+    ═══════════════════════════════════════════ -->
+    <div x-show="activeTab === 1" class="animate-in space-y-5">
+
+      <!-- Filter -->
+      <div class="card">
+        <div class="flex flex-wrap gap-3 items-end">
+          <div class="flex-1 min-w-[150px]">
+            <label class="block text-xs text-slate-400 mb-1">Locker #</label>
+            <input type="search" placeholder="เช่น L-01" x-model="logFilterLocker" @input="applyLogFilters()">
+          </div>
+          <div class="flex-1 min-w-[150px]">
+            <label class="block text-xs text-slate-400 mb-1">ประเภทการกระทำ</label>
+            <select x-model="logFilterAction" @change="applyLogFilters()">
+              <option value="">ทั้งหมด</option>
+              <template x-for="a in logActionTypes" :key="a">
+                <option :value="a" x-text="a"></option>
+              </template>
+            </select>
+          </div>
+          <button @click="clearLogFilters()" class="btn-outline btn-sm self-end">ล้างตัวกรอง</button>
+        </div>
+      </div>
+
+      <!-- Timeline -->
+      <div class="card">
+        <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">
+          Timeline
+          <span class="ml-2 text-yellow-300 font-bold" x-text="filteredLogs.length + ' รายการ'"></span>
+        </h2>
+        <div class="space-y-0 max-h-[520px] overflow-y-auto pr-1">
+          <template x-for="(log, idx) in filteredLogs" :key="log.id ?? idx">
+            <div class="timeline-item">
+              <div class="timeline-dot mt-1.5" :class="logDotClass(log.action)"></div>
+              <div class="flex-1">
+                <div class="flex items-center justify-between flex-wrap gap-1">
+                  <span class="font-semibold text-slate-200 text-sm" x-text="log.action || '—'"></span>
+                  <span class="text-xs text-slate-500 font-mono" x-text="formatDate(log.timestamp || log.created_at)"></span>
+                </div>
+                <div class="text-xs text-slate-400 mt-0.5">
+                  <span x-text="'ตู้: ' + (log.locker_id || log.locker || '—')"></span>
+                  <span class="mx-2 text-slate-600">|</span>
+                  <span x-text="'ผู้ใช้: ' + (log.user || log.username || '—')"></span>
+                </div>
+              </div>
+            </div>
+          </template>
+          <div x-show="filteredLogs.length === 0" class="text-center text-slate-500 py-8 text-sm">ไม่พบ log</div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════════
+         TAB 2 — Reset Controls
+    ═══════════════════════════════════════════ -->
+    <div x-show="activeTab === 2" class="animate-in space-y-5">
+
+      <div class="grid md:grid-cols-3 gap-5">
+
+        <!-- Reset single locker -->
+        <div class="card space-y-4">
+          <h3 class="font-bold text-slate-200">รีเซ็ตตู้เดียว</h3>
+          <p class="text-xs text-slate-500">เลือกตู้ที่ต้องการรีเซ็ตสถานะ</p>
+          <select x-model="resetLockerId">
+            <option value="">— เลือกตู้ —</option>
+            <template x-for="l in lockers" :key="l.id">
+              <option :value="l.id" x-text="(l.local_id || l.id) + ' (' + l.status + ')'"></option>
+            </template>
+          </select>
+          <button class="btn-danger w-full" :disabled="!resetLockerId || resetting"
+            @click="confirmReset('locker', resetLockerId, null)">
+            <span x-text="resetting ? 'กำลังรีเซ็ต...' : 'รีเซ็ตตู้'"></span>
+          </button>
+        </div>
+
+        <!-- Reset by building -->
+        <div class="card space-y-4">
+          <h3 class="font-bold text-slate-200">รีเซ็ตตามอาคาร</h3>
+          <p class="text-xs text-slate-500">รีเซ็ตตู้ทั้งหมดในอาคารที่เลือก</p>
+          <select x-model="resetBuildingId">
+            <option value="">— เลือกอาคาร —</option>
+            <template x-for="b in buildings" :key="b.id">
+              <option :value="b.id" x-text="b.name || b.id"></option>
+            </template>
+          </select>
+          <button class="btn-danger w-full" :disabled="!resetBuildingId || resetting"
+            @click="confirmReset('building', null, resetBuildingId)">
+            <span x-text="resetting ? 'กำลังรีเซ็ต...' : 'รีเซ็ตอาคาร'"></span>
+          </button>
+        </div>
+
+        <!-- Reset all -->
+        <div class="card space-y-4">
+          <h3 class="font-bold text-red-400">รีเซ็ตทั้งหมด</h3>
+          <p class="text-xs text-slate-500">รีเซ็ตตู้ทุกตู้ในระบบ — ใช้ด้วยความระมัดระวัง</p>
+          <div class="bg-red-950 border border-red-800 rounded-lg p-3 text-xs text-red-300">
+            ⚠️ การกระทำนี้จะส่งผลกระทบต่อตู้ทุกตู้
+          </div>
+          <button class="btn-danger w-full" :disabled="resetting"
+            @click="confirmReset('all', null, null)">
+            <span x-text="resetting ? 'กำลังรีเซ็ต...' : '⚠️ รีเซ็ตทั้งหมด'"></span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════════
+         TAB 3 — LINE Push Message
+    ═══════════════════════════════════════════ -->
+    <div x-show="activeTab === 3" class="animate-in">
+      <div class="grid md:grid-cols-2 gap-6">
+
+        <!-- Form -->
+        <div class="card space-y-4">
+          <h2 class="font-bold text-slate-200 text-base">ส่งข้อความ LINE</h2>
+
+          <!-- HTMX form -->
+          <form id="line-push-form"
+                hx-post="/api/line/push/"
+                hx-target="#line-push-result"
+                hx-swap="innerHTML"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                @htmx:after-request="onLinePushResult($event)"
+                class="space-y-4">
+
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">ประเภทเป้าหมาย</label>
+              <select name="target_type" x-model="lineForm.target_type">
+                <option value="broadcast">broadcast — ส่งทุกคน</option>
+                <option value="user">user — ส่งรายบุคคล</option>
+                <option value="group">group — ส่งกลุ่ม</option>
+              </select>
+            </div>
+
+            <div x-show="lineForm.target_type !== 'broadcast'">
+              <label class="block text-xs text-slate-400 mb-1">Target ID (User/Group ID)</label>
+              <input type="text" name="target_id" x-model="lineForm.target_id" placeholder="U... หรือ C...">
+            </div>
+
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">อ้างอิงตู้ (ไม่บังคับ)</label>
+              <select name="locker_id" x-model="lineForm.locker_id">
+                <option value="">— ไม่อ้างอิงตู้ —</option>
+                <template x-for="l in lockers" :key="l.id">
+                  <option :value="l.id" x-text="l.local_id || l.id"></option>
+                </template>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">ข้อความ</label>
+              <textarea name="message" rows="4" x-model="lineForm.message"
+                @input="updateLinePreview()"
+                placeholder="พิมพ์ข้อความที่นี่..."></textarea>
+            </div>
+
+            <!-- Quick template buttons -->
+            <div>
+              <p class="text-xs text-slate-500 mb-2">เทมเพลตด่วน</p>
+              <div class="flex flex-wrap gap-2">
+                <button type="button" class="btn-outline btn-sm" @click="setTemplate('ready')">🍱 อาหารพร้อม</button>
+                <button type="button" class="btn-outline btn-sm" @click="setTemplate('reminder')">⏰ เตือนความจำ</button>
+                <button type="button" class="btn-outline btn-sm" @click="setTemplate('expired')">⚠️ หมดเวลา</button>
+                <button type="button" class="btn-outline btn-sm" @click="setTemplate('reset')">🔄 รีเซ็ตแล้ว</button>
+              </div>
+            </div>
+
+            <button id="line-submit-btn" type="submit" class="btn-primary w-full">
+              <span class="htmx-indicator">กำลังส่ง...</span>
+              <span>ส่งข้อความ LINE</span>
+            </button>
+          </form>
+
+          <!-- Result area (HTMX target) -->
+          <div id="line-push-result" class="text-sm"></div>
+        </div>
+
+        <!-- Live preview -->
+        <div class="space-y-4">
+          <div class="card">
+            <h3 class="text-xs text-slate-400 uppercase tracking-wider mb-3">LINE Bubble Preview</h3>
+            <div class="line-bubble-wrap">
+              <div class="line-avatar">🤖</div>
+              <div class="line-bubble" x-text="lineForm.message || 'พิมพ์ข้อความเพื่อดูตัวอย่าง...'"></div>
+            </div>
+            <p class="text-xs text-slate-600 mt-2 text-center">ตัวอย่างที่เห็นอาจต่างจากการแสดงผลจริงในแอป LINE</p>
+          </div>
+
+          <div class="card text-xs text-slate-400 space-y-1">
+            <p class="font-semibold text-slate-300 mb-2">สรุปการส่ง</p>
+            <p>ประเภท: <span class="text-yellow-300" x-text="lineForm.target_type"></span></p>
+            <p x-show="lineForm.target_id">Target ID: <span class="text-slate-200 font-mono" x-text="lineForm.target_id"></span></p>
+            <p x-show="lineForm.locker_id">ตู้: <span class="text-slate-200" x-text="lineForm.locker_id"></span></p>
+            <p>ความยาวข้อความ: <span class="text-slate-200" x-text="lineForm.message.length + ' ตัวอักษร'"></span></p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main><!-- /main -->
+
+
+  <!-- ═══════════════════════════════════════════
+       Confirm dialog (shared)
+  ═══════════════════════════════════════════ -->
+  <div x-show="confirmDialog.open" class="confirm-overlay" style="display:none;"
+       @keydown.escape.window="confirmDialog.open = false">
+    <div class="confirm-box">
+      <h3 class="text-lg font-bold text-red-400 mb-2">⚠️ ยืนยันการรีเซ็ต</h3>
+      <p class="text-slate-300 mb-1" x-text="confirmDialog.title"></p>
+      <p class="text-sm text-slate-500 mb-6" x-text="confirmDialog.subtitle"></p>
+      <div class="flex gap-3">
+        <button class="btn-danger flex-1" @click="executeReset()" :disabled="resetting">
+          <span x-text="resetting ? 'กำลังรีเซ็ต...' : 'ยืนยัน ดำเนินการ'"></span>
+        </button>
+        <button class="btn-outline flex-1" @click="confirmDialog.open = false">ยกเลิก</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /x-data -->
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  const CSRF = '{{ csrf_token }}';
+
+  function normalizeArray(data) {
+    if (Array.isArray(data)) return data;
+    if (data && Array.isArray(data.results)) return data.results;
+    return [];
+  }
+
+  function apiFetch(url, opts = {}) {
+    return fetch(url, {
+      headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/json', ...(opts.headers || {}) },
+      ...opts,
+    });
+  }
+
+  const LINE_TEMPLATES = {
+    ready:    '🍱 อาหารของคุณถูกนำเข้าตู้ล็อกเกอร์แล้ว\nกรุณามารับภายใน 30 นาที\nขอบคุณที่ใช้บริการ Food Locker',
+    reminder: '⏰ เตือนความจำ\nอาหารของคุณรออยู่ในตู้ล็อกเกอร์\nกรุณามารับก่อนหมดเวลา',
+    expired:  '⚠️ หมดเวลาแล้ว\nอาหารในตู้ล็อกเกอร์ของคุณหมดเวลาแล้ว\nกรุณาติดต่อเจ้าหน้าที่',
+    reset:    '🔄 ระบบตู้ล็อกเกอร์ได้รับการรีเซ็ตแล้ว\nหากมีข้อสงสัยกรุณาติดต่อเจ้าหน้าที่',
+  };
+
+  // Alpine CDN is loaded with `defer` so it runs after HTML parsing.
+  // Alpine.data() must be registered via alpine:init (fires after Alpine loads,
+  // before it processes the DOM), otherwise `Alpine` is not yet defined.
+  document.addEventListener('alpine:init', () => {
+  Alpine.data('dashboard', () => ({
+    tabs: ['🗄️ Locker Overview', '📋 Logs', '🔄 Reset Controls', '💬 LINE Push'],
+    activeTab: 0,
+    loading: false,
+
+    lockers: [],
+    filteredLockers: [],
+    filterSearch: '',
+    filterBuilding: '',
+    filterStatus: '',
+    openingId: null,
+
+    buildings: [],
+
+    logs: [],
+    filteredLogs: [],
+    logFilterLocker: '',
+    logFilterAction: '',
+    logActionTypes: [],
+
+    resetLockerId: '',
+    resetBuildingId: '',
+    resetting: false,
+    confirmDialog: { open: false, scope: '', lockerId: null, buildingId: null, title: '', subtitle: '' },
+
+    lineForm: { target_type: 'broadcast', target_id: '', locker_id: '', message: '' },
+
+    stats: { total: 0, available: 0, occupied: 0, locked: 0, open: 0 },
+
+    async init() {
+      await this.loadAll();
+    },
+
+    async loadAll() {
+      this.loading = true;
+      await Promise.all([this.loadLockers(), this.loadBuildings(), this.loadLogs()]);
+      this.loading = false;
+    },
+
+    async loadLockers() {
+      try {
+        const res = await apiFetch('/api/lockers/');
+        const data = normalizeArray(await res.json());
+        this.lockers = data;
+        this.computeStats();
+        this.applyFilters();
+      } catch (e) {
+        Alpine.store('toast').error('โหลดข้อมูลตู้ล้มเหลว');
+      }
+    },
+
+    async loadBuildings() {
+      try {
+        const res = await apiFetch('/api/buildings/');
+        this.buildings = normalizeArray(await res.json());
+      } catch (e) {
+        this.buildings = [];
+      }
+    },
+
+    async loadLogs() {
+      try {
+        const res = await apiFetch('/api/locker-logs/');
+        const data = normalizeArray(await res.json());
+        this.logs = data;
+        this.logActionTypes = [...new Set(data.map(l => l.action).filter(Boolean))];
+        this.applyLogFilters();
+      } catch (e) {
+        Alpine.store('toast').error('โหลด log ล้มเหลว');
+      }
+    },
+
+    computeStats() {
+      const s = { total: this.lockers.length, available: 0, occupied: 0, locked: 0, open: 0 };
+      for (const l of this.lockers) {
+        const st = (l.status || '').toLowerCase();
+        if (st === 'available') s.available++;
+        else if (st === 'occupied' || st === 'in use') s.occupied++;
+        else if (st === 'locked') s.locked++;
+        else if (st === 'open') s.open++;
+      }
+      this.stats = s;
+    },
+
+    applyFilters() {
+      this.filteredLockers = this.lockers.filter(l => {
+        const idStr = (l.local_id || String(l.id) || '').toLowerCase();
+        const matchSearch = !this.filterSearch || idStr.includes(this.filterSearch.toLowerCase());
+        const matchBuilding = !this.filterBuilding || String(l.building_id || l.building || '') === String(this.filterBuilding);
+        const matchStatus = !this.filterStatus || (l.status || '').toLowerCase() === this.filterStatus;
+        return matchSearch && matchBuilding && matchStatus;
+      });
+    },
+
+    clearFilters() {
+      this.filterSearch = '';
+      this.filterBuilding = '';
+      this.filterStatus = '';
+      this.applyFilters();
+    },
+
+    quickFilter(locker) {
+      this.filterStatus = (locker.status || '').toLowerCase();
+      this.applyFilters();
+    },
+
+    applyLogFilters() {
+      this.filteredLogs = this.logs.filter(l => {
+        const matchLocker = !this.logFilterLocker ||
+          String(l.locker_id || l.locker || '').toLowerCase().includes(this.logFilterLocker.toLowerCase());
+        const matchAction = !this.logFilterAction || l.action === this.logFilterAction;
+        return matchLocker && matchAction;
+      });
+    },
+
+    clearLogFilters() {
+      this.logFilterLocker = '';
+      this.logFilterAction = '';
+      this.applyLogFilters();
+    },
+
+    async openLocker(locker) {
+      this.openingId = locker.id;
+      try {
+        const res = await apiFetch(`/api/lockers/${locker.id}/open/`, { method: 'POST', body: '{}' });
+        if (res.ok) {
+          Alpine.store('toast').success(`เปิดตู้ #${locker.local_id || locker.id} สำเร็จ`);
+          await this.loadLockers();
+        } else {
+          const err = await res.json().catch(() => ({}));
+          Alpine.store('toast').error(err.detail || 'เปิดตู้ล้มเหลว');
+        }
+      } catch (e) {
+        Alpine.store('toast').error('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+      } finally {
+        this.openingId = null;
+      }
+    },
+
+    confirmReset(scope, lockerId, buildingId) {
+      const labels = {
+        locker:   { title: `รีเซ็ตตู้ #${lockerId}`, subtitle: 'สถานะของตู้นี้จะถูกรีเซ็ตทั้งหมด' },
+        building: { title: `รีเซ็ตอาคาร ID ${buildingId}`, subtitle: 'ตู้ทั้งหมดในอาคารนี้จะถูกรีเซ็ต' },
+        all:      { title: 'รีเซ็ตตู้ทั้งหมดในระบบ', subtitle: 'การกระทำนี้ไม่สามารถย้อนกลับได้ กรุณาแน่ใจก่อนดำเนินการ' },
+      };
+      const l = labels[scope] || { title: 'รีเซ็ต', subtitle: '' };
+      this.confirmDialog = { open: true, scope, lockerId, buildingId, ...l };
+    },
+
+    async executeReset() {
+      const { scope, lockerId, buildingId } = this.confirmDialog;
+      this.resetting = true;
+      this.confirmDialog.open = false;
+      try {
+        const body = { scope };
+        if (scope === 'locker') body.locker_id = lockerId;
+        if (scope === 'building') body.building_id = buildingId;
+        const res = await apiFetch('/api/system/reset/', { method: 'POST', body: JSON.stringify(body) });
+        if (res.ok) {
+          Alpine.store('toast').success('รีเซ็ตสำเร็จ');
+          await this.loadLockers();
+        } else {
+          const err = await res.json().catch(() => ({}));
+          Alpine.store('toast').error(err.detail || 'รีเซ็ตล้มเหลว');
+        }
+      } catch (e) {
+        Alpine.store('toast').error('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+      } finally {
+        this.resetting = false;
+        this.resetLockerId = '';
+        this.resetBuildingId = '';
+      }
+    },
+
+    setTemplate(key) {
+      this.lineForm.message = LINE_TEMPLATES[key] || '';
+    },
+
+    updateLinePreview() { /* reactive via x-model */ },
+
+    onLinePushResult(event) {
+      const status = event.detail.xhr ? event.detail.xhr.status : (event.detail.successful ? 200 : 500);
+      if (status >= 200 && status < 300) {
+        Alpine.store('toast').success('ส่งข้อความ LINE สำเร็จ');
+        this.lineForm.message = '';
+        this.lineForm.target_id = '';
+        this.lineForm.locker_id = '';
+      } else {
+        Alpine.store('toast').error('ส่งข้อความ LINE ล้มเหลว');
+      }
+    },
+
+    /* ── helpers ── */
+    statusSquareClass(status) {
+      const s = (status || '').toLowerCase();
+      if (s === 'available') return 'sq-available';
+      if (s === 'occupied' || s === 'in use') return 'sq-occupied';
+      if (s === 'locked') return 'sq-locked';
+      if (s === 'open') return 'sq-open';
+      return 'sq-unknown';
+    },
+
+    badgeClass(status) {
+      const s = (status || '').toLowerCase();
+      if (s === 'available') return 'badge-available';
+      if (s === 'occupied' || s === 'in use') return 'badge-occupied';
+      if (s === 'locked') return 'badge-locked';
+      if (s === 'open') return 'badge-open';
+      return 'badge-unknown';
+    },
+
+    logDotClass(action) {
+      const a = (action || '').toLowerCase();
+      if (a.includes('open')) return 'bg-blue-500';
+      if (a.includes('reset')) return 'bg-red-500';
+      if (a.includes('store') || a.includes('place')) return 'bg-yellow-400';
+      if (a.includes('pick') || a.includes('retrieve')) return 'bg-green-500';
+      return 'bg-slate-500';
+    },
+
+    lockerBuilding(locker) {
+      const bid = locker.building_id || locker.building;
+      if (!bid) return '—';
+      const b = this.buildings.find(x => String(x.id) === String(bid));
+      return b ? (b.name || b.id) : bid;
+    },
+
+    formatDate(ts) {
+      if (!ts) return '—';
+      try {
+        return new Date(ts).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'medium' });
+      } catch {
+        return ts;
+      }
+    },
+  }));
+  }); // end alpine:init
+</script>
+{% endblock %}

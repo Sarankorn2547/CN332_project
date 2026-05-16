@@ -31,7 +31,7 @@ router.register(r'locker-logs', views.LockerLogViewSet)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('kiosk.urls')),
-    path('', include('locker_wall.urls')),
+    path('locker/', include('locker_wall.urls')),
     path('api/', include(router.urls)),
     path('api/users/status/', views.UserStatusView.as_view(), name='user-status'),
     path('api/users/register/', views.UserRegisterView.as_view(), name='user-register'),
