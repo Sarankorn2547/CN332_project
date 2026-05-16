@@ -4,6 +4,7 @@
 {% block title %}Admin Dashboard — Food Locker{% endblock %}
 
 {% block extra_head %}
+<meta name="color-scheme" content="dark">
 <style>
   body { background: #0f172a; color: #e2e8f0; }
 
@@ -212,6 +213,52 @@
     to   { opacity: 1; transform: translateY(0); }
   }
   .animate-in { animation: fadeSlideIn 0.2s ease both; }
+
+  /* ── Touch targets ────────────────────────────────── */
+  .btn-primary, .btn-danger { min-height: 44px; }
+  .btn-outline { min-height: 40px; }
+
+  /* ── Mobile responsive ────────────────────────────── */
+  @media (max-width: 768px) {
+    /* Scrollable tab bar */
+    nav.flex.gap-2 {
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding-bottom: 0.5rem;
+    }
+    nav.flex.gap-2::-webkit-scrollbar { display: none; }
+
+    .tab-btn {
+      flex-shrink: 0;
+      font-size: 0.8rem;
+      padding: 0.5rem 0.85rem;
+    }
+
+    /* Header wraps on mobile */
+    header { flex-wrap: wrap; gap: 0.5rem; }
+    header > div:last-child { width: 100%; justify-content: space-between; }
+
+    /* Reduce main padding */
+    main { padding-left: 1rem; padding-right: 1rem; }
+    header { padding-left: 1rem; padding-right: 1rem; }
+
+    /* Min body font size */
+    td, .stat-label, .timeline-item, p { font-size: 0.875rem; }
+    .stat-value { font-size: 1.5rem; }
+
+    /* Reset grid: always 1 col on mobile (overrides md:grid-cols-3) */
+    .grid.md\:grid-cols-3 { grid-template-columns: 1fr !important; }
+
+    /* LINE Push: always stacked (overrides md:grid-cols-2) */
+    .grid.md\:grid-cols-2 { grid-template-columns: 1fr !important; }
+  }
+
+  /* 1-column stat cards on very small screens */
+  @media (max-width: 380px) {
+    .grid.grid-cols-2 { grid-template-columns: 1fr !important; }
+  }
 </style>
 {% endblock %}
 
