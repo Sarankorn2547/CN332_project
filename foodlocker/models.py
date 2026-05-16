@@ -91,6 +91,10 @@ class LineUser(models.Model):
     room_no = models.TextField()
     display_name = models.TextField()
 
+    @property
+    def is_authenticated(self):
+        return True
+
     def __str__(self):
         return self.display_name
 

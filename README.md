@@ -135,7 +135,7 @@ Direct Links to Screens:
 | Role | Sprint 1 | Sprint 2 | Sprint 3 | Sprint 4 | Sprint 5 | Total |
 |------|----------|----------|----------|----------|----------|-------|
 | DevOps | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **20%** |
-| Backend A | ✅ 100% | 🔄 25% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **25%** |
+| Backend A | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ⬜ 0% | **80%** |
 | Backend B | ✅ 100% | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **40%** |
 | Frontend A | ✅ 100% | ✅ 100% | 🔄 75% | 🔄 33% | ⬜ 0% | **75%** |
 | Frontend B | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
@@ -423,15 +423,15 @@ flowchart TD
 | 🔴 P1 | [x] Seed script (`seed_data` management command) | S1 | ✅ |
 | 🟠 P2 | [x] `POST /api/users/register/` | S2 | ✅ |
 | 🟠 P2 | [x] `GET /api/users/status/?line_user_id=` | S2 | ✅ |
-| 🟠 P2 | [ ] Authentication/Session (JWT simplejwt) | S2 | ⬜ |
-| 🟠 P2 | [ ] Tests: User registration flow (pytest-django) | S2 | ⬜ |
-| 🟡 P3 | [ ] `GET /api/lockers/` (list by building) | S3 | ⬜ |
-| 🟡 P3 | [ ] `GET /api/lockers/{id}/` (locker detail) | S3 | ⬜ |
-| 🟡 P3 | [ ] `PUT /api/lockers/{id}/` (admin update) | S3 | ⬜ |
-| 🟡 P3 | [ ] Tests: Locker CRUD (pytest) | S3 | ⬜ |
-| 🟢 P4 | [ ] LINE webhook: `POST /api/line/webhook/` (HMAC verify) | S4 | ⬜ |
-| 🟢 P4 | [ ] LINE push: `POST /api/line/push/` (text + QR image) | S4 | ⬜ |
-| 🟢 P4 | [ ] Tests: LINE webhook (mock LINE events) | S4 | ⬜ |
+| 🟠 P2 | [x] Authentication/Session (JWT simplejwt) | S2 | ✅ |
+| 🟠 P2 | [x] Tests: User registration flow (pytest-django) | S2 | ✅ |
+| 🟡 P3 | [x] `GET /api/lockers/` (list by building) | S3 | ✅ |
+| 🟡 P3 | [x] `GET /api/lockers/{id}/` (locker detail) | S3 | ✅ |
+| 🟡 P3 | [x] `PUT /api/lockers/{id}/` (admin update) | S3 | ✅ |
+| 🟡 P3 | [x] Tests: Locker CRUD (pytest) | S3 | ✅ |
+| 🟢 P4 | [x] LINE webhook: `POST /api/line/webhook/` (HMAC verify) | S4 | ✅ |
+| 🟢 P4 | [x] LINE push: `POST /api/line/push/` (text + QR image) | S4 | ✅ |
+| 🟢 P4 | [x] Tests: LINE webhook (mock LINE events) | S4 | ✅ |
 | 🔵 P5 | [ ] API documentation (drf-spectacular) | S5 | ⬜ |
 | 🔵 P5 | [ ] Bug fixes + code review | S5 | ⬜ |
 
@@ -553,8 +553,8 @@ flowchart TD
 ### ✏️ Sprint 2 — Update (Week 3-4)
 
 - [ ] อัปเดตโดย DevOps:
-- [ ] อัปเดตโดย Backend A:
-- [ ] อัปเดตโดย Backend B:
+- [x] อัปเดตโดย Backend A: Implemented JWT authentication using `djangorestframework-simplejwt`. Added `POST /api/token/` (issue token by `line_user_id`) and `POST /api/token/refresh/`. Protected locker operation endpoints (`book`, `open`, `deposit`, `verify-qr`, `pickup`) with `IsAuthenticated`. Added custom `LineUserJWTAuthentication` to resolve tokens against `LineUser` model. Set up `pytest-django` with 13 passing tests covering registration flow and JWT auth flow.
+- [x] อัปเดตโดย Backend B: Implemented Master API filters, and the verify_qr and pickup_locker state machine and API endpoints.
 - [x] อัปเดตโดย Frontend A: ทำ `/register` ครบ — LINE LIFF integration (dev fallback), HTMX cascade Project→Building→Room ดึง DB จริง, บันทึก LineUser ผ่าน `POST /api/users/register/`, Success/Error/Loading state ครบ
 - [ ] อัปเดตโดย Frontend B:
 
@@ -565,19 +565,19 @@ flowchart TD
 ### ✏️ Sprint 3 — Update (Week 5-6)
 
 - [ ] อัปเดตโดย DevOps:
-- [ ] อัปเดตโดย Backend A:
+- [x] อัปเดตโดย Backend A: Implemented Locker CRUD APIs. Added `GET /api/lockers/` with `?building_id=` filter, `GET /api/lockers/{id}/` (detail), and `PUT /api/lockers/{id}/` (admin update, requires JWT). Upgraded `LockerViewSet` from `ReadOnlyModelViewSet` to include `UpdateModelMixin`. Added `LockerUpdateSerializer` with `id`, `building`, `passcode`, `qr_data` as read-only (structural/service-managed fields). List/retrieve remain public. Added `tests/test_lockers.py` with 12 tests covering list, filter, retrieve, unauthenticated PUT, authenticated PUT/PATCH, read-only field enforcement, and all valid status choices. Full suite: 25 passed.
 - [ ] อัปเดตโดย Backend B:
 - [x] อัปเดตโดย Frontend A: Rider flow เสร็จ 3/4 — select_size.html (Alpine.js + loadSizes/selectSize), qr_display.html (QR+PIN+instructions), rider_confirm.html, HTMX endpoints stubs ครบ; ยังขาด /login auth flow
 - [ ] อัปเดตโดย Frontend B:
 
-**% ที่ทำได้จริง sprint นี้:** `_____ %`
+**% ที่ทำได้จริง sprint นี้:** `20 %`
 
 ---
 
 ### ✏️ Sprint 4 — Update (Week 7-8)
 
 - [ ] อัปเดตโดย DevOps:
-- [ ] อัปเดตโดย Backend A:
+- [x] อัปเดตโดย Backend A: Implemented LINE Messaging API integration. Added `POST /api/line/webhook/` with HMAC-SHA256 signature verification (`X-Line-Signature` header). Added `POST /api/line/push/` (JWT-protected) supporting text, image, and text+image push messages via LINE Messaging API. Added `LineService` class in `foodlocker/line_service.py`. Added `requests==2.32.3` dependency. Added `LINE_CHANNEL_SECRET` and `LINE_CHANNEL_ACCESS_TOKEN` settings (via env vars). Added `tests/test_line.py` with 8 tests: valid/invalid/missing signature, follow event, message event, push text (mocked), push auth guard, push missing `to`. Full suite: 33 passed.
 - [ ] อัปเดตโดย Backend B:
 - [x] อัปเดตโดย Frontend A: deposit.html เสร็จสมบูรณ์ (กล้อง + takePhoto + submit base64 → API); Customer QR scan ยังเป็น placeholder; WebSocket ยังไม่ได้ทำ
 - [ ] อัปเดตโดย Frontend B:
@@ -710,5 +710,5 @@ Examples: `feat(api): add locker book endpoint` · `fix(fe): qr scan camera perm
 
 ---
 
-*Last Updated: 2026-03-09*  
-*Next Update Due: Sprint 1 complete (Week 2)*
+*Last Updated: 2026-05-16*  
+*Next Update Due: Sprint 3 complete (Week 6)*

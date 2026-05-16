@@ -35,4 +35,8 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path('api/users/status/', views.UserStatusView.as_view(), name='user-status'),
     path('api/users/register/', views.UserRegisterView.as_view(), name='user-register'),
+    path('api/token/', views.LineUserTokenView.as_view(), name='token-obtain'),
+    path('api/token/refresh/', views.LineUserTokenRefreshView.as_view(), name='token-refresh'),
+    path('api/line/webhook/', views.LineWebhookView.as_view(), name='line-webhook'),
+    path('api/line/push/', views.LinePushView.as_view(), name='line-push'),
 ]

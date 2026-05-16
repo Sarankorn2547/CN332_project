@@ -1,17 +1,53 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenRefreshView as BaseTokenRefreshView
 from .models import Project, Building, Room, Locker, LineUser, LockerLog
 from .serializers import (
     ProjectSerializer,
     BuildingSerializer,
     RoomSerializer,
     LockerSerializer,
+    LockerUpdateSerializer,
     LineUserSerializer,
     LockerLogSerializer,
 )
+from .line_service import LineService
 from .services import LockerService
+
+
+class LineUserTokenView(APIView):
+    def post(self, request):
+        line_user_id = request.data.get('line_user_id')
+        if not line_user_id:
+            return Response({'error': 'line_user_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            line_user = LineUser.objects.get(line_user_id=line_user_id)
+        except LineUser.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        refresh = RefreshToken()
+        refresh['line_user_id'] = line_user.line_user_id
+        refresh['display_name'] = line_user.display_name
+        return Response({
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }, status=status.HTTP_200_OK)
+
+
+class _LineUserTokenRefreshSerializer(TokenRefreshSerializer):
+    def validate(self, attrs):
+        refresh = RefreshToken(attrs['refresh'])
+        return {'access': str(refresh.access_token)}
+
+
+class LineUserTokenRefreshView(BaseTokenRefreshView):
+    serializer_class = _LineUserTokenRefreshSerializer
+
 
 class UserRegisterView(APIView):
     def post(self, request):
@@ -117,11 +153,33 @@ class RoomViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = queryset.filter(building_id=building_id)
         return queryset
 
-class LockerViewSet(viewsets.ReadOnlyModelViewSet):
+class LockerViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
+):
     queryset = Locker.objects.all()
     serializer_class = LockerSerializer
 
-    @action(detail=False, methods=['post'])
+    def get_queryset(self):
+        qs = Locker.objects.all()
+        building_id = self.request.query_params.get('building_id')
+        if building_id:
+            qs = qs.filter(building_id=building_id)
+        return qs
+
+    def get_permissions(self):
+        if self.action in ('update', 'partial_update'):
+            return [IsAuthenticated()]
+        return super().get_permissions()
+
+    def get_serializer_class(self):
+        if self.action in ('update', 'partial_update'):
+            return LockerUpdateSerializer
+        return LockerSerializer
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
     def book(self, request):
         building_id = request.data.get('building_id')
         size = request.data.get('size')
@@ -140,7 +198,7 @@ class LockerViewSet(viewsets.ReadOnlyModelViewSet):
         except ValueError as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def open(self, request, pk=None):
         try:
             locker = LockerService.open_locker(locker_id=pk)
@@ -149,7 +207,7 @@ class LockerViewSet(viewsets.ReadOnlyModelViewSet):
         except ValueError as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def deposit(self, request, pk=None):
         try:
             locker = LockerService.confirm_deposit(locker_id=pk)
@@ -158,7 +216,7 @@ class LockerViewSet(viewsets.ReadOnlyModelViewSet):
         except ValueError as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False, methods=['post'], url_path='verify-qr')
+    @action(detail=False, methods=['post'], url_path='verify-qr', permission_classes=[IsAuthenticated])
     def verify_qr(self, request):
         qr_data = request.data.get('qr_data')
         passcode = request.data.get('passcode')
@@ -170,7 +228,7 @@ class LockerViewSet(viewsets.ReadOnlyModelViewSet):
         except ValueError as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['post'], url_path='pickup')
+    @action(detail=True, methods=['post'], url_path='pickup', permission_classes=[IsAuthenticated])
     def pickup(self, request, pk=None):
         actor_id = request.data.get('actor_id', 'customer')
         try:
@@ -179,6 +237,50 @@ class LockerViewSet(viewsets.ReadOnlyModelViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except ValueError as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class LineWebhookView(APIView):
+    def post(self, request):
+        signature = request.headers.get('X-Line-Signature', '')
+        body = request.body
+
+        if not LineService.verify_signature(body, signature):
+            return Response({'error': 'Invalid signature'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        events = request.data.get('events', [])
+        for event in events:
+            # Event handling can be extended here per event type
+            pass
+
+        return Response({'status': 'ok'}, status=status.HTTP_200_OK)
+
+
+class LinePushView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        to = request.data.get('to')
+        text = request.data.get('message')
+        image_url = request.data.get('image_url')
+
+        if not to:
+            return Response({'error': 'to is required'}, status=status.HTTP_400_BAD_REQUEST)
+        if not text and not image_url:
+            return Response(
+                {'error': 'message or image_url is required'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            if text and image_url:
+                result = LineService.push_text_and_image(to, text, image_url)
+            elif text:
+                result = LineService.push_text(to, text)
+            else:
+                result = LineService.push_image(to, image_url)
+            return Response({'status': 'ok', 'result': result}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class LineUserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = LineUser.objects.all()
