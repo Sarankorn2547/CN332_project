@@ -136,10 +136,10 @@ Direct Links to Screens:
 |------|----------|----------|----------|----------|----------|-------|
 | DevOps | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **20%** |
 | Backend A | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ⬜ 0% | **80%** |
-| Backend B | ✅ 100% | ✅ 100% | 🔄 67% | ✅ 100% | ⬜ 0% | **73%** |
+| Backend B | ✅ 100% | ✅ 100% | 🔄 67% | 🔄 33% | ✅ 100% | **80%** |
 | Frontend A | ✅ 100% | ✅ 100% | 🔄 75% | 🔄 33% | ⬜ 0% | **75%** |
 | Frontend B | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
-| **Overall** | | | | | | **32% / 100%** |
+| **Overall** | | | | | | **51% / 100%** |
 
 > ✅ Done · 🔄 In Progress · ⬜ Pending · ❌ Blocked
 
@@ -455,11 +455,11 @@ flowchart TD
 | 🟡 P3 | [x] `POST /api/system/reset/` (scope: ALL/BUILDING/PROJECT) | S3 | ✅ |
 | 🟡 P3 | [x] `POST /api/admin/cli/` (list, open, reset commands) | S3 | ✅ |
 | 🟡 P3 | [ ] Celery task: abandon check >24h (FOOD lockers) | S3 | ⬜ |
-| 🟢 P4 | [x] Django Channels: WebSocket `/ws/lockers/{building_id}/` | S4 | ✅ |
-| 🟢 P4 | [x] Redis channel layer config | S4 | ✅ |
+| 🟢 P4 | [ ] Django Channels: WebSocket `/ws/lockers/{building_id}/` | S4 | ⬜ |
+| 🟢 P4 | [ ] Redis channel layer config | S4 | ⬜ |
 | 🟢 P4 | [x] Integration tests: full locker workflow | S4 | ✅ |
-| 🔵 P5 | [ ] Query optimization + database indexes | S5 | ⬜ |
-| 🔵 P5 | [ ] Bug fixes + PR review | S5 | ⬜ |
+| 🔵 P5 | [x] Query optimization + database indexes | S5 | ✅ |
+| 🔵 P5 | [x] Bug fixes + PR review | S5 | ✅ |
 
 ---
 
@@ -578,11 +578,11 @@ flowchart TD
 
 - [ ] อัปเดตโดย DevOps:
 - [x] อัปเดตโดย Backend A: Implemented LINE Messaging API integration. Added `POST /api/line/webhook/` with HMAC-SHA256 signature verification (`X-Line-Signature` header). Added `POST /api/line/push/` (JWT-protected) supporting text, image, and text+image push messages via LINE Messaging API. Added `LineService` class in `foodlocker/line_service.py`. Added `requests==2.32.3` dependency. Added `LINE_CHANNEL_SECRET` and `LINE_CHANNEL_ACCESS_TOKEN` settings (via env vars). Added `tests/test_line.py` with 8 tests: valid/invalid/missing signature, follow event, message event, push text (mocked), push auth guard, push missing `to`. Full suite: 33 passed.
-- [x] อัปเดตโดย Backend B: Implemented Django Channels realtime updates with `ws://<host>/ws/lockers/<building_id>/`. Added ASGI routing, `LockerConsumer` snapshot/broadcast behavior, Redis-ready `CHANNEL_LAYERS` via `REDIS_URL` with in-memory fallback for local/test, and service/API broadcasts for book/open/deposit/verify/pickup/reset/update. Added `tests/test_realtime.py` covering websocket snapshot, unknown building rejection, and full locker workflow broadcasts.
+- [x] อัปเดตโดย Backend B: Added full locker workflow integration coverage for rider booking/open/deposit through customer verify/pickup, including log actor checks and final locker reset assertions.
 - [x] อัปเดตโดย Frontend A: deposit.html เสร็จสมบูรณ์ (กล้อง + takePhoto + submit base64 → API); Customer QR scan ยังเป็น placeholder; WebSocket ยังไม่ได้ทำ
 - [ ] อัปเดตโดย Frontend B:
 
-**% ที่ทำได้จริง sprint นี้:** `47 %`
+**% ที่ทำได้จริง sprint นี้:** `20 %`
 
 ---
 
@@ -590,11 +590,11 @@ flowchart TD
 
 - [ ] อัปเดตโดย DevOps:
 - [ ] อัปเดตโดย Backend A:
-- [ ] อัปเดตโดย Backend B:
+- [x] อัปเดตโดย Backend B: Completed Sprint 5 performance/review work. Added hot-path indexes for locker booking, QR/PIN verification, locker wall ordering, and actor-based status lookup. Tightened service writes with transactional booking, deterministic reset ordering, request actor attribution, API filters for status/type/size, and a pickup guard that requires verified/unlocked lockers. Added full rider-to-customer integration coverage plus bounded-query performance tests. `pytest`: 74 passed.
 - [ ] อัปเดตโดย Frontend A:
 - [ ] อัปเดตโดย Frontend B:
 
-**% ที่ทำได้จริง sprint นี้:** `_____ %`
+**% ที่ทำได้จริง sprint นี้:** `20 %`
 
 ---
 
@@ -711,4 +711,4 @@ Examples: `feat(api): add locker book endpoint` · `fix(fe): qr scan camera perm
 ---
 
 *Last Updated: 2026-05-17*  
-*Next Update Due: Sprint 4 complete (Week 8)*
+*Next Update Due: Sprint 3 complete (Week 6)*
