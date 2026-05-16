@@ -136,8 +136,8 @@ Direct Links to Screens:
 |------|----------|----------|----------|----------|----------|-------|
 | DevOps | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **20%** |
 | Backend A | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ⬜ 0% | **80%** |
-| Backend B | ✅ 100% | ✅ 100% | 🔄 67% | ⬜ 0% | ⬜ 0% | **53%** |
-| Frontend A | ✅ 100% | ✅ 100% | ✅ 100% | 🔄 75% | ✅ 100% | **~95%** |
+| Backend B | ✅ 100% | ✅ 100% | 🔄 67% | ✅ 100% | ⬜ 0% | **73%** |
+| Frontend A | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | **100%** |
 | Frontend B | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
 | **Overall** | | | | | | **~52% / 100%** |
 
@@ -455,9 +455,9 @@ flowchart TD
 | 🟡 P3 | [x] `POST /api/system/reset/` (scope: ALL/BUILDING/PROJECT) | S3 | ✅ |
 | 🟡 P3 | [x] `POST /api/admin/cli/` (list, open, reset commands) | S3 | ✅ |
 | 🟡 P3 | [ ] Celery task: abandon check >24h (FOOD lockers) | S3 | ⬜ |
-| 🟢 P4 | [ ] Django Channels: WebSocket `/ws/lockers/{building_id}/` | S4 | ⬜ |
-| 🟢 P4 | [ ] Redis channel layer config | S4 | ⬜ |
-| 🟢 P4 | [ ] Integration tests: full locker workflow | S4 | ⬜ |
+| 🟢 P4 | [x] Django Channels: WebSocket `/ws/lockers/{building_id}/` | S4 | ✅ |
+| 🟢 P4 | [x] Redis channel layer config | S4 | ✅ |
+| 🟢 P4 | [x] Integration tests: full locker workflow | S4 | ✅ |
 | 🔵 P5 | [ ] Query optimization + database indexes | S5 | ⬜ |
 | 🔵 P5 | [ ] Bug fixes + PR review | S5 | ⬜ |
 
@@ -484,7 +484,7 @@ flowchart TD
 | 🟡 P3 | [x] Kiosk: ปุ่ม "Open Locker" → call API (stub `/api/lockers/<id>/open/` พร้อม) | S3 | ✅ |
 | 🟡 P3 | [x] `/login`: หน้า login + เชื่อม `POST /api/token/` (LINE User ID → JWT) + เก็บ token ใน sessionStorage | S3 | ✅ |
 | 🟢 P4 | [x] Kiosk: Customer Tab — Scan QR (camera) (jsQR library เชื่อมแล้ว + onDetected → verify-qr API ครบ) | S4 | ✅ |
-| 🟢 P4 | [ ] Kiosk: WebSocket / SSE real-time state (รอ Backend B: Django Channels + Redis) | S4 | ⬜ |
+| 🟢 P4 | [x] Kiosk: WebSocket real-time state — select_size.html เชื่อม `ws://.../ws/lockers/<id>/` อัปเดต availability แบบ live + reconnect อัตโนมัติ + offline indicator | S4 | ✅ |
 | 🟢 P4 | [x] Kiosk: Confirm deposit flow (กล้อง + ถ่ายรูป + ส่ง base64 ไป API ครบ) | S4 | ✅ |
 | 🔵 P5 | [x] E2E test: Rider + Customer flow (49 tests pass — URL routing, API, Rider flow, Customer flow) | S5 | ✅ |
 | 🔵 P5 | [x] Mobile responsive + UX polish (global idle timer ทุกหน้า, touch-friendly buttons, Thai font, toast/loading states) | S5 | ✅ |
@@ -578,8 +578,8 @@ flowchart TD
 
 - [ ] อัปเดตโดย DevOps:
 - [x] อัปเดตโดย Backend A: Implemented LINE Messaging API integration. Added `POST /api/line/webhook/` with HMAC-SHA256 signature verification (`X-Line-Signature` header). Added `POST /api/line/push/` (JWT-protected) supporting text, image, and text+image push messages via LINE Messaging API. Added `LineService` class in `foodlocker/line_service.py`. Added `requests==2.32.3` dependency. Added `LINE_CHANNEL_SECRET` and `LINE_CHANNEL_ACCESS_TOKEN` settings (via env vars). Added `tests/test_line.py` with 8 tests: valid/invalid/missing signature, follow event, message event, push text (mocked), push auth guard, push missing `to`. Full suite: 33 passed.
-- [ ] อัปเดตโดย Backend B:
-- [x] อัปเดตโดย Frontend A: deposit.html เสร็จสมบูรณ์ (กล้อง + takePhoto + submit base64 → API); Customer pages ครบ (method_select, pin_entry, success — UI + logic พร้อม); แก้ jsQR library bug (split script tag) — qr_scan.html ใช้งานได้ครบทั้ง camera + onDetected → verify-qr API; แก้ API URL prefix `/kiosk/` ครบทุก endpoint (confirm, deposit, alpine-utils.js, base.html); แก้ kiosk mount path ใน config/urls.py เป็น `kiosk/` (เดิมเป็น root); Merge `feature/be-jwt` + `origin/develop` — JWT + LINE webhook endpoint พร้อมใช้งาน; เพิ่ม pickup flow ใน customer/success.html (ปุ่ม "รับอาหารและปิดประตูแล้ว" → POST `/kiosk/api/lockers/{id}/pickup/` → countdown → home); เพิ่ม `api_pickup` stub endpoint; ย้าย `building_id` เป็น `KIOSK_BUILDING_ID` constant ใน views.py; WebSocket ยังไม่ได้ทำ (รอ Backend B)
+- [x] อัปเดตโดย Backend B: Implemented Django Channels realtime updates with `ws://<host>/ws/lockers/<building_id>/`. Added ASGI routing, `LockerConsumer` snapshot/broadcast behavior, Redis-ready `CHANNEL_LAYERS` via `REDIS_URL` with in-memory fallback for local/test, and service/API broadcasts for book/open/deposit/verify/pickup/reset/update. Added `tests/test_realtime.py` covering websocket snapshot, unknown building rejection, and full locker workflow broadcasts.
+- [x] อัปเดตโดย Frontend A: deposit.html เสร็จสมบูรณ์ (กล้อง + takePhoto + submit base64 → API); Customer pages ครบ (method_select, pin_entry, success — UI + logic พร้อม); แก้ jsQR library bug; เพิ่ม pickup flow ใน customer/success.html; แก้ API URL prefix `/kiosk/` ครบทุก endpoint; เพิ่ม `api_pickup` stub; JWT + login flow พร้อม; Merge be-B-sprint4 — เชื่อม WebSocket `ws://.../ws/lockers/<id>/` ใน select_size.html แสดง locker availability แบบ real-time + reconnect + offline/live indicator ครบ
 - [ ] อัปเดตโดย Frontend B:
 
 **% ที่ทำได้จริง sprint นี้:** `75 %`
@@ -710,5 +710,5 @@ Examples: `feat(api): add locker book endpoint` · `fix(fe): qr scan camera perm
 
 ---
 
-*Last Updated: 2026-05-17 (Sprint 5 — Frontend A E2E + UX polish complete)*  
-*Next Update Due: WebSocket integration when Backend B completes Django Channels*
+*Last Updated: 2026-05-17 (Frontend A 100% complete — WebSocket real-time integrated)*  
+*Next Update Due: Sprint 5 complete — final review + deployment*

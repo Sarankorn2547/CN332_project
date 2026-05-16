@@ -5,7 +5,8 @@
 {% block content %}
 <div class="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 flex items-center justify-center p-4"
      x-data="riderSizeSelect()"
-     x-init="loadSizes()">
+     x-init="init()"
+     @beforeunload.window="cleanup()">
 
   <div class="w-full max-w-lg">
 
@@ -15,6 +16,20 @@
       <div class="text-4xl mb-2">🛵</div>
       <h1 class="text-3xl font-bold text-gray-800">เลือกขนาดตู้</h1>
       <p class="text-gray-500 mt-1">เลือกขนาดที่เหมาะกับอาหารที่ฝาก</p>
+    </div>
+
+    <!-- Live indicator -->
+    <div class="flex justify-center mb-3">
+      <span x-show="wsConnected"
+            class="flex items-center gap-1.5 text-xs text-success-700 bg-success-50 px-3 py-1 rounded-full border border-success-200">
+        <span class="w-2 h-2 bg-success-500 rounded-full animate-pulse"></span>
+        อัปเดต Real-time
+      </span>
+      <span x-show="!wsConnected"
+            class="flex items-center gap-1.5 text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
+        <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+        ออฟไลน์
+      </span>
     </div>
 
     <!-- Card -->
@@ -72,7 +87,59 @@ function riderSizeSelect() {
   return {
     sizes: [],
     loading: false,
+    wsConnected: false,
     buildingId: '{{ building_id|default:"1" }}',
+    _ws: null,
+    _lockers: {},
+    SIZE_DIMS: { S: '25×30 cm', M: '35×40 cm', L: '45×50 cm', XL: '55×60 cm' },
+
+    init() {
+      this.loadSizes();   // HTTP snapshot ก่อน (render เร็ว)
+      this._connectWS();  // WS สำหรับ real-time updates
+    },
+
+    _connectWS() {
+      const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+      const ws = new WebSocket(`${proto}://${location.host}/ws/lockers/${this.buildingId}/`);
+      this._ws = ws;
+
+      ws.onopen = () => { this.wsConnected = true; };
+
+      ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        if (msg.type === 'locker.snapshot') {
+          this._lockers = {};
+          msg.lockers.forEach(l => { this._lockers[l.id] = l; });
+          this._recomputeSizes();
+          this.loading = false;
+        } else if (msg.type === 'locker.updated') {
+          this._lockers[msg.locker.id] = msg.locker;
+          this._recomputeSizes();
+        }
+      };
+
+      ws.onclose = () => {
+        this.wsConnected = false;
+        // reconnect หลัง 3 วินาที
+        setTimeout(() => { if (this._ws === ws) this._connectWS(); }, 3000);
+      };
+
+      ws.onerror = () => { this.wsConnected = false; };
+    },
+
+    _recomputeSizes() {
+      const counts = { S: 0, M: 0, L: 0, XL: 0 };
+      Object.values(this._lockers).forEach(l => {
+        if (l.status === 'AVAILABLE' && l.size in counts) counts[l.size]++;
+      });
+      this.sizes = Object.entries(this.SIZE_DIMS).map(([code, dims]) => ({
+        code, dimensions: dims, available: counts[code] || 0,
+      }));
+    },
+
+    cleanup() {
+      if (this._ws) { this._ws.onclose = null; this._ws.close(); this._ws = null; }
+    },
 
     async loadSizes() {
       this.loading = true;
