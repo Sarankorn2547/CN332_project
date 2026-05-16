@@ -39,4 +39,5 @@ urlpatterns = [
     path('api/token/refresh/', views.LineUserTokenRefreshView.as_view(), name='token-refresh'),
     path('api/line/webhook/', views.LineWebhookView.as_view(), name='line-webhook'),
     path('api/line/push/', views.LinePushView.as_view(), name='line-push'),
+    path('api/system/reset/', views.SystemResetView.as_view(), name='system-reset'),
 ]

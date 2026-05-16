@@ -289,3 +289,43 @@ class LineUserViewSet(viewsets.ReadOnlyModelViewSet):
 class LockerLogViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = LockerLog.objects.all()
     serializer_class = LockerLogSerializer
+
+
+class SystemResetView(APIView):
+    """Reset lockers to AVAILABLE state. Scope: 'locker' | 'building' | 'all'."""
+
+    def post(self, request):
+        scope = request.data.get('scope')
+        if scope not in ('locker', 'building', 'all'):
+            return Response(
+                {'error': "scope must be 'locker', 'building', or 'all'"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        reset_fields = {
+            'status': Locker.Status.AVAILABLE,
+            'is_door_open': False,
+            'has_object': False,
+            'is_locked': True,
+            'deposit_start_time': None,
+        }
+
+        if scope == 'locker':
+            locker_id = request.data.get('locker_id')
+            if not locker_id:
+                return Response({'error': 'locker_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+            count = Locker.objects.filter(id=locker_id).update(**reset_fields)
+            if not count:
+                return Response({'error': f'Locker {locker_id} not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'message': f'Locker {locker_id} reset successfully'})
+
+        if scope == 'building':
+            building_id = request.data.get('building_id')
+            if not building_id:
+                return Response({'error': 'building_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+            count = Locker.objects.filter(building_id=building_id).update(**reset_fields)
+            return Response({'message': f'{count} locker(s) in building {building_id} reset successfully'})
+
+        # scope == 'all'
+        count = Locker.objects.all().update(**reset_fields)
+        return Response({'message': f'All {count} locker(s) reset successfully'})
