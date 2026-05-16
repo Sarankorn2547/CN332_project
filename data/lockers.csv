@@ -1,4 +1,9 @@
 id,building_id,local_id,size,status,type,passcode,qr_data
-lck-001,bld-001,"L1-01","Medium","Available","Standard","1234","qr-data-1"
-lck-002,bld-001,"L1-02","Large","In Use","Refrigerated","5678","qr-data-2"
-lck-003,bld-002,"L2-01","Small","Available","Standard","9012","qr-data-3"
+lck-001,bld-001,"S-01","S","AVAILABLE","FOOD","1111","QR-S-01"
+lck-002,bld-001,"S-02","S","AVAILABLE","FOOD","2222","QR-S-02"
+lck-003,bld-001,"M-01","M","AVAILABLE","FOOD","3333","QR-M-01"
+lck-004,bld-001,"M-02","M","AVAILABLE","FOOD","4444","QR-M-02"
+lck-005,bld-001,"M-03","M","AVAILABLE","FOOD","5555","QR-M-03"
+lck-006,bld-001,"L-01","L","AVAILABLE","FOOD","6666","QR-L-01"
+lck-007,bld-001,"L-02","L","AVAILABLE","FOOD","7777","QR-L-02"
+lck-008,bld-001,"XL-01","XL","AVAILABLE","FOOD","8888","QR-XL-01"

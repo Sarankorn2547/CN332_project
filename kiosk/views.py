@@ -36,7 +36,7 @@ def registration_page(request):
 # Rider Flow Views
 # ============================================================================
 
-KIOSK_BUILDING_ID = '1'
+KIOSK_BUILDING_ID = 'bld-001'
 
 @require_GET
 def rider_select_size(request):
