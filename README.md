@@ -137,7 +137,7 @@ Direct Links to Screens:
 | DevOps | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **20%** |
 | Backend A | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ⬜ 0% | **80%** |
 | Backend B | ✅ 100% | ✅ 100% | 🔄 67% | ⬜ 0% | ⬜ 0% | **53%** |
-| Frontend A | ✅ 100% | ✅ 100% | ✅ 100% | 🔄 75% | ⬜ 0% | **~88%** |
+| Frontend A | ✅ 100% | ✅ 100% | ✅ 100% | 🔄 75% | ✅ 100% | **~95%** |
 | Frontend B | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
 | **Overall** | | | | | | **~52% / 100%** |
 
@@ -486,8 +486,8 @@ flowchart TD
 | 🟢 P4 | [x] Kiosk: Customer Tab — Scan QR (camera) (jsQR library เชื่อมแล้ว + onDetected → verify-qr API ครบ) | S4 | ✅ |
 | 🟢 P4 | [ ] Kiosk: WebSocket / SSE real-time state (รอ Backend B: Django Channels + Redis) | S4 | ⬜ |
 | 🟢 P4 | [x] Kiosk: Confirm deposit flow (กล้อง + ถ่ายรูป + ส่ง base64 ไป API ครบ) | S4 | ✅ |
-| 🔵 P5 | [ ] E2E test: Rider + Customer flow | S5 | ⬜ |
-| 🔵 P5 | [ ] Mobile responsive + UX polish | S5 | ⬜ |
+| 🔵 P5 | [x] E2E test: Rider + Customer flow (49 tests pass — URL routing, API, Rider flow, Customer flow) | S5 | ✅ |
+| 🔵 P5 | [x] Mobile responsive + UX polish (global idle timer ทุกหน้า, touch-friendly buttons, Thai font, toast/loading states) | S5 | ✅ |
 
 ---
 
@@ -591,10 +591,10 @@ flowchart TD
 - [ ] อัปเดตโดย DevOps:
 - [ ] อัปเดตโดย Backend A:
 - [ ] อัปเดตโดย Backend B:
-- [ ] อัปเดตโดย Frontend A:
+- [x] อัปเดตโดย Frontend A: E2E tests ครบ 49 tests pass (URLRoutingTests, ViewResponseTests, KioskAPITests, RiderFlowTests, CustomerFlowTests); เพิ่ม global idle timer ใน base.html — ทุกหน้าของ kiosk จะ redirect กลับ `/kiosk/` อัตโนมัติหลังไม่มีการใช้งาน 60 วินาที (แก้ UX bug ที่ก่อนหน้านี้มี idle timer แค่ home.html); WebSocket รอ Backend B (Django Channels + Redis)
 - [ ] อัปเดตโดย Frontend B:
 
-**% ที่ทำได้จริง sprint นี้:** `_____ %`
+**% ที่ทำได้จริง sprint นี้:** `50 %`
 
 ---
 
@@ -710,5 +710,5 @@ Examples: `feat(api): add locker book endpoint` · `fix(fe): qr scan camera perm
 
 ---
 
-*Last Updated: 2026-05-17*  
-*Next Update Due: Sprint 5 complete (Week 10)*
+*Last Updated: 2026-05-17 (Sprint 5 — Frontend A E2E + UX polish complete)*  
+*Next Update Due: WebSocket integration when Backend B completes Django Channels*

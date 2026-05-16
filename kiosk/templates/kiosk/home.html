@@ -59,25 +59,4 @@
 </div>
 {% endblock %}
 
-{% block extra_scripts %}
-<script>
-    // Idle timeout - return to home after 60 seconds of inactivity
-    let idleTimer;
-    
-    function resetIdleTimer() {
-        clearTimeout(idleTimer);
-        idleTimer = setTimeout(() => {
-            console.log('Idle timeout - reloading page');
-            window.location.reload();
-        }, 60000); // 60 seconds
-    }
-    
-    // Reset timer on any user interaction
-    document.addEventListener('click', resetIdleTimer);
-    document.addEventListener('touchstart', resetIdleTimer);
-    document.addEventListener('keypress', resetIdleTimer);
-    
-    // Start the timer
-    resetIdleTimer();
-</script>
-{% endblock %}
+{% block extra_scripts %}{% endblock %}
