@@ -12,13 +12,13 @@
     <div class="text-center mb-6">
       <div class="text-sm text-gray-500 mb-1">Step 2 of 3</div>
       <h1 class="text-3xl font-bold text-gray-800">กรอกรหัส PIN</h1>
-      <p class="text-gray-500 mt-1">รหัส 4 หลักที่ได้รับจากไรเดอร์</p>
+      <p class="text-gray-500 mt-1">รหัส 6 หลักที่ได้รับจากไรเดอร์</p>
     </div>
 
     <!-- PIN Display -->
     <div class="bg-white rounded-2xl shadow-lg p-6 mb-6 border-2 border-primary-200">
       <div class="flex justify-center gap-4">
-        <template x-for="i in 4" :key="i">
+        <template x-for="i in 6" :key="i">
           <div class="w-14 h-14 rounded-xl border-2 flex items-center justify-center text-3xl font-bold transition-all"
                :class="pin.length >= i
                  ? 'border-primary-500 bg-primary-50 text-primary-800'
@@ -43,7 +43,7 @@
         <!-- 1–9 -->
         <template x-for="n in [1,2,3,4,5,6,7,8,9]" :key="n">
           <button @click="press(n)"
-                  :disabled="pin.length >= 4 || loading"
+                  :disabled="pin.length >= 6 || loading"
                   class="btn-touch h-16 rounded-xl text-2xl font-bold
                          bg-white border-2 border-gray-200 text-gray-800
                          hover:bg-primary-50 hover:border-primary-400 hover:text-primary-700
@@ -66,7 +66,7 @@
 
         <!-- 0 -->
         <button @click="press(0)"
-                :disabled="pin.length >= 4 || loading"
+                :disabled="pin.length >= 6 || loading"
                 class="btn-touch h-16 rounded-xl text-2xl font-bold
                        bg-white border-2 border-gray-200 text-gray-800
                        hover:bg-primary-50 hover:border-primary-400 hover:text-primary-700
@@ -91,7 +91,7 @@
 
       <!-- Submit / Loading -->
       <button @click="submit()"
-              :disabled="pin.length < 4 || loading"
+              :disabled="pin.length < 6 || loading"
               class="mt-4 w-full btn-touch h-14 rounded-xl text-xl font-bold
                      bg-gradient-to-r from-primary-600 to-primary-500 text-white
                      hover:from-primary-700 hover:to-primary-600
@@ -129,10 +129,10 @@ function pinEntry() {
     errorMsg: '',
 
     press(digit) {
-      if (this.pin.length >= 4) return;
+      if (this.pin.length >= 6) return;
       this.pin += digit;
       this.errorMsg = '';
-      if (this.pin.length === 4) this.submit();
+      if (this.pin.length === 6) this.submit();
     },
 
     backspace() {
@@ -141,7 +141,7 @@ function pinEntry() {
     },
 
     async submit() {
-      if (this.pin.length < 4 || this.loading) return;
+      if (this.pin.length < 6 || this.loading) return;
       this.loading = true;
       this.errorMsg = '';
       try {

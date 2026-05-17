@@ -64,6 +64,15 @@
       </div>
     </div>
 
+    <!-- Choose from gallery -->
+    <div class="mb-4">
+      <label class="block w-full text-center bg-white border-2 border-primary-200 text-primary-600 font-medium
+                    py-3 rounded-xl hover:bg-primary-50 active:scale-95 transition-all shadow-sm cursor-pointer">
+        🖼️ อัปโหลดรูป QR Code จากคลังรูปภาพ
+        <input type="file" accept="image/*" class="hidden" @change="scanFromGallery($event)">
+      </label>
+    </div>
+
     <!-- Manual / Switch -->
     <a href="{% url 'kiosk:customer_pin_entry' %}"
        class="block w-full text-center bg-white border-2 border-gray-200 text-gray-700 font-medium
@@ -121,6 +130,32 @@ function qrScanner() {
       } else {
         Alpine.store('toast').warning('ไม่พบข้อมูลการจองล่าสุดในเครื่องนี้ กรุณาใช้รหัส PIN แทน');
       }
+    },
+
+    scanFromGallery(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.getElementById('qr-canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imageData.data, imageData.width, imageData.height);
+          if (code) {
+            this.onDetected(code.data);
+          } else {
+            Alpine.store('toast').error('ไม่พบ QR Code ในรูปภาพ กรุณาใช้รูปที่มี QR Code ชัดเจน');
+          }
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
     },
 
     scanFrame() {
