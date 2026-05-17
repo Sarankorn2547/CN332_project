@@ -16,6 +16,8 @@ urlpatterns = [
     
     # Rider flow URLs
     path('rider/select-size/', views.rider_select_size, name='rider_select_size'),
+    path('rider/select-method/', views.rider_select_method, name='rider_select_method'),
+    path('rider/input-room/', views.rider_input_room, name='rider_input_room'),
     path('rider/qr-display/', views.rider_qr_display, name='rider_qr_display'),
     path('rider/confirm/', views.rider_confirm, name='rider_confirm'),
     path('rider/deposit/', views.rider_deposit, name='rider_deposit'),

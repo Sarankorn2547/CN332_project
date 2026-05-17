@@ -43,6 +43,14 @@ def rider_select_size(request):
     return render(request, 'kiosk/rider/select_size.html', {'building_id': KIOSK_BUILDING_ID})
 
 @require_GET
+def rider_select_method(request):
+    return render(request, 'kiosk/rider/select_method.html')
+
+@require_GET
+def rider_input_room(request):
+    return render(request, 'kiosk/rider/input_room.html', {'building_id': KIOSK_BUILDING_ID})
+
+@require_GET
 def rider_qr_display(request):
     """
     Rider Step 2: Display QR code and PIN

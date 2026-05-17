@@ -4,7 +4,8 @@
 
 {% block content %}
 <div class="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 flex items-center justify-center p-4"
-     x-data="confirmDialog()">
+     x-data="confirmDialog()"
+     x-init="init()">
 
   <div class="w-full max-w-sm">
 
@@ -87,6 +88,15 @@ function confirmDialog() {
   return {
     checks: { photo: false, sent: false, received: false },
     submitting: false,
+
+    init() {
+      const deliveryMethod = sessionStorage.getItem('delivery_method') || '';
+      if (deliveryMethod === 'LINE') {
+        this.checks.photo = true;
+        this.checks.sent = true;
+        this.checks.received = true;
+      }
+    },
 
     get allChecked() {
       return this.checks.photo && this.checks.sent && this.checks.received;

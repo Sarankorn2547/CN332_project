@@ -413,10 +413,45 @@ class LineWebhookView(APIView):
 
         events = request.data.get('events', [])
         for event in events:
-            # Event handling can be extended here per event type
-            pass
+            if event.get('type') == 'message':
+                msg = event.get('message', {})
+                if msg.get('type') == 'text':
+                    text = msg.get('text', '').strip()
+                    source = event.get('source', {})
+                    user_id = source.get('userId')
+                    
+                    if user_id:
+                        if text.lower().startswith('register'):
+                            parts = text.split()
+                            room_no = parts[1] if len(parts) > 1 else None
+                            if room_no:
+                                try:
+                                    project = Project.objects.get_or_create(id='prj-001', defaults={'name': 'Project A', 'address': 'Default'})[0]
+                                    building = Building.objects.get_or_create(id='bld-001', project=project, defaults={'name': 'Building 1'})[0]
+                                    LineUser.objects.update_or_create(
+                                        line_user_id=user_id,
+                                        defaults={
+                                            'project': project,
+                                            'building': building,
+                                            'room_no': room_no,
+                                            'display_name': 'User'
+                                        }
+                                    )
+                                    reply_text = f"✅ ลงทะเบียนผูกห้องพัก {room_no} สำเร็จเรียบร้อยแล้ว!"
+                                except Exception as e:
+                                    reply_text = f"❌ เกิดข้อผิดพลาดในการลงทะเบียน: {str(e)}"
+                            else:
+                                reply_text = "กรุณาระบุหมายเลขห้อง เช่น Register 101"
+                        else:
+                            reply_text = "พิมพ์คำว่า \"Register <หมายเลขห้อง>\" (เช่น Register 101) เพื่อผูกบัญชี LINE กับตู้ล็อกเกอร์และรับรหัสผ่านสำหรับเปิดตู้"
+                        
+                        try:
+                            LineService.push_text(to=user_id, text=reply_text)
+                        except Exception as e:
+                            print(f"LINE push failed: {e}")
 
         return Response({'status': 'ok'}, status=status.HTTP_200_OK)
+
 
 
 class LinePushView(APIView):
@@ -460,6 +495,71 @@ class LinePushView(APIView):
             return Response({'status': 'ok', 'result': result}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class LineNotifyView(APIView):
+    permission_classes = [IsAuthenticatedOrKiosk]
+
+    @extend_schema(
+        summary="Lookup room and send LINE notification",
+        description="Verify if a LINE user is registered for the specified room, and send a notification with PIN/QR.",
+        request={"application/json": {"type": "object", "properties": {
+            "room_no": {"type": "string"},
+            "building_id": {"type": "string"},
+            "locker_id": {"type": "string"},
+        }, "required": ["room_no", "building_id", "locker_id"]}},
+        responses={
+            200: OpenApiResponse(description="Notification sent successfully."),
+            400: OpenApiResponse(description="Invalid request or locker state."),
+            404: OpenApiResponse(description="Room or locker not found."),
+        },
+        auth=[],
+    )
+    def post(self, request):
+        room_no = request.data.get('room_no')
+        building_id = request.data.get('building_id')
+        locker_id = request.data.get('locker_id')
+
+        if not all([room_no, building_id, locker_id]):
+            return Response({'error': 'room_no, building_id, and locker_id are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 1. Lookup LineUser for the room in this building
+        try:
+            line_user = LineUser.objects.filter(room_no=room_no, building_id=building_id).first()
+            if not line_user:
+                return Response({'error': 'ไม่พบข้อมูลลูกบ้านที่ลงทะเบียนห้องนี้ในตึกนี้'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 2. Get locker details
+        try:
+            locker = Locker.objects.get(id=locker_id)
+        except Locker.DoesNotExist:
+            return Response({'error': 'ไม่พบตู้นี้ในระบบ'}, status=status.HTTP_404_NOT_FOUND)
+
+        # 3. Construct message and QR code
+        message = (
+            f"🔔 มีอาหารมาส่งใหม่สำเร็จเรียบร้อยแล้ว!\n\n"
+            f"📍 ตึก: {locker.building.name}\n"
+            f"📦 ตู้หมายเลข: {locker.local_id}\n"
+            f"🔑 รหัส PIN สำหรับเปิดตู้: {locker.passcode}\n\n"
+            f"กรุณาใช้รหัส PIN 6 หลัก หรือสแกนภาพ QR Code ด้านล่างเพื่อรับอาหารของคุณ"
+        )
+        
+        # Build QR code data
+        qr_data = locker.qr_data or locker.passcode
+        qr_image_url = f"https://quickchart.io/qr?text={qr_data}&size=400&margin=2"
+
+        try:
+            # 4. Send via LineService
+            LineService.push_text_and_image(
+                to=line_user.line_user_id,
+                text=message,
+                image_url=qr_image_url
+            )
+            return Response({'status': 'ok', 'display_name': line_user.display_name}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': f'ไม่สามารถส่งข้อความ LINE ได้: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class LineUserViewSet(viewsets.ReadOnlyModelViewSet):

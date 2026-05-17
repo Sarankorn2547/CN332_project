@@ -59,18 +59,38 @@
       <!-- Locker ID badge -->
       <div class="inline-flex items-center gap-2 bg-primary-50 rounded-xl py-2 px-5">
         <span class="text-gray-400 text-sm">ตู้หมายเลข</span>
-        <span class="font-bold text-primary-800 text-lg" x-text="booking?.locker_id || '--'"></span>
+        <span class="font-bold text-primary-800 text-lg" x-text="booking.local_id || (booking.locker_id ? booking.locker_id.split('-').pop() : '--')"></span>
       </div>
     </div>
 
-    <!-- Instruction -->
-    <div class="bg-amber-50 border-l-4 border-amber-400 rounded-xl p-4 mb-4">
+    <!-- LINE Notification Alert -->
+    <div x-show="deliveryMethod === 'LINE'"
+         class="bg-green-50 border-l-4 border-green-500 rounded-xl p-4 mb-4 text-left">
+      <div class="flex gap-2">
+        <span class="text-green-600 text-lg">✅</span>
+        <div>
+          <p class="font-bold text-green-800 text-sm">ส่งการแจ้งเตือนทาง LINE แล้ว</p>
+          <p class="text-green-700 text-xs mt-0.5">ระบบส่งคิวอาร์โค้ดและรหัส PIN 6 หลัก เข้าไลน์ของลูกบ้านสําเร็จเรียบร้อยแล้ว</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Instruction (Manual) -->
+    <div class="bg-amber-50 border-l-4 border-amber-400 rounded-xl p-4 mb-4" x-show="deliveryMethod !== 'LINE'">
       <p class="font-bold text-amber-800 mb-1">📸 ขั้นตอนต่อไป</p>
       <ol class="list-decimal ml-5 text-sm text-amber-700 space-y-0.5">
         <li>ถ่ายรูปหน้าจอนี้</li>
-        <li>ส่งรูปให้ลูกค้าทาง LINE</li>
+        <li>ส่งรูปให้ลูกค้า</li>
         <li>รอลูกค้ายืนยันก่อนกด "ส่งรูปแล้ว"</li>
       </ol>
+    </div>
+
+    <!-- Instruction (LINE) -->
+    <div class="bg-primary-50 border-l-4 border-primary-500 rounded-xl p-4 mb-4" x-show="deliveryMethod === 'LINE'">
+      <p class="font-bold text-primary-800 mb-1">💬 ข้อมูลการทำรายการ</p>
+      <p class="text-primary-700 text-sm">
+        ระบบส่งรหัสผ่านเรียบร้อย ไรเดอร์สามารถวางอาหารในตู้และล็อกตู้ในขั้นตอนถัดไปได้เลยครับ
+      </p>
     </div>
 
     <!-- Buttons -->
@@ -105,8 +125,10 @@
 function qrDisplay() {
   return {
     booking: { pin: '----', locker_id: '--' },
+    deliveryMethod: '',
 
     init() {
+      this.deliveryMethod = sessionStorage.getItem('delivery_method') || '';
       const data = sessionStorage.getItem('booking');
       if (!data) {
         Alpine.store('toast').error('ไม่พบข้อมูลการจอง');

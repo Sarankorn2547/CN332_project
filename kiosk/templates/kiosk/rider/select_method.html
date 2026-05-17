@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}เลือกช่องทางการส่งรหัส - ไรเดอร์{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 flex items-center justify-center p-4"
+     x-data="riderMethodSelect()"
+     x-init="init()">
+
+  <div class="w-full max-w-sm">
+
+    <!-- Header -->
+    <div class="text-center mb-6">
+      <div class="text-sm text-gray-500 mb-1">Step 2 of 4</div>
+      <div class="text-4xl mb-2">📣</div>
+      <h1 class="text-3xl font-bold text-gray-800">ช่องทางการส่งรหัส</h1>
+      <p class="text-gray-500 mt-1">เลือกวิธีส่งรหัสผ่าน/คิวอาร์โค้ดให้กับลูกบ้าน</p>
+    </div>
+
+    <!-- Options grid -->
+    <div class="space-y-4 mb-6">
+      
+      <!-- Option 1: Send via LINE -->
+      <button @click="selectMethod('LINE')"
+              class="w-full p-6 bg-[#00B900] text-white rounded-2xl shadow-lg hover:bg-[#00a300] active:scale-95 transition-all text-center flex flex-col items-center justify-center border-2 border-transparent">
+        <span class="text-4xl block mb-2">💬</span>
+        <span class="text-xl font-bold">ส่งรหัสผ่านทาง LINE</span>
+        <span class="text-xs opacity-90 mt-1">ส่งแจ้งเตือนและคิวอาร์โค้ดเข้าแชทลูกบ้านโดยตรง</span>
+      </button>
+
+      <!-- Option 2: Show QR Code on screen -->
+      <button @click="selectMethod('SCREEN')"
+              class="w-full p-6 bg-white border-2 border-slate-200 text-slate-800 rounded-2xl shadow-lg hover:border-primary-500 active:scale-95 transition-all text-center flex flex-col items-center justify-center">
+        <span class="text-4xl block mb-2">🖨️</span>
+        <span class="text-xl font-bold text-gray-800">แสดง QR Code บนหน้าจอ</span>
+        <span class="text-xs text-gray-500 mt-1">แสดงคิวอาร์และรหัส PIN ให้สแกนหน้าตู้โดยตรง</span>
+      </button>
+
+    </div>
+
+    <!-- Back -->
+    <div class="text-center">
+      <a href="{% url 'kiosk:rider_select_size' %}"
+         class="text-gray-400 hover:text-gray-600 text-sm underline underline-offset-2">
+        ← กลับหน้าเลือกขนาดตู้
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function riderMethodSelect() {
+  return {
+    booking: {},
+
+    init() {
+      this.booking = JSON.parse(sessionStorage.getItem('booking') || '{}');
+      if (!this.booking.locker_id) {
+        Alpine.store('toast').error('ไม่พบข้อมูลการจองตู้ล็อกเกอร์');
+        setTimeout(() => {
+          window.location.href = '{% url "kiosk:rider_select_size" %}';
+        }, 1500);
+      }
+    },
+
+    selectMethod(method) {
+      if (method === 'LINE') {
+        window.location.href = '{% url "kiosk:rider_input_room" %}';
+      } else {
+        window.location.href = '{% url "kiosk:rider_qr_display" %}';
+      }
+    }
+  };
+}
+</script>
+{% endblock %}

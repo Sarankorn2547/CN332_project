@@ -94,6 +94,7 @@ function riderSizeSelect() {
     SIZE_DIMS: { S: '25×30 cm', M: '35×40 cm', L: '45×50 cm', XL: '55×60 cm' },
 
     init() {
+      sessionStorage.removeItem('delivery_method');
       this.loadSizes();   // HTTP snapshot ก่อน (render เร็ว)
       this._connectWS();  // WS สำหรับ real-time updates
     },
@@ -166,7 +167,7 @@ function riderSizeSelect() {
           { size: size.code, type: 'FOOD', building_id: this.buildingId }
         );
         sessionStorage.setItem('booking', JSON.stringify(booking));
-        window.location.href = '{% url "kiosk:rider_qr_display" %}';
+        window.location.href = '{% url "kiosk:rider_select_method" %}';
       } catch (e) {
         Alpine.store('toast').error('จองตู้ไม่สำเร็จ: ' + e.message);
       }

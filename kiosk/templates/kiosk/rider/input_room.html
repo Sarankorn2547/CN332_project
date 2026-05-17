@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}กรอกเลขห้อง - ไรเดอร์{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 flex items-center justify-center p-4"
+     x-data="riderRoomInput()"
+     x-init="init()">
+
+  <div class="w-full max-w-sm">
+
+    <!-- Header -->
+    <div class="text-center mb-6">
+      <div class="text-sm text-gray-500 mb-1">Step 2.5 of 4</div>
+      <div class="text-4xl mb-2">🏢</div>
+      <h1 class="text-3xl font-bold text-gray-800">ระบุหมายเลขห้อง</h1>
+      <p class="text-gray-500 mt-1">ป้อนเลขห้องพักเพื่อค้นหาบัญชี LINE ของลูกบ้าน</p>
+    </div>
+
+    <!-- Room Input Display -->
+    <div class="bg-white rounded-2xl shadow-lg p-6 mb-4 border-2 border-primary-200">
+      <div class="text-center">
+        <div class="text-xs text-gray-400 font-bold uppercase tracking-widest mb-1">หมายเลขห้อง</div>
+        <div class="text-4xl font-extrabold text-primary-900 tracking-wider h-12 flex items-center justify-center"
+             x-text="roomNo || 'กรอกเลขห้อง...'"
+             :class="roomNo ? 'text-primary-900' : 'text-gray-300 italic text-2xl'">
+        </div>
+      </div>
+
+      <!-- Error/Validation message -->
+      <div x-show="errorMsg"
+           x-transition
+           class="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 text-center text-sm font-semibold rounded-xl"
+           x-text="errorMsg">
+      </div>
+    </div>
+
+    <!-- Keypad -->
+    <div class="bg-white rounded-2xl shadow-lg p-4 border-2 border-primary-200 mb-6">
+      <div class="grid grid-cols-3 gap-3">
+        <!-- 1-9 Keys -->
+        <template x-for="n in [1,2,3,4,5,6,7,8,9]" :key="n">
+          <button @click="press(n.toString())"
+                  :disabled="loading"
+                  class="btn-touch h-16 rounded-xl text-2xl font-bold
+                         bg-white border-2 border-gray-200 text-gray-800
+                         hover:bg-primary-50 hover:border-primary-400 hover:text-primary-700
+                         active:scale-95 active:bg-primary-100 transition-all shadow-sm"
+                  x-text="n">
+          </button>
+        </template>
+
+        <!-- Slash / Dash -->
+        <button @click="press('/')"
+                :disabled="loading"
+                class="btn-touch h-16 rounded-xl text-2xl font-bold
+                       bg-white border-2 border-gray-200 text-gray-500
+                       hover:bg-primary-50 active:scale-95 transition-all shadow-sm">
+          /
+        </button>
+
+        <!-- 0 Key -->
+        <button @click="press('0')"
+                :disabled="loading"
+                class="btn-touch h-16 rounded-xl text-2xl font-bold
+                       bg-white border-2 border-gray-200 text-gray-800
+                       hover:bg-primary-50 hover:border-primary-400 hover:text-primary-700
+                       active:scale-95 active:bg-primary-100 transition-all shadow-sm">
+          0
+        </button>
+
+        <!-- Backspace -->
+        <button @click="backspace()"
+                :disabled="loading"
+                class="btn-touch h-16 rounded-xl text-xl font-bold
+                       bg-white border-2 border-gray-200 text-gray-500
+                       hover:bg-red-50 hover:border-red-300 hover:text-red-600
+                       active:scale-95 transition-all shadow-sm">
+          ←
+        </button>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="grid grid-cols-2 gap-3 mt-4">
+        <button @click="clear()"
+                :disabled="loading || !roomNo"
+                class="btn-touch py-3.5 bg-gray-100 text-gray-700 font-bold rounded-xl active:scale-95 transition-all">
+          ล้างข้อมูล
+        </button>
+        <button @click="verifyAndNotify()"
+                :disabled="loading || !roomNo"
+                class="btn-touch py-3.5 bg-gradient-to-r from-success-600 to-success-500 text-white font-bold rounded-xl active:scale-95 transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50">
+          <span x-show="!loading">🚀 ส่ง LINE</span>
+          <span x-show="loading" class="flex items-center gap-1.5">
+            <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+            กำลังส่ง...
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Back -->
+    <div class="text-center">
+      <a href="{% url 'kiosk:rider_select_method' %}"
+         class="text-gray-400 hover:text-gray-600 text-sm underline underline-offset-2">
+        ← กลับหน้าเลือกช่องทาง
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function riderRoomInput() {
+  return {
+    roomNo: '',
+    loading: false,
+    errorMsg: '',
+    booking: {},
+    buildingId: '{{ building_id }}',
+
+    init() {
+      this.booking = JSON.parse(sessionStorage.getItem('booking') || '{}');
+      if (!this.booking.locker_id) {
+        Alpine.store('toast').error('ไม่พบข้อมูลการจองตู้ล็อกเกอร์');
+        setTimeout(() => {
+          window.location.href = '{% url "kiosk:rider_select_size" %}';
+        }, 1500);
+      }
+    },
+
+    press(char) {
+      if (this.roomNo.length >= 10) return;
+      this.roomNo += char;
+      this.errorMsg = '';
+    },
+
+    backspace() {
+      this.roomNo = this.roomNo.slice(0, -1);
+      this.errorMsg = '';
+    },
+
+    clear() {
+      this.roomNo = '';
+      this.errorMsg = '';
+    },
+
+    async verifyAndNotify() {
+      this.loading = true;
+      this.errorMsg = '';
+      try {
+        const payload = {
+          room_no: this.roomNo,
+          building_id: this.buildingId,
+          locker_id: this.booking.locker_id
+        };
+        const res = await this.$api.post('/api/line/notify/', payload);
+        
+        Alpine.store('toast').success(`ส่งข้อความแจ้งเตือนหาลูกบ้าน คุณ ${res.display_name} สำเร็จ!`);
+        
+        // Save the delivery method to session so we can display it later
+        sessionStorage.setItem('delivery_method', 'LINE');
+        
+        // Go to QR/PIN display page so they can still see it
+        setTimeout(() => {
+          window.location.href = '{% url "kiosk:rider_qr_display" %}';
+        }, 1500);
+      } catch (e) {
+        this.errorMsg = e.message || 'ไม่พบข้อมูลลูกบ้านที่ลงทะเบียนห้องนี้';
+        Alpine.store('toast').error('ไม่พบลูกบ้านห้องนี้ในระบบ LINE');
+        this.loading = false;
+      }
+    }
+  };
+}
+</script>
+{% endblock %}
