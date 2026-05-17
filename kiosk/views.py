@@ -80,7 +80,7 @@ def line_login_callback(request):
         return HttpResponse("LINE Login failed: Authorization code not provided.", status=400)
         
     client_id = getattr(settings, 'LINE_CHANNEL_ID', '2009130619')
-    client_secret = getattr(settings, 'LINE_CHANNEL_SECRET', '141632b5b8301e0b3f2ea0d7d905d14a')
+    client_secret = getattr(settings, 'LINE_LOGIN_CHANNEL_SECRET', '055835d34d26874891f4baa9135cdf91')
     redirect_uri = 'https://dashboard.vivaclubs.site/kiosk/register/callback/'
     
     # Exchange code for access token
