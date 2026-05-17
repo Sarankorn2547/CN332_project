@@ -196,9 +196,15 @@
     
     {% block extra_scripts %}{% endblock %}
 
-    <!-- Global kiosk idle timer — returns to home after 60s of inactivity on any page -->
+    <!-- Global kiosk idle timer — returns to home after 60s of inactivity on kiosk flow pages -->
     <script>
         (function() {
+            // Do not run the idle reset timer on dashboard, locker wall, admin CLI, login, or registration pages
+            var path = window.location.pathname;
+            if (path.startsWith('/locker/') || path.startsWith('/accounts/') || path.startsWith('/admin/') || path.startsWith('/kiosk/register/')) {
+                return;
+            }
+
             var idleTimer;
             function resetIdleTimer() {
                 clearTimeout(idleTimer);
