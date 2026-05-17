@@ -43,10 +43,16 @@ def registration_page(request):
     projects = Project.objects.all().order_by('name')
     liff_id = getattr(settings, 'LINE_LIFF_ID', '')
     is_friend = request.GET.get('is_friend', 'true')
+    
+    # Retrieve bot basic ID from settings or default to '@166qwhfr'
+    bot_basic_id = getattr(settings, 'LINE_BOT_BASIC_ID', '@166qwhfr')
+    bot_link_id = bot_basic_id.replace('@', '')
+
     return render(request, 'registration/register.html', {
         'projects': projects,
         'liff_id': liff_id,
         'is_friend': is_friend,
+        'bot_link_id': bot_link_id,
     })
 
 
