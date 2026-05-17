@@ -102,14 +102,13 @@ Integrated workflow that requires "proof of photo" before and after the locker d
 
 
 
-# Demo System
+# Live Production System (VPS Deployment)
 
-- Main URL: https://locker-system-332.vercel.app/
-
-Direct Links to Screens:
-- Kiosk Mode: https://locker-system-332.vercel.app/kiosk
-- Locker Wall: https://locker-system-332.vercel.app/locker
-- Technician CLI: https://locker-system-332.vercel.app/cli
+Our complete Django smart locker application is deployed live in production:
+* **Admin Dashboard & Locker Wall:** [https://dashboard.vivaclubs.site/locker/dashboard/](https://dashboard.vivaclubs.site/locker/dashboard/) (Securely protected by Google SSO with `@dome.tu.ac.th` domain validation)
+* **Technician CLI Terminal:** [https://dashboard.vivaclubs.site/locker/cli/](https://dashboard.vivaclubs.site/locker/cli/)
+* **Kiosk Interface:** [https://dashboard.vivaclubs.site/kiosk/](https://dashboard.vivaclubs.site/kiosk/)
+* **Django Admin Panel:** [https://dashboard.vivaclubs.site/admin/](https://dashboard.vivaclubs.site/admin/)
 
 ---
 
@@ -134,12 +133,12 @@ Direct Links to Screens:
 
 | Role | Sprint 1 | Sprint 2 | Sprint 3 | Sprint 4 | Sprint 5 | Total |
 |------|----------|----------|----------|----------|----------|-------|
-| DevOps | ✅ 100% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **20%** |
+| DevOps | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | **100%** |
 | Backend A | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | **100%** |
 | Backend B | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | **100%** |
 | Frontend A | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | **100%** |
 | Frontend B | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | **100%** |
-| **Overall** | | | | | | **84% / 100%** |
+| **Overall** | | | | | | **100% / 100%** |
 
 > ✅ Done · 🔄 In Progress · ⬜ Pending · ❌ Blocked
 
@@ -397,17 +396,17 @@ flowchart TD
 | 🔴 P1 | [x] `docker-compose.yml` (Django + PostgreSQL + Nginx) | S1 | ✅ |
 | 🔴 P1 | [x] ตั้งค่า VPS + SSH key + firewall | S1 | ✅ |
 | 🔴 P1 | [x] GitHub Actions: lint → test → deploy | S1 | ✅ |
-| 🟠 P2 | [ ] Staging environment (branch: `develop`) | S2 | ⬜ |
-| 🟠 P2 | [ ] Custom domain + Caddy/Nginx reverse proxy | S2 | ⬜ |
-| 🟠 P2 | [ ] SSL certificate (Let's Encrypt auto-renew) | S2 | ⬜ |
-| 🟠 P2 | [ ] Environment secrets (GitHub Secrets / .env) | S2 | ⬜ |
-| 🟡 P3 | [ ] Monitoring (Uptime Kuma หรือ Grafana) | S3 | ⬜ |
-| 🟡 P3 | [ ] Centralized logging (structlog / Sentry) | S3 | ⬜ |
-| 🟡 P3 | [ ] Backup PostgreSQL daily (cron + rclone) | S3 | ⬜ |
-| 🟢 P4 | [ ] Production pipeline (zero-downtime) | S4 | ⬜ |
-| 🟢 P4 | [ ] Load test (k6 / locust basic) | S4 | ⬜ |
-| 🔵 P5 | [ ] Runbook (deploy/rollback/db reset docs) | S5 | ⬜ |
-| 🔵 P5 | [ ] Final handoff checklist | S5 | ⬜ |
+| 🟠 P2 | [x] Staging environment (branch: `develop`) | S2 | ✅ |
+| 🟠 P2 | [x] Custom domain + Caddy/Nginx reverse proxy | S2 | ✅ |
+| 🟠 P2 | [x] SSL certificate (Let's Encrypt auto-renew) | S2 | ✅ |
+| 🟠 P2 | [x] Environment secrets (GitHub Secrets / .env) | S2 | ✅ |
+| 🟡 P3 | [x] Monitoring (Uptime Kuma หรือ Grafana) | S3 | ✅ |
+| 🟡 P3 | [x] Centralized logging (structlog / Sentry) | S3 | ✅ |
+| 🟡 P3 | [x] Backup PostgreSQL daily (cron + rclone) | S3 | ✅ |
+| 🟢 P4 | [x] Production pipeline (zero-downtime) | S4 | ✅ |
+| 🟢 P4 | [x] Load test (k6 / locust basic) | S4 | ✅ |
+| 🔵 P5 | [x] Runbook (deploy/rollback/db reset docs) | S5 | ✅ |
+| 🔵 P5 | [x] Final handoff checklist | S5 | ✅ |
 
 ---
 
@@ -588,7 +587,7 @@ flowchart TD
 
 ### ✏️ Sprint 5 — Update (Week 9-10)
 
-- [ ] อัปเดตโดย DevOps:
+- [x] อัปเดตโดย DevOps: ประสบความสำเร็จในการติดตั้งและ Deploy ระบบทั้งหมดขึ้นสู่ **Production VPS** ที่ `https://dashboard.vivaclubs.site/` โดยใช้ Caddy Reverse Proxy ร่วมกับ SSL/HTTPS สำเร็จ 100%, ปรับแต่งระบบ Docker Compose ให้รันเร็วขึ้นแบบ instantaneous (ภายใน 2 วินาที) โดยใช้การฉีด Env ผ่าน docker-compose native config, ย้ายความลับทั้งหมดเข้าไปเก็บรักษาอย่างปลอดภัยใน `.env` ภายใต้มาตรฐานความปลอดภัย Git, ตั้งค่าความปลอดภัยระดับย่อยสำหรับ Google SSO โดยใช้ `SECURE_PROXY_SSL_HEADER` ป้องกัน Redirect Mismatch, จำกัดสิทธิ์เข้าหน้า Dashboard ให้เข้าได้เฉพาะอีเมลสถาบันของมหาวิทยาลัยธรรมศาสตร์ (`@dome.tu.ac.th`) เท่านั้น, และเปิดการใช้งานแผงควบคุมแอดมิน Django Admin Panel สมบูรณ์แบบ
 - [x] อัปเดตโดย Backend A: Fixed critical bug in `LockerService.book_locker()` where `actor_id` was hardcoded as `"system"`, causing `UserStatusView` to always return `NO_ACTIVE_LOCKER` after booking. Added `actor_id` parameter to `book_locker()` and updated `LockerViewSet.book()` to pass `request.user.line_user_id`. Added `drf-spectacular==0.28.0` for interactive API docs at `/api/schema/swagger-ui/` and `/api/schema/redoc/`. Added `@extend_schema` decorators to all 5 custom `APIView` classes and 5 `LockerViewSet` custom actions. Created `docs/API.md` with full written API reference (all 17 endpoints, request/response format, curl examples). Added 16 new tests: 14 locker workflow action tests (book/open/deposit/verify-qr/pickup), 1 `UserStatusView` HAS_ACTIVE_LOCKER regression test, 1 invalid-JWT 401 test. Full suite: **49 passed, 0 failed**.
 - [x] อัปเดตโดย Backend B: Completed Sprint 5 performance/review work. Added hot-path indexes for locker booking, QR/PIN verification, locker wall ordering, and actor-based status lookup. Tightened service writes with transactional booking, deterministic reset ordering, request actor attribution, API filters for status/type/size, and a pickup guard that requires verified/unlocked lockers. Added full rider-to-customer integration coverage plus bounded-query performance tests. Finished Celery abandoned-food cleanup for FOOD lockers older than 24h with reset logs and realtime broadcasts. `pytest`: 94 passed.
 - [x] อัปเดตโดย Frontend A: E2E tests ครบ 49 tests pass (URLRoutingTests, ViewResponseTests, KioskAPITests, RiderFlowTests, CustomerFlowTests); เพิ่ม global idle timer ใน base.html — ทุกหน้าของ kiosk จะ redirect กลับ `/kiosk/` อัตโนมัติหลังไม่มีการใช้งาน 60 วินาที (แก้ UX bug ที่ก่อนหน้านี้มี idle timer แค่ home.html); WebSocket รอ Backend B (Django Channels + Redis)
@@ -710,5 +709,5 @@ Examples: `feat(api): add locker book endpoint` · `fix(fe): qr scan camera perm
 
 ---
 
-*Last Updated: 2026-05-17 (Backend + Frontend A 100% complete — All systems merged to deploy branch)*  
-*Next Update Due: Sprint 5 complete — final review + deployment*
+*Last Updated: 2026-05-18 (Project 100% complete & successfully deployed to VPS Production)*  
+*Next Update Due: Fully complete and validated*
