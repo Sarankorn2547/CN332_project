@@ -8,17 +8,8 @@
 {% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-yellow-50 relative">
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-yellow-50">
     
-    <!-- Floating LINE Register Button on Top Right -->
-    <div class="absolute top-6 right-6">
-        <a href="{% url 'kiosk:line_login' %}" 
-           class="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-green-600 border-2 border-emerald-600 text-white rounded-full px-4 py-2.5 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:scale-95 transition-all duration-200 btn-touch">
-            <span class="text-xl">🟢</span>
-            <span class="text-sm font-bold">สมัครสมาชิก LINE</span>
-        </a>
-    </div>
-
     <div class="max-w-4xl w-full mx-auto p-8">
         <!-- Logo (No background box) -->
         <div class="text-center mb-8">
@@ -60,16 +51,28 @@
                 </div>
             </a>
 
-            <!-- Customer Button -->
-            <a href="{% url 'kiosk:customer_method_select' %}" class="block w-full bg-white border-4 border-primary-300 text-primary-800 rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-200 p-8 btn-touch touch-feedback">
-                <div class="flex items-center justify-center space-x-4">
-                    <span class="text-6xl">🏠</span>
-                    <div class="text-left">
-                        <div class="text-3xl font-bold">ลูกบ้าน</div>
-                        <div class="text-lg opacity-90">รับอาหาร</div>
+            <!-- Customer Section (Button + LINE Register underneath) -->
+            <div class="space-y-4 pt-2">
+                <!-- Customer Button -->
+                <a href="{% url 'kiosk:customer_method_select' %}" class="block w-full bg-white border-4 border-primary-300 text-primary-800 rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-200 p-8 btn-touch touch-feedback">
+                    <div class="flex items-center justify-center space-x-4">
+                        <span class="text-6xl">🏠</span>
+                        <div class="text-left">
+                            <div class="text-3xl font-bold">ลูกบ้าน</div>
+                            <div class="text-lg opacity-90">รับอาหาร</div>
+                        </div>
                     </div>
+                </a>
+
+                <!-- Small LINE Register Button -->
+                <div class="text-center pt-2">
+                    <a href="{% url 'kiosk:line_login' %}" 
+                       class="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-green-600 border-2 border-emerald-600 text-white rounded-full px-5 py-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:scale-95 transition-all duration-200 btn-touch">
+                        <span class="text-lg">🟢</span>
+                        <span class="text-sm font-bold">สมัครรับแจ้งเตือนผ่าน LINE (สำหรับลูกบ้าน)</span>
+                    </a>
                 </div>
-            </a>
+            </div>
         </div>
 
         <!-- Footer Info -->
