@@ -98,7 +98,8 @@ def line_login_callback(request):
     
     try:
         resp = requests.post(token_url, data=data, headers=headers)
-        resp.raise_for_status()
+        if not resp.ok:
+            return HttpResponse(f"LINE Token Exchange Failed: {resp.status_code} - {resp.text}", status=400)
         token_data = resp.json()
         access_token = token_data.get('access_token')
         
