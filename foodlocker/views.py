@@ -367,10 +367,65 @@ class LockerViewSet(
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticatedOrKiosk])
     def deposit(self, request, pk=None):
         try:
+            # 1. Fetch locker to retrieve room_no from metadata before confirm_deposit clears it
+            locker_obj = Locker.objects.get(id=pk)
+            room_no = (locker_obj.metadata or {}).get('room_no')
+            building_id = locker_obj.building_id
+
+            # 2. Transition state and confirm deposit
             locker = LockerService.confirm_deposit(locker_id=pk, actor_id=_actor_id(request))
+            
+            # 3. Process the base64 proof photo if provided and room_no is saved
+            photo_b64 = request.data.get('photo')
+            if photo_b64 and room_no:
+                import base64
+                import os
+                import time
+                from django.conf import settings
+                from foodlocker.line_service import LineService
+                from foodlocker.models import LineUser
+
+                try:
+                    # Strip base64 prefix
+                    if ',' in photo_b64:
+                        header, photo_b64 = photo_b64.split(',', 1)
+                    
+                    img_data = base64.b64decode(photo_b64)
+                    
+                    media_dir = os.path.join(settings.MEDIA_ROOT, 'deposits')
+                    os.makedirs(media_dir, exist_ok=True)
+                    
+                    filename = f"deposit_{pk}_{int(time.time())}.jpg"
+                    filepath = os.path.join(media_dir, filename)
+                    
+                    with open(filepath, 'wb') as f:
+                        f.write(img_data)
+                    
+                    photo_url = f"https://dashboard.vivaclubs.site/media/deposits/{filename}"
+                    
+                    # 4. Find the LineUser recipient
+                    line_user = LineUser.objects.filter(
+                        room_no=room_no, 
+                        building_id=building_id,
+                        line_user_id__startswith='U'
+                    ).first()
+                    if not line_user:
+                        line_user = LineUser.objects.filter(room_no=room_no, building_id=building_id).first()
+                    
+                    if line_user:
+                        # 5. Send LINE push notification with proof image
+                        push_message = f"📸 ไรเดอร์ได้นำอาหารฝากไว้ในตู้ล็อกเกอร์เรียบร้อยแล้วครับ! นี่คือรูปภาพหลักฐานการฝากฝังอาหารในตู้พักของท่าน:"
+                        LineService.push_text_and_image(
+                            to=line_user.line_user_id,
+                            text=push_message,
+                            image_url=photo_url
+                        )
+                except Exception as img_err:
+                    print(f"Failed to process and send proof-of-delivery photo: {img_err}")
+
             serializer = self.get_serializer(locker)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        except ValueError as e:
+        except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(
@@ -572,6 +627,11 @@ class LineNotifyView(APIView):
         # 2. Get locker details
         try:
             locker = Locker.objects.get(id=locker_id)
+            
+            # Store room_no in locker metadata so we can access it during deposit
+            locker.metadata = locker.metadata or {}
+            locker.metadata['room_no'] = room_no
+            locker.save(update_fields=['metadata'])
         except Locker.DoesNotExist:
             return Response({'error': 'ไม่พบตู้นี้ในระบบ'}, status=status.HTTP_404_NOT_FOUND)
 
