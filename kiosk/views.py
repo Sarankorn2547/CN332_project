@@ -42,9 +42,11 @@ def kiosk_home(request):
 def registration_page(request):
     projects = Project.objects.all().order_by('name')
     liff_id = getattr(settings, 'LINE_LIFF_ID', '')
+    is_friend = request.GET.get('is_friend', 'true')
     return render(request, 'registration/register.html', {
         'projects': projects,
-        'liff_id': liff_id
+        'liff_id': liff_id,
+        'is_friend': is_friend,
     })
 
 
@@ -115,9 +117,23 @@ def line_login_callback(request):
         
         line_user_id = profile_data.get('userId')
         display_name = profile_data.get('displayName')
+
+        # Check friendship status with the bot
+        friend_flag = True
+        try:
+            friendship_url = 'https://api.line.me/friendship/v2/status'
+            friendship_headers = {
+                'Authorization': f'Bearer {access_token}'
+            }
+            friendship_resp = requests.get(friendship_url, headers=friendship_headers)
+            if friendship_resp.ok:
+                friend_flag = friendship_resp.json().get('friendFlag', True)
+        except Exception as friendship_err:
+            print(f"Friendship status check failed: {friendship_err}")
         
         # Redirect to the register page with query parameters
-        register_url = f'/kiosk/register/?line_user_id={urllib.parse.quote(line_user_id)}&display_name={urllib.parse.quote(display_name)}'
+        is_friend_str = 'true' if friend_flag else 'false'
+        register_url = f'/kiosk/register/?line_user_id={urllib.parse.quote(line_user_id)}&display_name={urllib.parse.quote(display_name)}&is_friend={is_friend_str}'
         return redirect(register_url)
         
     except Exception as e:

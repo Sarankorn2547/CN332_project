@@ -33,6 +33,22 @@
     <!-- Form -->
     <form x-show="state !== 'success'" x-transition @submit.prevent="submit()">
 
+      <!-- Add Friend Warning Banner -->
+      <template x-if="!isFriend">
+        <div class="mb-6 bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-400 rounded-xl p-5 shadow-sm text-center">
+          <div class="text-3xl mb-1">🟢</div>
+          <h3 class="text-md font-extrabold text-emerald-800 mb-1">เพื่อความชัวร์... กรุณาเพิ่มเพื่อน LINE ก่อน</h3>
+          <p class="text-xs text-gray-600 mb-4 leading-relaxed">
+            ระบบจำเป็นต้องให้ท่านเพิ่มเพื่อนบัญชี LINE ของตู้ล็อกเกอร์เพื่อรับแจ้งเตือนเมื่อมีไรเดอร์นำอาหารมาส่งครับ
+          </p>
+          <a href="https://line.me/R/ti/p/@484whdzn" 
+             target="_blank"
+             class="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white font-extrabold text-xs px-5 py-2.5 rounded-full shadow-md transition duration-150">
+            <span>➕ เพิ่มเพื่อน LINE Official Account</span>
+          </a>
+        </div>
+      </template>
+
       <!-- LINE User ID (dev fallback) -->
       <div class="mb-5" x-show="!liffReady">
         <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -148,6 +164,7 @@ function registerForm() {
     state: 'idle',
     errorMsg: '',
     liffReady: false,
+    isFriend: true,
     form: {
       line_user_id: '',
       display_name: '',
@@ -171,6 +188,11 @@ function registerForm() {
       const urlParams = new URLSearchParams(window.location.search);
       const queryLineId = urlParams.get('line_user_id');
       const queryName = urlParams.get('display_name');
+      const friendParam = urlParams.get('is_friend');
+      
+      if (friendParam === 'false') {
+        this.isFriend = false;
+      }
       
       if (queryLineId && queryName) {
         this.form.line_user_id = queryLineId;
@@ -204,7 +226,7 @@ function registerForm() {
         });
         const data = await res.json();
         if (!res.ok) {
-          this.errorMsg = data.detail || 'เกิดข้อผิดพลาด กรุณาลองใหม่';
+          this.errorMsg = data.error || data.detail || 'เกิดข้อผิดพลาด กรุณาลองใหม่';
           this.state = 'idle';
           return;
         }
