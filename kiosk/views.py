@@ -61,6 +61,7 @@ def line_login_redirect(request):
         'redirect_uri': redirect_uri,
         'state': 'cn332_state_secret',
         'scope': 'profile openid',
+        'bot_prompt': 'aggressive',
     }
     
     url = 'https://access.line.me/oauth2/v2.1/authorize?' + urllib.parse.urlencode(params)
