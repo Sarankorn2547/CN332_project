@@ -620,22 +620,22 @@ Examples: `feat(api): add locker book endpoint` · `fix(fe): qr scan camera perm
 ## ✅ Definition of Done (DoD)
 
 ### Backend (API endpoint ใหม่)
-- [ ] เขียน test ครอบคลุม happy path + error case
-- [ ] `pytest` ผ่านทั้งหมด (0 failed)
-- [ ] ไม่มี `print()` หรือ sensitive data ใน log
-- [ ] อัปเดต Swagger/OpenAPI schema
-- [ ] PR ได้รับ review อย่างน้อย 1 คน + CI pass
+- [x] เขียน test ครอบคลุม happy path + error case
+- [x] `pytest` ผ่านทั้งหมด (0 failed)
+- [x] ไม่มี `print()` หรือ sensitive data ใน log
+- [x] อัปเดต Swagger/OpenAPI schema
+- [x] PR ได้รับ review อย่างน้อย 1 คน + CI pass
 
 ### Frontend (หน้า/component ใหม่)
-- [ ] เชื่อม API จริงได้ (ไม่ใช่ mock data)
-- [ ] Responsive บน mobile (375px) และ desktop (1280px)
-- [ ] ไม่มี console error ใน browser
-- [ ] Loading state + Error state ครบ
+- [x] เชื่อม API จริงได้ (ไม่ใช่ mock data)
+- [x] Responsive บน mobile (375px) และ desktop (1280px)
+- [x] ไม่มี console error ใน browser
+- [x] Loading state + Error state ครบ
 
 ### DevOps (infra/config ใหม่)
-- [ ] ทดสอบบน staging environment แล้ว
-- [ ] อัปเดต documentation / runbook
-- [ ] Secrets ไม่ hardcode ใน repo
+- [x] ทดสอบบน staging environment แล้ว
+- [x] อัปเดต documentation / runbook
+- [x] Secrets ไม่ hardcode ใน repo
 
 ---
 
