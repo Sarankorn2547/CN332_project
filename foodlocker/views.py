@@ -572,12 +572,11 @@ class LinePushView(APIView):
         },
     )
     def post(self, request):
-        to = request.data.get('to')
+        target_type = request.data.get('target_type', 'user')
+        to = request.data.get('to') or request.data.get('target_id')
         text = request.data.get('message')
         image_url = request.data.get('image_url')
 
-        if not to:
-            return Response({'error': 'to is required'}, status=status.HTTP_400_BAD_REQUEST)
         if not text and not image_url:
             return Response(
                 {'error': 'message or image_url is required'},
@@ -585,12 +584,17 @@ class LinePushView(APIView):
             )
 
         try:
-            if text and image_url:
-                result = LineService.push_text_and_image(to, text, image_url)
-            elif text:
-                result = LineService.push_text(to, text)
+            if target_type == 'broadcast':
+                result = LineService.broadcast_text(text)
             else:
-                result = LineService.push_image(to, image_url)
+                if not to:
+                    return Response({'error': 'to or target_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+                if text and image_url:
+                    result = LineService.push_text_and_image(to, text, image_url)
+                elif text:
+                    result = LineService.push_text(to, text)
+                else:
+                    result = LineService.push_image(to, image_url)
             return Response({'status': 'ok', 'result': result}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

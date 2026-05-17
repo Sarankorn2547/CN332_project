@@ -22,6 +22,20 @@ class LineService:
         return LineService._push(to, [{'type': 'text', 'text': text}])
 
     @staticmethod
+    def broadcast_text(text: str) -> dict:
+        headers = {
+            'Authorization': f'Bearer {settings.LINE_CHANNEL_ACCESS_TOKEN}',
+            'Content-Type': 'application/json',
+        }
+        resp = requests.post(
+            'https://api.line.me/v2/bot/message/broadcast',
+            json={'messages': [{'type': 'text', 'text': text}]},
+            headers=headers,
+        )
+        resp.raise_for_status()
+        return resp.json()
+
+    @staticmethod
     def push_image(to: str, image_url: str) -> dict:
         msg = {
             'type': 'image',
