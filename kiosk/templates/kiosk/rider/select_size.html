@@ -159,8 +159,8 @@ function riderSizeSelect() {
       if (size.available === 0) return;
       try {
         const booking = await this.$api.post(
-          '{% url "kiosk:api_book_locker" %}',
-          { size: size.code, type: 'rider', building_id: this.buildingId }
+          '/api/lockers/book/',
+          { size: size.code, type: 'FOOD', building_id: this.buildingId }
         );
         sessionStorage.setItem('booking', JSON.stringify(booking));
         window.location.href = '{% url "kiosk:rider_qr_display" %}';

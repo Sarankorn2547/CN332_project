@@ -125,22 +125,9 @@ function qrScanner() {
       this.scanning = false;
       clearInterval(this._scanInterval);
       try {
-        const res = await fetch('/kiosk/api/lockers/verify-qr/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content,
-          },
-          body: JSON.stringify({ code }),
-        });
-        const data = await res.json();
-        if (!res.ok || !data.valid) {
-          this.statusMsg = 'QR Code ไม่ถูกต้อง กรุณาลองใหม่';
-          this.statusType = 'error';
-          setTimeout(() => { this.statusMsg = ''; this.scanning = true; this._scanInterval = setInterval(() => this.scanFrame(), 500); }, 2000);
-          return;
-        }
-        sessionStorage.setItem('pickup', JSON.stringify(data));
+        const url = `/api/lockers/verify-qr/`;
+        const payload = await this.$api.post(url, { code });
+        sessionStorage.setItem('pickup', JSON.stringify(payload));
         this.cleanup();
         window.location.href = '{% url "kiosk:customer_success" %}';
       } catch (e) {

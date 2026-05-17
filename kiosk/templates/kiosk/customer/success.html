@@ -97,7 +97,7 @@ function customerSuccess() {
     async confirmPickup() {
       this.pickingUp = true;
       try {
-        await this.$api.post(`/kiosk/api/lockers/${this.pickup.locker_id}/pickup/`, {});
+        await this.$api.post(`/api/lockers/${this.pickup.locker_id}/pickup/`, {});
       } catch (e) {
         Alpine.store('toast').error('อัปเดตสถานะไม่สำเร็จ');
       } finally {

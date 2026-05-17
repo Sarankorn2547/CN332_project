@@ -31,7 +31,7 @@
       <label class="flex items-center gap-4 cursor-pointer group">
         <input type="checkbox" x-model="checks.sent" class="w-6 h-6 accent-success-600 rounded">
         <span class="text-gray-700 text-lg group-hover:text-gray-900 transition-colors">
-          ส่งรูปให้ลูกค้าทาง LINE แล้ว
+          ส่งรูปให้ลูกค้าแล้ว
         </span>
       </label>
 
@@ -100,7 +100,7 @@ function confirmDialog() {
       }
       this.submitting = true;
       try {
-        const url = `/kiosk/api/lockers/${booking.locker_id}/open/`;
+        const url = `/api/lockers/${booking.locker_id}/open/`;
         await this.$api.post(url, {});
         window.location.href = '{% url "kiosk:rider_deposit" %}';
       } catch (e) {

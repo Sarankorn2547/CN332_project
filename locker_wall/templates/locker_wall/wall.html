@@ -9,7 +9,9 @@
 
 {% block content %}
 <div class="min-h-screen bg-slate-900 text-white p-6"
-     x-data="lockerWallApp(JSON.parse(document.getElementById('lockers-data').textContent))">
+     x-data="lockerWallApp(JSON.parse(document.getElementById('lockers-data').textContent))"
+     x-init="init()"
+     @beforeunload.window="cleanup()">
     <!-- ===== Header ===== -->
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-yellow-300">
@@ -166,6 +168,12 @@ function lockerWallApp(initialLockers) {
     return {
         lockers: initialLockers,
         filterType: 'ALL',
+        wsConnected: false,
+        _ws: null,
+
+        init() {
+            this._connectWS();
+        },
 
         get filteredLockers() {
             if (this.filterType === 'ALL') return this.lockers;
@@ -180,6 +188,71 @@ function lockerWallApp(initialLockers) {
                 headers: { 'X-CSRFToken': csrfToken, 'Content-Type': 'application/json' },
             }).catch(() => {});
         },
+
+        _connectWS() {
+            const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+            // Use project_id=1, building_id=1 as default if building context isn't passed yet.
+            const buildingId = 1;
+            const wsUrl = `${proto}://${location.host}/ws/lockers/${buildingId}/`;
+            
+            const ws = new WebSocket(wsUrl);
+            this._ws = ws;
+
+            ws.onopen = () => {
+                this.wsConnected = true;
+                console.log('WS connected to', wsUrl);
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const msg = JSON.parse(event.data);
+                    if (msg.type === 'locker.snapshot') {
+                        // For snapshot, we can merge or replace.
+                        // Assuming msg.lockers returns full structure, we map it to existing ones
+                        // or just replace (but keep isOpen state).
+                        const isOpenMap = {};
+                        this.lockers.forEach(l => { isOpenMap[l.id] = l.isOpen; });
+                        
+                        this.lockers = msg.lockers.map(l => ({
+                            ...l, 
+                            isOpen: isOpenMap[l.id] || false,
+                            local_id: l.local_id || l.id.split('-').pop()
+                        }));
+                    } else if (msg.type === 'locker.updated') {
+                        const idx = this.lockers.findIndex(l => l.id === msg.locker.id);
+                        if (idx !== -1) {
+                            const oldIsOpen = this.lockers[idx].isOpen;
+                            this.lockers[idx] = { 
+                                ...msg.locker, 
+                                isOpen: oldIsOpen,
+                                local_id: msg.locker.local_id || msg.locker.id.split('-').pop()
+                            };
+                        }
+                    }
+                } catch (e) {
+                    console.error("WS parsing error", e);
+                }
+            };
+
+            ws.onclose = () => {
+                this.wsConnected = false;
+                console.log('WS disconnected, retrying in 3s...');
+                setTimeout(() => { if (this._ws === ws) this._connectWS(); }, 3000);
+            };
+
+            ws.onerror = (err) => {
+                console.error("WS error", err);
+                this.wsConnected = false;
+            };
+        },
+        
+        cleanup() {
+            if (this._ws) {
+                this._ws.onclose = null;
+                this._ws.close();
+                this._ws = null;
+            }
+        }
     }
 }
 </script>

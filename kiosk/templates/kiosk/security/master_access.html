@@ -84,13 +84,16 @@
 {% endblock %}
 
 {% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <script>
 function masterAccess() {
   return {
     stream: null,
+    scanning: false,
     cameraError: '',
     statusMsg: '',
     statusType: '',
+    _scanInterval: null,
 
     async startCamera() {
       try {
@@ -98,12 +101,56 @@ function masterAccess() {
           video: { facingMode: 'environment' }
         });
         this.$refs.video.srcObject = this.stream;
+        this.scanning = true;
+        this._scanInterval = setInterval(() => this.scanFrame(), 500);
       } catch (e) {
         this.cameraError = e.message || 'กรุณาอนุญาตให้ใช้กล้อง';
       }
     },
 
+    scanFrame() {
+      const video = this.$refs.video;
+      if (!video || video.readyState < 2) return;
+      const canvas = document.getElementById('master-canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(imageData.data, imageData.width, imageData.height);
+      if (code) this.onDetected(code.data);
+    },
+
+    async onDetected(code) {
+      if (!this.scanning) return;
+      this.scanning = false;
+      clearInterval(this._scanInterval);
+      
+      try {
+        // Mock emergency API endpoint logic
+        const url = `/api/lockers/verify-qr/`; 
+        const payload = await this.$api.post(url, { code });
+        
+        this.statusMsg = 'ตรวจสอบสำเร็จ ระบบกำลังเปิดตู้...';
+        this.statusType = 'success';
+        
+        setTimeout(() => {
+          window.location.href = '{% url "kiosk:home" %}';
+        }, 2000);
+
+      } catch (e) {
+        this.statusMsg = 'รหัส Master ไม่ถูกต้อง หรือไม่สามารถเปิดตู้ได้';
+        this.statusType = 'error';
+        setTimeout(() => { 
+            this.statusMsg = ''; 
+            this.scanning = true; 
+            this._scanInterval = setInterval(() => this.scanFrame(), 500); 
+        }, 3000);
+      }
+    },
+
     cleanup() {
+      clearInterval(this._scanInterval);
       if (this.stream) {
         this.stream.getTracks().forEach(t => t.stop());
         this.stream = null;

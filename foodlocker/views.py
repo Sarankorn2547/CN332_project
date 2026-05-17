@@ -271,7 +271,7 @@ class LockerViewSet(
             400: OpenApiResponse(description="Missing fields or no available locker found."),
         },
     )
-    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=['post'], permission_classes=[])
     def book(self, request):
         building_id = request.data.get('building_id')
         size = request.data.get('size')
@@ -303,7 +303,7 @@ class LockerViewSet(
             400: OpenApiResponse(description="Locker not found or invalid status."),
         },
     )
-    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    @action(detail=True, methods=['post'], permission_classes=[])
     def open(self, request, pk=None):
         try:
             locker = LockerService.open_locker(locker_id=pk, actor_id=_actor_id(request))
@@ -320,7 +320,7 @@ class LockerViewSet(
             400: OpenApiResponse(description="Locker not found, wrong status, or door not open."),
         },
     )
-    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    @action(detail=True, methods=['post'], permission_classes=[])
     def deposit(self, request, pk=None):
         try:
             locker = LockerService.confirm_deposit(locker_id=pk, actor_id=_actor_id(request))
@@ -341,7 +341,7 @@ class LockerViewSet(
             400: OpenApiResponse(description="Invalid QR/passcode or locker not occupied."),
         },
     )
-    @action(detail=False, methods=['post'], url_path='verify-qr', permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=['post'], url_path='verify-qr', permission_classes=[])
     def verify_qr(self, request):
         qr_data = request.data.get('qr_data')
         passcode = request.data.get('passcode')
@@ -365,7 +365,7 @@ class LockerViewSet(
             400: OpenApiResponse(description="Locker not found or not in OCCUPIED status."),
         },
     )
-    @action(detail=True, methods=['post'], url_path='pickup', permission_classes=[IsAuthenticated])
+    @action(detail=True, methods=['post'], url_path='pickup', permission_classes=[])
     def pickup(self, request, pk=None):
         actor_id = request.data.get('actor_id') or _actor_id(request, fallback='customer')
         try:

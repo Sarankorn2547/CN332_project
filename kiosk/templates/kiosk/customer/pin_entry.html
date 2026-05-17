@@ -145,22 +145,9 @@ function pinEntry() {
       this.loading = true;
       this.errorMsg = '';
       try {
-        const res = await fetch('/kiosk/api/lockers/verify-qr/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content,
-          },
-          body: JSON.stringify({ code: this.pin }),
-        });
-        const data = await res.json();
-        if (!res.ok || !data.valid) {
-          this.errorMsg = 'รหัส PIN ไม่ถูกต้อง กรุณาลองใหม่';
-          this.pin = '';
-          this.loading = false;
-          return;
-        }
-        sessionStorage.setItem('pickup', JSON.stringify(data));
+        const url = `/api/lockers/verify-qr/`;
+        const payload = await this.$api.post(url, { code: this.pin });
+        sessionStorage.setItem('pickup', JSON.stringify(payload));
         window.location.href = '{% url "kiosk:customer_success" %}';
       } catch (e) {
         this.errorMsg = 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่';
