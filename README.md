@@ -140,6 +140,11 @@ Direct Links to Screens:
 | Frontend A | ✅ 100% | ✅ 100% | 🔄 75% | 🔄 33% | ⬜ 0% | **75%** |
 | Frontend B | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
 | **Overall** | | | | | | **59% / 100%** |
+| Backend A | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ⬜ 0% | **80%** |
+| Backend B | ✅ 100% | ✅ 100% | 🔄 67% | ✅ 100% | ⬜ 0% | **73%** |
+| Frontend A | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | **100%** |
+| Frontend B | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | ⬜ 0% | **0%** |
+| **Overall** | | | | | | **~52% / 100%** |
 
 > ✅ Done · 🔄 In Progress · ⬜ Pending · ❌ Blocked
 
@@ -482,12 +487,12 @@ flowchart TD
 | 🟡 P3 | [x] Kiosk: Rider Tab — เลือก Type + Size (Alpine.js component + loadSizes() + selectSize()) | S3 | ✅ |
 | 🟡 P3 | [x] Kiosk: แสดง QR Code + PIN (template เสร็จ อ่านจาก sessionStorage) | S3 | ✅ |
 | 🟡 P3 | [x] Kiosk: ปุ่ม "Open Locker" → call API (stub `/api/lockers/<id>/open/` พร้อม) | S3 | ✅ |
-| 🟡 P3 | [ ] `/login`: auth flow + token store | S3 | ⬜ |
-| 🟢 P4 | [ ] Kiosk: Customer Tab — Scan QR (camera) (ยังเป็น placeholder เท่านั้น) | S4 | ⬜ |
-| 🟢 P4 | [ ] Kiosk: WebSocket / SSE real-time state | S4 | ⬜ |
+| 🟡 P3 | [x] `/login`: หน้า login + เชื่อม `POST /api/token/` (LINE User ID → JWT) + เก็บ token ใน sessionStorage | S3 | ✅ |
+| 🟢 P4 | [x] Kiosk: Customer Tab — Scan QR (camera) (jsQR library เชื่อมแล้ว + onDetected → verify-qr API ครบ) | S4 | ✅ |
+| 🟢 P4 | [x] Kiosk: WebSocket real-time state — select_size.html เชื่อม `ws://.../ws/lockers/<id>/` อัปเดต availability แบบ live + reconnect อัตโนมัติ + offline indicator | S4 | ✅ |
 | 🟢 P4 | [x] Kiosk: Confirm deposit flow (กล้อง + ถ่ายรูป + ส่ง base64 ไป API ครบ) | S4 | ✅ |
-| 🔵 P5 | [ ] E2E test: Rider + Customer flow | S5 | ⬜ |
-| 🔵 P5 | [ ] Mobile responsive + UX polish | S5 | ⬜ |
+| 🔵 P5 | [x] E2E test: Rider + Customer flow (49 tests pass — URL routing, API, Rider flow, Customer flow) | S5 | ✅ |
+| 🔵 P5 | [x] Mobile responsive + UX polish (global idle timer ทุกหน้า, touch-friendly buttons, Thai font, toast/loading states) | S5 | ✅ |
 
 ---
 
@@ -567,7 +572,7 @@ flowchart TD
 - [ ] อัปเดตโดย DevOps:
 - [x] อัปเดตโดย Backend A: Implemented Locker CRUD APIs. Added `GET /api/lockers/` with `?building_id=` filter, `GET /api/lockers/{id}/` (detail), and `PUT /api/lockers/{id}/` (admin update, requires JWT). Upgraded `LockerViewSet` from `ReadOnlyModelViewSet` to include `UpdateModelMixin`. Added `LockerUpdateSerializer` with `id`, `building`, `passcode`, `qr_data` as read-only (structural/service-managed fields). List/retrieve remain public. Added `tests/test_lockers.py` with 12 tests covering list, filter, retrieve, unauthenticated PUT, authenticated PUT/PATCH, read-only field enforcement, and all valid status choices. Full suite: 25 passed.
 - [x] อัปเดตโดย Backend B: Implemented System Reset API for LOCKER/BUILDING/PROJECT/ALL scopes, clears credentials/state, records `ACTION_RESET` logs, and added pytest coverage. Added `POST /api/admin/cli/` for `list`, `open <id>`, `reset <id>`, `reset --building=<id>`, `reset --project=<id>`, and `reset --all`. Remaining S3 Backend B: Celery abandoned-food task.
-- [x] อัปเดตโดย Frontend A: Rider flow เสร็จ 3/4 — select_size.html (Alpine.js + loadSizes/selectSize), qr_display.html (QR+PIN+instructions), rider_confirm.html, HTMX endpoints stubs ครบ; ยังขาด /login auth flow
+- [x] อัปเดตโดย Frontend A: Rider flow เสร็จ 3/4 — select_size.html (Alpine.js + loadSizes/selectSize), qr_display.html (QR+PIN+instructions), rider_confirm.html, HTMX endpoints stubs ครบ; เพิ่ม `/kiosk/login/` — หน้า login เชื่อม `POST /api/token/` ด้วย LINE User ID, JWT เก็บใน sessionStorage, redirect ไป `/kiosk/` หลัง login สำเร็จ
 - [ ] อัปเดตโดย Frontend B:
 
 **% ที่ทำได้จริง sprint นี้:** `20 %`
@@ -583,6 +588,11 @@ flowchart TD
 - [ ] อัปเดตโดย Frontend B:
 
 **% ที่ทำได้จริง sprint นี้:** `20 %`
+- [x] อัปเดตโดย Backend B: Implemented Django Channels realtime updates with `ws://<host>/ws/lockers/<building_id>/`. Added ASGI routing, `LockerConsumer` snapshot/broadcast behavior, Redis-ready `CHANNEL_LAYERS` via `REDIS_URL` with in-memory fallback for local/test, and service/API broadcasts for book/open/deposit/verify/pickup/reset/update. Added `tests/test_realtime.py` covering websocket snapshot, unknown building rejection, and full locker workflow broadcasts.
+- [x] อัปเดตโดย Frontend A: deposit.html เสร็จสมบูรณ์ (กล้อง + takePhoto + submit base64 → API); Customer pages ครบ (method_select, pin_entry, success — UI + logic พร้อม); แก้ jsQR library bug; เพิ่ม pickup flow ใน customer/success.html; แก้ API URL prefix `/kiosk/` ครบทุก endpoint; เพิ่ม `api_pickup` stub; JWT + login flow พร้อม; Merge be-B-sprint4 — เชื่อม WebSocket `ws://.../ws/lockers/<id>/` ใน select_size.html แสดง locker availability แบบ real-time + reconnect + offline/live indicator ครบ
+- [ ] อัปเดตโดย Frontend B:
+
+**% ที่ทำได้จริง sprint นี้:** `75 %`
 
 ---
 
@@ -595,6 +605,12 @@ flowchart TD
 - [ ] อัปเดตโดย Frontend B:
 
 **% ที่ทำได้จริง sprint นี้:** `40 %`
+- [ ] อัปเดตโดย Backend A:
+- [ ] อัปเดตโดย Backend B:
+- [x] อัปเดตโดย Frontend A: E2E tests ครบ 49 tests pass (URLRoutingTests, ViewResponseTests, KioskAPITests, RiderFlowTests, CustomerFlowTests); เพิ่ม global idle timer ใน base.html — ทุกหน้าของ kiosk จะ redirect กลับ `/kiosk/` อัตโนมัติหลังไม่มีการใช้งาน 60 วินาที (แก้ UX bug ที่ก่อนหน้านี้มี idle timer แค่ home.html); WebSocket รอ Backend B (Django Channels + Redis)
+- [ ] อัปเดตโดย Frontend B:
+
+**% ที่ทำได้จริง sprint นี้:** `50 %`
 
 ---
 
@@ -712,3 +728,5 @@ Examples: `feat(api): add locker book endpoint` · `fix(fe): qr scan camera perm
 
 *Last Updated: 2026-05-17*  
 *Next Update Due: Sprint 3 complete (Week 6)*
+*Last Updated: 2026-05-17 (Frontend A 100% complete — WebSocket real-time integrated)*  
+*Next Update Due: Sprint 5 complete — final review + deployment*

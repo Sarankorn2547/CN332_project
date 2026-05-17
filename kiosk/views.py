@@ -3,8 +3,12 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 from django.views.decorators.csrf import csrf_exempt
-from foodlocker.models import Project, Building, Room, LineUser
+from foodlocker.models import Project, Building, Room, LineUser, Locker
 
+# log in page
+@require_GET
+def login_page(request):
+    return render(request, 'kiosk/login.html')
 
 # ============================================================================
 # Main Kiosk Interface
@@ -32,13 +36,11 @@ def registration_page(request):
 # Rider Flow Views
 # ============================================================================
 
+KIOSK_BUILDING_ID = 'bld-001'
+
 @require_GET
 def rider_select_size(request):
-    """
-    Rider Step 1: Select locker size
-    Displays available locker sizes (S, M, L, XL) with availability counts
-    """
-    return render(request, 'kiosk/rider/select_size.html')
+    return render(request, 'kiosk/rider/select_size.html', {'building_id': KIOSK_BUILDING_ID})
 
 @require_GET
 def rider_qr_display(request):
@@ -148,9 +150,22 @@ def htmx_get_locker_sizes(request):
     building_id = request.GET.get('building_id')
     # TODO: Fetch locker availability from database
     # availability = get_locker_availability(building_id)
-    return render(request, 'fragments/locker_sizes.html', {
-        'sizes': []  # Placeholder
-    })
+    SIZE_META = {
+        'S': '25×30 cm',
+        'M': '35×40 cm', 
+        'L': '45×50 cm',
+        'XL': '55×60 cm',
+    }
+    sizes_data = []
+    for code, dimensions in SIZE_META.items():
+        count = Locker.objects.filter(
+            building_id=building_id, size=code, status='AVAILABLE'
+        ).count() if building_id else 0
+        sizes_data.append({'code': code, 'dimensions': dimensions, 'available': count})
+    
+    if request.headers.get('Accept') == 'application/json':
+        return JsonResponse({'sizes': sizes_data})
+    return render(request, 'fragments/locker_sizes.html', {'sizes': sizes_data})
 
 @require_POST
 def htmx_qr_display(request):
@@ -238,6 +253,16 @@ def api_deposit(request, locker_id):
 
     # TODO: decode base64, save เป็นไฟล์, update booking status
     return JsonResponse({'status': 'deposited', 'locker_id': locker_id})
+
+
+@csrf_exempt
+@require_POST
+def api_pickup(request, locker_id):
+    """POST /kiosk/api/lockers/<locker_id>/pickup/
+    ลูกบ้านปิดประตูแล้ว — reset ตู้กลับเป็น AVAILABLE
+    """
+    # TODO: เรียก LockerService.pickup(locker_id)
+    return JsonResponse({'status': 'available', 'locker_id': locker_id})
 
 
 @csrf_exempt

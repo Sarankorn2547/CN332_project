@@ -145,7 +145,7 @@ function pinEntry() {
       this.loading = true;
       this.errorMsg = '';
       try {
-        const res = await fetch('/api/lockers/verify-qr/', {
+        const res = await fetch('/kiosk/api/lockers/verify-qr/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

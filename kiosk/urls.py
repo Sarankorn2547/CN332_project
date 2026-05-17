@@ -4,6 +4,10 @@ from . import views
 app_name = 'kiosk'
 
 urlpatterns = [
+
+    # Login page
+    path('login/', views.login_page, name='login'),
+    
     # Main kiosk interface
     path('', views.kiosk_home, name='home'),
     
@@ -37,6 +41,7 @@ urlpatterns = [
     path('api/lockers/book/',                views.api_book_locker,      name='api_book_locker'),
     path('api/lockers/<str:locker_id>/open/',    views.api_open_locker,  name='api_open_locker'),
     path('api/lockers/<str:locker_id>/deposit/', views.api_deposit,      name='api_deposit'),
+    path('api/lockers/<str:locker_id>/pickup/', views.api_pickup,          name='api_pickup'),
     path('api/lockers/verify-qr/',           views.api_verify_qr,        name='api_verify_qr'),
     path('api/users/register/',              views.api_register_user,    name='api_register_user'),
 ]

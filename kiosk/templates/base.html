@@ -103,9 +103,7 @@
         }
         
         /* Smooth transitions */
-        * {
-            transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
-        }
+        * .btn-touch, a, button { transition: background-color 0.2s ease, transform 0.15s ease; }
     </style>
     
     {% block extra_head %}{% endblock %}
@@ -159,7 +157,7 @@
                 if (window.Alpine && Alpine.store('toast')) {
                     Alpine.store('toast').error('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่');
                 }
-                setTimeout(() => { window.location.href = '/login/'; }, 1500);
+                setTimeout(() => { window.location.href = '/kiosk/login/'; }, 1500);
                 return;
             }
 
@@ -197,5 +195,23 @@
     </script>
     
     {% block extra_scripts %}{% endblock %}
+
+    <!-- Global kiosk idle timer — returns to home after 60s of inactivity on any page -->
+    <script>
+        (function() {
+            var idleTimer;
+            function resetIdleTimer() {
+                clearTimeout(idleTimer);
+                idleTimer = setTimeout(function() {
+                    window.location.href = '/kiosk/';
+                }, 60000);
+            }
+            document.addEventListener('click', resetIdleTimer);
+            document.addEventListener('touchstart', resetIdleTimer);
+            document.addEventListener('keypress', resetIdleTimer);
+            document.addEventListener('mousemove', resetIdleTimer);
+            resetIdleTimer();
+        })();
+    </script>
 </body>
 </html>

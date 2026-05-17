@@ -19,24 +19,47 @@
     <!-- QR + PIN card -->
     <div class="bg-white rounded-2xl shadow-lg border-2 border-primary-100 p-6 mb-4 text-center">
 
-      <!-- QR Code -->
-      <div class="inline-block bg-gray-50 rounded-xl p-4 border border-gray-200 mb-4">
-        <img :src="booking.qr_url || '/static/images/logo-placeholder.txt'"
-             alt="QR Code"
-             class="w-48 h-48 mx-auto object-contain">
+      <!-- QR Code frame -->
+      <div class="flex justify-center mb-5">
+        <!-- outer frame with corner accents -->
+        <div style="position:relative; display:inline-block; padding:12px;
+                    background:#fff; border-radius:16px;
+                    box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+
+          <!-- corner brackets -->
+          <span style="position:absolute;top:4px;left:4px;width:20px;height:20px;
+                       border-top:4px solid #ff9800;border-left:4px solid #ff9800;
+                       border-radius:4px 0 0 0;"></span>
+          <span style="position:absolute;top:4px;right:4px;width:20px;height:20px;
+                       border-top:4px solid #ff9800;border-right:4px solid #ff9800;
+                       border-radius:0 4px 0 0;"></span>
+          <span style="position:absolute;bottom:4px;left:4px;width:20px;height:20px;
+                       border-bottom:4px solid #ff9800;border-left:4px solid #ff9800;
+                       border-radius:0 0 0 4px;"></span>
+          <span style="position:absolute;bottom:4px;right:4px;width:20px;height:20px;
+                       border-bottom:4px solid #ff9800;border-right:4px solid #ff9800;
+                       border-radius:0 0 4px 0;"></span>
+
+          <!-- QR target — qrcodejs injects canvas+img here -->
+          <div id="qr-target"
+               style="width:200px;height:200px;overflow:hidden;border-radius:8px;
+                      display:flex;align-items:center;justify-content:center;
+                      background:#fff;">
+          </div>
+        </div>
       </div>
 
       <!-- PIN -->
-      <div class="mb-3">
-        <div class="text-gray-500 text-sm mb-1">รหัส PIN</div>
-        <div class="text-6xl font-bold tracking-[0.25em] text-primary-900"
+      <div class="mb-4">
+        <div class="text-xs font-medium uppercase tracking-widest text-gray-400 mb-1">รหัส PIN</div>
+        <div class="text-6xl font-bold tracking-[0.3em] text-primary-900"
              x-text="booking.pin || '----'"></div>
       </div>
 
-      <!-- Locker ID -->
-      <div class="bg-primary-50 rounded-xl py-2 px-4 inline-block">
-        <span class="text-gray-500 text-sm">ตู้หมายเลข: </span>
-        <span class="font-bold text-primary-800" x-text="booking.locker_id || '--'"></span>
+      <!-- Locker ID badge -->
+      <div class="inline-flex items-center gap-2 bg-primary-50 rounded-xl py-2 px-5">
+        <span class="text-gray-400 text-sm">ตู้หมายเลข</span>
+        <span class="font-bold text-primary-800 text-lg" x-text="booking.locker_id || '--'"></span>
       </div>
     </div>
 
@@ -59,7 +82,8 @@
       </a>
       <a href="{% url 'kiosk:rider_confirm' %}"
          class="flex-1 btn-touch bg-gradient-to-r from-primary-600 to-primary-500 text-white font-bold
-                py-3 rounded-xl text-center hover:from-primary-700 hover:to-primary-600 active:scale-95 transition-all shadow-md">
+                py-3 rounded-xl text-center hover:from-primary-700 hover:to-primary-600
+                active:scale-95 transition-all shadow-md">
         ส่งรูปแล้ว →
       </a>
     </div>
@@ -73,11 +97,14 @@
 
   </div>
 </div>
+{% endblock %}
 
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script>
 function qrDisplay() {
   return {
-    booking: { qr_url: '', pin: '----', locker_id: '--' },
+    booking: { pin: '----', locker_id: '--' },
 
     init() {
       const data = sessionStorage.getItem('booking');
@@ -87,7 +114,39 @@ function qrDisplay() {
         return;
       }
       this.booking = JSON.parse(data);
-    }
+      this.$nextTick(() => this._renderQR());
+    },
+
+    _renderQR() {
+      const target = document.getElementById('qr-target');
+      if (!target) return;
+
+      const content = this.booking.qr_data || this.booking.pin || this.booking.locker_id || 'NO-DATA';
+
+      // qrcodejs สร้าง <canvas> + <img> ใน target
+      // eslint-disable-next-line no-new
+      new QRCode(target, {
+        text: content,
+        width: 200,
+        height: 200,
+        colorDark: '#111111',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M,
+      });
+
+      // ลบ <img> ออก — เหลือแค่ <canvas> เพื่อไม่ให้มี element ซ้ำซ้อน
+      setTimeout(() => {
+        const img = target.querySelector('img');
+        if (img) img.remove();
+        const canvas = target.querySelector('canvas');
+        if (canvas) {
+          canvas.style.display = 'block';
+          canvas.style.width = '200px';
+          canvas.style.height = '200px';
+          canvas.style.borderRadius = '6px';
+        }
+      }, 50);
+    },
   };
 }
 </script>

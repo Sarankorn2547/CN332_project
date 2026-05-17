@@ -31,6 +31,8 @@ router.register(r'locker-logs', views.LockerLogViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('kiosk/', include('kiosk.urls')),
+    path('locker/', include('locker_wall.urls')),
     path('api/', include(router.urls)),
     path('api/users/status/', views.UserStatusView.as_view(), name='user-status'),
     path('api/users/register/', views.UserRegisterView.as_view(), name='user-register'),
@@ -43,6 +45,4 @@ urlpatterns = [
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
-    path('locker/', include('locker_wall.urls')),
-    path('', include('kiosk.urls')),
 ]

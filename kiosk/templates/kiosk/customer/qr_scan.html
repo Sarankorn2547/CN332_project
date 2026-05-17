@@ -19,7 +19,7 @@
 
     <!-- Camera viewfinder -->
     <div class="bg-white rounded-2xl shadow-lg border-2 border-primary-200 overflow-hidden mb-4">
-      <div class="relative aspect-square bg-black">
+      <div class="relative aspect-square bg-black" style="aspect-ratio: 1">
         <video x-ref="video" x-show="!cameraError"
                autoplay playsinline class="w-full h-full object-cover"></video>
 
@@ -82,6 +82,7 @@
 {% endblock %}
 
 {% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <script>
 function qrScanner() {
   return {
@@ -106,23 +107,25 @@ function qrScanner() {
     },
 
     scanFrame() {
-      const video = this.$refs.video;
-      if (!video || video.readyState < 2) return;
-      const canvas = document.getElementById('qr-canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      canvas.getContext('2d').drawImage(video, 0, 0);
-      // QR scanning จะเชื่อม jsQR ใน Sprint 4
-      // const code = jsQR(ctx.getImageData(...), ...)
-      // if (code) this.onDetected(code.data)
+    const video = this.$refs.video;
+    if (!video || video.readyState < 2) return;
+    const canvas = document.getElementById('qr-canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height);
+    if (code) this.onDetected(code.data);
     },
+
 
     async onDetected(code) {
       if (!this.scanning) return;
       this.scanning = false;
       clearInterval(this._scanInterval);
       try {
-        const res = await fetch('/api/lockers/verify-qr/', {
+        const res = await fetch('/kiosk/api/lockers/verify-qr/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

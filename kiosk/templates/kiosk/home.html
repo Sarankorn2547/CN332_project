@@ -12,7 +12,7 @@
     <div class="max-w-4xl w-full mx-auto p-8">
         <!-- Logo (No background box) -->
         <div class="text-center mb-8">
-            <img src="{% static 'kiosk/images/logo.png' %}" 
+            <img src="{% static 'images/logo.png' %}"
                  alt="Food Locker Logo" 
                  class="mx-auto w-48 h-auto drop-shadow-2xl mb-6"
                  onerror="this.style.display='none'">
@@ -59,25 +59,4 @@
 </div>
 {% endblock %}
 
-{% block extra_scripts %}
-<script>
-    // Idle timeout - return to home after 60 seconds of inactivity
-    let idleTimer;
-    
-    function resetIdleTimer() {
-        clearTimeout(idleTimer);
-        idleTimer = setTimeout(() => {
-            console.log('Idle timeout - reloading page');
-            window.location.reload();
-        }, 60000); // 60 seconds
-    }
-    
-    // Reset timer on any user interaction
-    document.addEventListener('click', resetIdleTimer);
-    document.addEventListener('touchstart', resetIdleTimer);
-    document.addEventListener('keypress', resetIdleTimer);
-    
-    // Start the timer
-    resetIdleTimer();
-</script>
-{% endblock %}
+{% block extra_scripts %}{% endblock %}
