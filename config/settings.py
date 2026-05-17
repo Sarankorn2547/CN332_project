@@ -95,6 +95,11 @@ ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
+        'APP': {
+            'client_id': '1234567890-placeholder.apps.googleusercontent.com',
+            'secret': 'placeholder-secret-key-12345',
+            'key': ''
+        },
         'SCOPE': [
             'profile',
             'email',
