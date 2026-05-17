@@ -1,3 +1,0 @@
-locker.vivaclubs.site {
-    reverse_proxy web:8000
-}
