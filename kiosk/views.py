@@ -20,7 +20,18 @@ def kiosk_home(request):
     Kiosk home screen - user type selection
     Displays three buttons: Rider, Customer, Security Guard
     """
-    return render(request, 'kiosk/home.html')
+    building_id = KIOSK_BUILDING_ID
+    try:
+        building = Building.objects.get(id=building_id)
+        project = building.project
+    except Building.DoesNotExist:
+        building = None
+        project = None
+
+    return render(request, 'kiosk/home.html', {
+        'building': building,
+        'project': project
+    })
 
 
 # ============================================================================
