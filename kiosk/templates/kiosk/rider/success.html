@@ -20,12 +20,12 @@
     <div class="bg-white rounded-2xl shadow-lg border-2 border-success-100 p-6 mb-6 space-y-3">
       <div class="flex justify-between items-center">
         <span class="text-gray-500">หมายเลขตู้</span>
-        <span class="font-bold text-lg" x-text="booking.locker_id || '-'"></span>
+        <span class="font-bold text-lg" x-text="booking.local_id || (booking.locker_id ? booking.locker_id.split('-').pop() : '-')"></span>
       </div>
       <div class="border-t border-gray-100"></div>
       <div class="flex justify-between items-center">
         <span class="text-gray-500">รหัส PIN</span>
-        <span class="font-bold tracking-widest text-primary-800" x-text="booking.pin || '-'"></span>
+        <span class="font-bold tracking-widest text-primary-800 text-2xl" x-text="booking.passcode || booking.pin || '-'"></span>
       </div>
       <div class="border-t border-gray-100"></div>
       <div class="flex justify-between items-center">

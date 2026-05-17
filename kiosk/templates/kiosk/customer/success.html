@@ -20,7 +20,7 @@
     <div class="bg-white rounded-2xl shadow-lg border-2 border-success-100 p-6 mb-6 space-y-3">
       <div class="flex justify-between items-center">
         <span class="text-gray-500">หมายเลขตู้</span>
-        <span class="font-bold text-lg" x-text="pickup.locker_id || '-'"></span>
+        <span class="font-bold text-lg" x-text="pickup.local_id || (pickup.id ? pickup.id.split('-').pop() : '-')"></span>
       </div>
       <div class="border-t border-gray-100"></div>
       <div class="flex justify-between items-center">
@@ -97,7 +97,7 @@ function customerSuccess() {
     async confirmPickup() {
       this.pickingUp = true;
       try {
-        await this.$api.post(`/api/lockers/${this.pickup.locker_id}/pickup/`, {});
+        await this.$api.post(`/api/lockers/${this.pickup.id}/pickup/`, {});
       } catch (e) {
         Alpine.store('toast').error('อัปเดตสถานะไม่สำเร็จ');
       } finally {
