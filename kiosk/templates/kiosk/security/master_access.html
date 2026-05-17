@@ -96,6 +96,10 @@ function masterAccess() {
     _scanInterval: null,
 
     async startCamera() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        this.cameraError = 'ระบบกล้องต้องใช้งานผ่าน HTTPS หรือ localhost เท่านั้น (บนโทรศัพท์ให้เชื่อมต่อแบบปลอดภัย หรือเปิดสิทธิ์กล้องในเบราว์เซอร์)';
+        return;
+      }
       try {
         this.stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: 'environment' }

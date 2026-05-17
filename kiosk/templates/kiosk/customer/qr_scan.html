@@ -38,7 +38,11 @@
              class="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 text-white p-6 text-center">
           <span class="text-4xl mb-3">📷</span>
           <p class="font-bold text-lg">เปิดกล้องไม่ได้</p>
-          <p class="text-gray-300 text-sm mt-1" x-text="cameraError"></p>
+          <p class="text-gray-300 text-xs mt-1" x-text="cameraError"></p>
+          <button type="button" @click="useMockScan()"
+                  class="mt-4 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded-lg shadow active:scale-95 transition-all">
+            จำลองสแกน QR ล่าสุด (สำหรับทดสอบ)
+          </button>
         </div>
 
         <!-- Scanning indicator -->
@@ -94,6 +98,10 @@ function qrScanner() {
     _scanInterval: null,
 
     async startCamera() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        this.cameraError = 'ระบบกล้องต้องใช้งานผ่าน HTTPS หรือ localhost เท่านั้น (บนโทรศัพท์ให้เชื่อมต่อแบบปลอดภัย หรือกดปุ่มจำลองสแกนด้านบน หรือใช้ PIN แทน)';
+        return;
+      }
       try {
         this.stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: 'environment' }
@@ -103,6 +111,15 @@ function qrScanner() {
         this._scanInterval = setInterval(() => this.scanFrame(), 500);
       } catch (e) {
         this.cameraError = e.message || 'กรุณาอนุญาตให้ใช้กล้อง';
+      }
+    },
+
+    useMockScan() {
+      const booking = JSON.parse(sessionStorage.getItem('booking') || '{}');
+      if (booking.qr_data) {
+        this.onDetected(booking.qr_data);
+      } else {
+        Alpine.store('toast').warning('ไม่พบข้อมูลการจองล่าสุดในเครื่องนี้ กรุณาใช้รหัส PIN แทน');
       }
     },
 

@@ -40,7 +40,11 @@
              class="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 text-white p-6 text-center">
           <span class="text-4xl mb-2">📷</span>
           <p class="font-bold">เปิดกล้องไม่ได้</p>
-          <p class="text-gray-300 text-sm mt-1" x-text="cameraError"></p>
+          <p class="text-gray-300 text-xs mt-1" x-text="cameraError"></p>
+          <button type="button" @click="useMockPhoto()"
+                  class="mt-4 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded-lg shadow active:scale-95 transition-all">
+            ใช้ภาพจำลอง (สำหรับทดสอบ)
+          </button>
         </div>
       </div>
 
@@ -104,6 +108,10 @@ function depositCapture() {
     cameraError: '',
 
     async startCamera() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        this.cameraError = 'ระบบกล้องต้องใช้งานผ่าน HTTPS หรือ localhost เท่านั้น (บนโทรศัพท์ให้เชื่อมต่อแบบปลอดภัย หรือกดปุ่มใช้ภาพจำลองด้านบนเพื่อข้ามสำหรับทดสอบ)';
+        return;
+      }
       try {
         this.stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: 'environment' }
@@ -112,6 +120,11 @@ function depositCapture() {
       } catch (e) {
         this.cameraError = e.message || 'กรุณาอนุญาตให้ใช้กล้อง';
       }
+    },
+
+    useMockPhoto() {
+      this.photoData = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="%234caf50"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="sans-serif" font-size="16">อาหารฝากสำเร็จ (MOCK)</text></svg>';
+      this.photoTaken = true;
     },
 
     takePhoto() {
