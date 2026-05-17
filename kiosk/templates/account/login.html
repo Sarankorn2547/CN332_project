@@ -104,6 +104,25 @@
       </button>
 
     </form>
+
+    <!-- Divider -->
+    <div class="relative flex py-2 items-center">
+      <div class="flex-grow border-t border-gray-200"></div>
+      <span class="flex-shrink mx-4 text-gray-400 text-xs font-bold uppercase tracking-wider">หรือ</span>
+      <div class="flex-grow border-t border-gray-200"></div>
+    </div>
+
+    <!-- SSO Button -->
+    <a href="{% provider_login_url 'google' %}" 
+       class="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-3 rounded-xl shadow-sm hover:shadow active:scale-[0.98] transition duration-150 cursor-pointer">
+      <svg class="w-5 h-5" viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v3.92h6.69a5.74 5.74 0 0 1-2.48 3.77v3.13h3.99c2.34-2.16 3.68-5.32 3.68-8.75z"/>
+        <path fill="#34A853" d="M12 24c3.24 0 5.97-1.08 7.96-2.91l-3.99-3.13c-1.11.75-2.53 1.19-3.97 1.19-3.07 0-5.67-2.08-6.6-4.88H1.31v3.23A12 12 0 0 0 12 24z"/>
+        <path fill="#FBBC05" d="M5.4 14.28a7.2 7.2 0 0 1 0-4.56V6.49H1.31a12 12 0 0 0 0 11.02L5.4 14.28z"/>
+        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.3 2.68 1.31 6.49l4.09 3.23c.93-2.8 3.53-4.88 6.6-4.88z"/>
+      </svg>
+      <span>ดำเนินการต่อด้วย Google</span>
+    </a>
     
   </div>
 </div>
