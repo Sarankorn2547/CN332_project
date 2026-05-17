@@ -189,6 +189,7 @@ SIMPLE_JWT = {
 # LINE Messaging API
 LINE_CHANNEL_SECRET = os.environ.get('LINE_CHANNEL_SECRET', '')
 LINE_CHANNEL_ACCESS_TOKEN = os.environ.get('LINE_CHANNEL_ACCESS_TOKEN', '')
+LINE_LIFF_ID = os.environ.get('LINE_LIFF_ID', '2009130619-hbwbmhAf')
 
 # Celery / abandoned-food cleanup.
 CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL') or os.environ.get('REDIS_URL') or 'memory://'

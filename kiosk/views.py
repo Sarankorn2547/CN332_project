@@ -3,6 +3,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
 from foodlocker.models import Project, Building, Room, LineUser, Locker
 
 # log in page
@@ -29,7 +30,11 @@ def kiosk_home(request):
 @require_GET
 def registration_page(request):
     projects = Project.objects.all().order_by('name')
-    return render(request, 'registration/register.html', {'projects': projects})
+    liff_id = getattr(settings, 'LINE_LIFF_ID', '')
+    return render(request, 'registration/register.html', {
+        'projects': projects,
+        'liff_id': liff_id
+    })
 
 
 # ============================================================================
