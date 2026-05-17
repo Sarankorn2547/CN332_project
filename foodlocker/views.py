@@ -128,13 +128,6 @@ class UserRegisterView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Check if user already exists
-        if LineUser.objects.filter(line_user_id=line_user_id).exists():
-            return Response(
-                {'error': 'User with this line_user_id already exists'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
         # Check if project and building exist
         try:
             project = Project.objects.get(id=project_id)
@@ -146,15 +139,38 @@ class UserRegisterView(APIView):
         except Building.DoesNotExist:
             return Response({'error': 'Building not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Create the new LineUser
-        try:
-            line_user = LineUser.objects.create(
-                line_user_id=line_user_id,
-                project=project,
-                building=building,
-                room_no=room_no,
-                display_name=display_name
+        # Check if the room/building is already registered to a DIFFERENT user
+        other_user_taken = LineUser.objects.filter(
+            building_id=building_id, 
+            room_no=room_no
+        ).exclude(line_user_id=line_user_id).exists()
+        
+        if other_user_taken:
+            return Response(
+                {'error': f'ห้อง {room_no} ของอาคารนี้มีลูกบ้านท่านอื่นลงทะเบียนไว้แล้ว'},
+                status=status.HTTP_400_BAD_REQUEST
             )
+
+        # Create or Update the LineUser
+        created = False
+        try:
+            existing_user = LineUser.objects.filter(line_user_id=line_user_id).first()
+            if existing_user:
+                existing_user.project = project
+                existing_user.building = building
+                existing_user.room_no = room_no
+                existing_user.display_name = display_name
+                existing_user.save()
+                line_user = existing_user
+            else:
+                line_user = LineUser.objects.create(
+                    line_user_id=line_user_id,
+                    project=project,
+                    building=building,
+                    room_no=room_no,
+                    display_name=display_name
+                )
+                created = True
 
             # Send LINE confirmation push notification
             confirm_message = (
@@ -171,7 +187,8 @@ class UserRegisterView(APIView):
                 print(f"LINE registration confirmation push failed: {push_err}")
 
             serializer = LineUserSerializer(line_user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            status_code = status.HTTP_201_CREATED if created else status.HTTP_200_OK
+            return Response(serializer.data, status=status_code)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 

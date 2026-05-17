@@ -27,7 +27,23 @@ def test_register_duplicate_line_user_id(client, line_user, project, building):
         'display_name': 'Duplicate',
     }
     response = client.post(reverse('user-register'), data=payload, content_type='application/json')
+    assert response.status_code == 200
+    assert response.data['room_no'] == '303'
+
+
+@pytest.mark.django_db
+def test_register_duplicate_room_no_other_user(client, line_user, project, building):
+    # Attempt to register a DIFFERENT line user to the SAME room as line_user
+    payload = {
+        'line_user_id': 'U_OTHER_999',
+        'project_id': project.id,
+        'building_id': building.id,
+        'room_no': line_user.room_no,
+        'display_name': 'Other User',
+    }
+    response = client.post(reverse('user-register'), data=payload, content_type='application/json')
     assert response.status_code == 400
+    assert 'ลูกบ้านท่านอื่นลงทะเบียนไว้แล้ว' in response.data['error']
 
 
 @pytest.mark.django_db
