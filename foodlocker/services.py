@@ -96,7 +96,11 @@ class LockerService:
         locker.is_door_open = False
         locker.is_locked = True
         locker.deposit_start_time = int(time.time())
-        locker.metadata = None  # Clear temporary reservation
+        
+        # Preserve room_no in metadata if it exists, so we know who owns this occupied locker
+        room_no = (locker.metadata or {}).get("room_no")
+        locker.metadata = {"room_no": room_no} if room_no else None
+        
         locker.save(update_fields=[
             "status",
             "has_object",

@@ -84,4 +84,12 @@
 </div>
 {% endblock %}
 
-{% block extra_scripts %}{% endblock %}
+{% block extra_scripts %}
+<script>
+  // Start a fresh user session whenever returning to the home screen
+  sessionStorage.removeItem('booking');
+  sessionStorage.removeItem('deposit_time');
+  sessionStorage.removeItem('pickup');
+  sessionStorage.removeItem('delivery_method');
+</script>
+{% endblock %}

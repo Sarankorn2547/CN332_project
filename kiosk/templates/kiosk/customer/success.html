@@ -91,7 +91,6 @@ function customerSuccess() {
 
     init() {
       this.pickup = JSON.parse(sessionStorage.getItem('pickup') || '{}');
-      sessionStorage.removeItem('pickup');
     },
 
     async confirmPickup() {

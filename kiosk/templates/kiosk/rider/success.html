@@ -73,8 +73,6 @@ function riderSuccess() {
     init() {
       this.booking = JSON.parse(sessionStorage.getItem('booking') || '{}');
       this.depositTime = sessionStorage.getItem('deposit_time') || new Date().toISOString();
-      sessionStorage.removeItem('booking');
-      sessionStorage.removeItem('deposit_time');
 
       this._interval = setInterval(() => {
         this.countdown--;

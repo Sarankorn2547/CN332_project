@@ -212,25 +212,36 @@ class UserStatusView(APIView):
 
         # Check if the user exists
         try:
-            LineUser.objects.get(line_user_id=line_user_id)
+            line_user = LineUser.objects.get(line_user_id=line_user_id)
         except LineUser.DoesNotExist:
             return Response({'detail': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Find lockers associated with the user that are not 'AVAILABLE'
-        locker_ids = LockerLog.objects.filter(actor_id=line_user_id).values('locker_id')
-        active_lockers = list(
-            Locker.objects
-            .filter(id__in=locker_ids)
-            .exclude(status=Locker.Status.AVAILABLE)
-            .order_by('building_id', 'local_id', 'id')
-        )
+        # Find lockers associated with the user's room/building that are OCCUPIED or logged
+        active_lockers = []
+        if line_user.building_id and line_user.room_no:
+            from django.db.models import Q
+            active_lockers = list(
+                Locker.objects.filter(
+                    Q(building_id=line_user.building_id, status=Locker.Status.OCCUPIED, metadata__room_no=line_user.room_no) |
+                    Q(id__in=LockerLog.objects.filter(actor_id=line_user_id).values('locker_id'))
+                )
+                .exclude(status=Locker.Status.AVAILABLE)
+                .order_by('building_id', 'local_id', 'id')
+            )
+        else:
+            locker_ids = LockerLog.objects.filter(actor_id=line_user_id).values('locker_id')
+            active_lockers = list(
+                Locker.objects
+                .filter(id__in=locker_ids)
+                .exclude(status=Locker.Status.AVAILABLE)
+                .order_by('building_id', 'local_id', 'id')
+            )
 
         if not active_lockers:
             return Response({
                 "status": "NO_ACTIVE_LOCKER",
                 "lockers": []
             }, status=status.HTTP_200_OK)
-
 
         serializer = LockerSerializer(active_lockers, many=True)
         return Response({
@@ -333,6 +344,7 @@ class LockerViewSet(
             )
             return Response({
                 'locker_id': locker.id,
+                'local_id': locker.local_id,
                 'qr_data': locker.qr_data,
                 'passcode': locker.passcode
             }, status=status.HTTP_200_OK)
@@ -636,6 +648,7 @@ class LineNotifyView(APIView):
             return Response({'error': 'ไม่พบตู้นี้ในระบบ'}, status=status.HTTP_404_NOT_FOUND)
 
         # 3. Construct message and QR code
+        print(f"[LineNotifyView Debug] locker_id: {locker_id}, local_id: {locker.local_id}, passcode: {locker.passcode}, room_no: {room_no}")
         message = (
             f"🔔 มีอาหารมาส่งใหม่สำเร็จเรียบร้อยแล้ว!\n\n"
             f"📍 ตึก: {locker.building.name}\n"
