@@ -119,15 +119,16 @@ def line_login_callback(request):
         display_name = profile_data.get('displayName')
 
         # Check friendship status with the bot
-        friend_flag = True
+        friend_flag = False
         try:
             friendship_url = 'https://api.line.me/friendship/v2/status'
             friendship_headers = {
                 'Authorization': f'Bearer {access_token}'
             }
             friendship_resp = requests.get(friendship_url, headers=friendship_headers)
+            print(f"[Friendship API Response] Status: {friendship_resp.status_code}, Body: {friendship_resp.text}")
             if friendship_resp.ok:
-                friend_flag = friendship_resp.json().get('friendFlag', True)
+                friend_flag = friendship_resp.json().get('friendFlag', False)
         except Exception as friendship_err:
             print(f"Friendship status check failed: {friendship_err}")
         
