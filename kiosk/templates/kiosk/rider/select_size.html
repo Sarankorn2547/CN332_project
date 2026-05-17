@@ -129,8 +129,11 @@ function riderSizeSelect() {
 
     _recomputeSizes() {
       const counts = { S: 0, M: 0, L: 0, XL: 0 };
+      const currentTime = Math.floor(Date.now() / 1000);
       Object.values(this._lockers).forEach(l => {
-        if (l.status === 'AVAILABLE' && l.size in counts) counts[l.size]++;
+        const reservedAt = (l.metadata && l.metadata.reserved_at) || 0;
+        const isReserved = (currentTime - reservedAt) <= 120;
+        if (l.status === 'AVAILABLE' && !isReserved && l.size in counts) counts[l.size]++;
       });
       this.sizes = Object.entries(this.SIZE_DIMS).map(([code, dims]) => ({
         code, dimensions: dims, available: counts[code] || 0,

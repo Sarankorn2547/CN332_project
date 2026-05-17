@@ -108,7 +108,7 @@ async def _assert_locker_websocket_broadcasts_full_locker_workflow(
     assert event['type'] == 'locker.updated'
     assert event['action'] == 'ACTION_BOOK'
     assert event['actor_id'] == line_user_id
-    assert event['locker']['status'] == Locker.Status.BOOKED
+    assert event['locker']['status'] == Locker.Status.AVAILABLE
 
     locker_id = book_response.data['locker_id']
     open_response = await _post(

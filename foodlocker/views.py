@@ -3,7 +3,7 @@ import shlex
 from rest_framework import viewsets, mixins, status
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
@@ -41,6 +41,18 @@ def _actor_id(request, fallback='system'):
         or getattr(request.user, 'username', None)
         or fallback
     )
+
+
+class IsAuthenticatedOrKiosk(BasePermission):
+    def has_permission(self, request, view):
+        if request.user and request.user.is_authenticated:
+            return True
+        referer = request.META.get('HTTP_REFERER', '')
+        if '/kiosk/' in referer:
+            return True
+        if request.session and request.session.get('_auth_user_id'):
+            return True
+        return False
 
 
 class LineUserTokenView(APIView):
@@ -271,7 +283,7 @@ class LockerViewSet(
             400: OpenApiResponse(description="Missing fields or no available locker found."),
         },
     )
-    @action(detail=False, methods=['post'], permission_classes=[])
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticatedOrKiosk])
     def book(self, request):
         building_id = request.data.get('building_id')
         size = request.data.get('size')
@@ -303,7 +315,7 @@ class LockerViewSet(
             400: OpenApiResponse(description="Locker not found or invalid status."),
         },
     )
-    @action(detail=True, methods=['post'], permission_classes=[])
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticatedOrKiosk])
     def open(self, request, pk=None):
         try:
             locker = LockerService.open_locker(locker_id=pk, actor_id=_actor_id(request))
@@ -320,7 +332,7 @@ class LockerViewSet(
             400: OpenApiResponse(description="Locker not found, wrong status, or door not open."),
         },
     )
-    @action(detail=True, methods=['post'], permission_classes=[])
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticatedOrKiosk])
     def deposit(self, request, pk=None):
         try:
             locker = LockerService.confirm_deposit(locker_id=pk, actor_id=_actor_id(request))
@@ -341,7 +353,7 @@ class LockerViewSet(
             400: OpenApiResponse(description="Invalid QR/passcode or locker not occupied."),
         },
     )
-    @action(detail=False, methods=['post'], url_path='verify-qr', permission_classes=[])
+    @action(detail=False, methods=['post'], url_path='verify-qr', permission_classes=[IsAuthenticatedOrKiosk])
     def verify_qr(self, request):
         qr_data = request.data.get('qr_data')
         passcode = request.data.get('passcode')
@@ -365,7 +377,7 @@ class LockerViewSet(
             400: OpenApiResponse(description="Locker not found or not in OCCUPIED status."),
         },
     )
-    @action(detail=True, methods=['post'], url_path='pickup', permission_classes=[])
+    @action(detail=True, methods=['post'], url_path='pickup', permission_classes=[IsAuthenticatedOrKiosk])
     def pickup(self, request, pk=None):
         actor_id = request.data.get('actor_id') or _actor_id(request, fallback='customer')
         try:

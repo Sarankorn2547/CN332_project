@@ -148,8 +148,6 @@ def htmx_get_locker_sizes(request):
     Returns HTML cards showing available locker sizes with counts
     """
     building_id = request.GET.get('building_id')
-    # TODO: Fetch locker availability from database
-    # availability = get_locker_availability(building_id)
     SIZE_META = {
         'S': '25×30 cm',
         'M': '35×40 cm', 
@@ -157,10 +155,20 @@ def htmx_get_locker_sizes(request):
         'XL': '55×60 cm',
     }
     sizes_data = []
+    import time
+    current_time = int(time.time())
     for code, dimensions in SIZE_META.items():
-        count = Locker.objects.filter(
-            building_id=building_id, size=code, status='AVAILABLE'
-        ).count() if building_id else 0
+        if building_id:
+            all_avail = Locker.objects.filter(
+                building_id=building_id, size=code, status='AVAILABLE'
+            )
+            count = 0
+            for l in all_avail:
+                reserved_at = (l.metadata or {}).get("reserved_at", 0)
+                if current_time - reserved_at > 120:
+                    count += 1
+        else:
+            count = 0
         sizes_data.append({'code': code, 'dimensions': dimensions, 'available': count})
     
     if request.headers.get('Accept') == 'application/json':

@@ -11,12 +11,20 @@ class LockerService:
     @staticmethod
     def book_locker(building_id: str, size: str, locker_type: str, actor_id: str = "system") -> Locker:
         with transaction.atomic():
-            locker = Locker.objects.select_for_update().filter(
+            current_time = int(time.time())
+            all_avail = Locker.objects.select_for_update().filter(
                 building_id=building_id,
                 size=size,
                 type=locker_type,
                 status=Locker.Status.AVAILABLE
-            ).order_by("id").first()
+            ).order_by("id")
+
+            locker = None
+            for l in all_avail:
+                reserved_at = (l.metadata or {}).get("reserved_at", 0)
+                if current_time - reserved_at > 120:  # 2 minutes reservation
+                    locker = l
+                    break
 
             if not locker:
                 raise ValueError(f"No available locker found for size '{size}' and type '{locker_type}' in building '{building_id}'.")
@@ -24,12 +32,13 @@ class LockerService:
             passcode = f"{random.randint(0, 999999):06d}"
             qr_data = str(uuid.uuid4())
 
-            locker.status = Locker.Status.BOOKED
+            # Stays AVAILABLE! Do not set status to BOOKED!
             locker.passcode = passcode
             locker.qr_data = qr_data
             locker.is_locked = True
             locker.is_door_open = False
-            locker.save(update_fields=["status", "passcode", "qr_data", "is_locked", "is_door_open"])
+            locker.metadata = {"reserved_at": current_time}
+            locker.save(update_fields=["passcode", "qr_data", "is_locked", "is_door_open", "metadata"])
 
             LockerLog.objects.create(
                 locker=locker,
@@ -53,7 +62,7 @@ class LockerService:
         except Locker.DoesNotExist:
             raise ValueError(f"Locker with id '{locker_id}' not found.")
 
-        if locker.status not in [Locker.Status.BOOKED, Locker.Status.OCCUPIED]:
+        if locker.status not in [Locker.Status.AVAILABLE, Locker.Status.BOOKED, Locker.Status.OCCUPIED]:
             raise ValueError(f"Locker '{locker_id}' cannot be opened in status '{locker.status}'.")
 
         locker.is_door_open = True
@@ -76,8 +85,8 @@ class LockerService:
         except Locker.DoesNotExist:
             raise ValueError(f"Locker with id '{locker_id}' not found.")
 
-        if locker.status != Locker.Status.BOOKED:
-            raise ValueError(f"Locker '{locker_id}' must be in BOOKED status to confirm deposit.")
+        if locker.status not in [Locker.Status.AVAILABLE, Locker.Status.BOOKED]:
+            raise ValueError(f"Locker '{locker_id}' must be in AVAILABLE or BOOKED status to confirm deposit.")
 
         if not locker.is_door_open:
             raise ValueError(f"Locker '{locker_id}' door must be open to deposit.")
@@ -87,12 +96,14 @@ class LockerService:
         locker.is_door_open = False
         locker.is_locked = True
         locker.deposit_start_time = int(time.time())
+        locker.metadata = None  # Clear temporary reservation
         locker.save(update_fields=[
             "status",
             "has_object",
             "is_door_open",
             "is_locked",
             "deposit_start_time",
+            "metadata",
         ])
 
         LockerLog.objects.create(
