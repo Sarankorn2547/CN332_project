@@ -28,6 +28,9 @@ SECRET_KEY = 'django-insecure-_1&z+t$@_#8%zc=st35#jpj#--(f(^cs+yeyc5byl1+2mokhxo
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = [
+    'https://dashboard.vivaclubs.site',
+]
 
 
 # Application definition
