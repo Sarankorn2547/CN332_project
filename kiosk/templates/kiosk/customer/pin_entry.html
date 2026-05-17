@@ -150,7 +150,7 @@ function pinEntry() {
         sessionStorage.setItem('pickup', JSON.stringify(payload));
         window.location.href = '{% url "kiosk:customer_success" %}';
       } catch (e) {
-        this.errorMsg = 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่';
+        this.errorMsg = e.payload?.error || 'รหัส PIN ไม่ถูกต้อง หรือตู้นี้ไม่มีของฝาก';
         this.pin = '';
         this.loading = false;
       }

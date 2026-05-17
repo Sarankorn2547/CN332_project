@@ -357,7 +357,14 @@ class LockerViewSet(
     def verify_qr(self, request):
         qr_data = request.data.get('qr_data')
         passcode = request.data.get('passcode')
+        code = request.data.get('code')
         
+        if code:
+            if len(code) == 6 and code.isdigit():
+                passcode = code
+            else:
+                qr_data = code
+                
         try:
             locker = LockerService.verify_qr(
                 qr_data=qr_data,

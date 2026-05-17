@@ -183,7 +183,7 @@ function qrScanner() {
         this.cleanup();
         window.location.href = '{% url "kiosk:customer_success" %}';
       } catch (e) {
-        this.statusMsg = 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้';
+        this.statusMsg = e.payload?.error || 'QR Code ไม่ถูกต้อง หรือตู้นี้ไม่มีของฝาก';
         this.statusType = 'error';
         this.scanning = true;
       }
