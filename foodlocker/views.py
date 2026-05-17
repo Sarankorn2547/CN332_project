@@ -540,7 +540,13 @@ class LineNotifyView(APIView):
 
         # 1. Lookup LineUser for the room in this building
         try:
-            line_user = LineUser.objects.filter(room_no=room_no, building_id=building_id).first()
+            line_user = LineUser.objects.filter(
+                room_no=room_no, 
+                building_id=building_id,
+                line_user_id__startswith='U'
+            ).first()
+            if not line_user:
+                line_user = LineUser.objects.filter(room_no=room_no, building_id=building_id).first()
             if not line_user:
                 return Response({'error': 'ไม่พบข้อมูลลูกบ้านที่ลงทะเบียนห้องนี้ในตึกนี้'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
