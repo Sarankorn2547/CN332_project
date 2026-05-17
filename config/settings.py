@@ -13,9 +13,13 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 from datetime import timedelta
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables from .env file if it exists
+load_dotenv(BASE_DIR / '.env')
 
 
 # Quick-start development settings - unsuitable for production
@@ -100,8 +104,8 @@ SOCIALACCOUNT_ADAPTER = 'config.adapters.DomeSocialAccountAdapter'
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'APP': {
-            'client_id': '1234567890-placeholder.apps.googleusercontent.com',
-            'secret': 'placeholder-secret-key-12345',
+            'client_id': os.environ.get('GOOGLE_CLIENT_ID', '523406981942-cl2kn0c0ens7qijobaljt7a1kpalq4bu.apps.googleusercontent.com'),
+            'secret': os.environ.get('GOOGLE_CLIENT_SECRET', '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'),
             'key': ''
         },
         'SCOPE': [
