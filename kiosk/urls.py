@@ -13,6 +13,8 @@ urlpatterns = [
     
     # Registration page
     path('register/', views.registration_page, name='register'),
+    path('register/login/', views.line_login_redirect, name='line_login'),
+    path('register/callback/', views.line_login_callback, name='line_callback'),
     
     # Rider flow URLs
     path('rider/select-size/', views.rider_select_size, name='rider_select_size'),

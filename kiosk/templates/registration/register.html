@@ -167,6 +167,18 @@ function registerForm() {
     },
 
     async initLiff() {
+      // Check query parameters first (LINE Login OAuth redirection fallback)
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryLineId = urlParams.get('line_user_id');
+      const queryName = urlParams.get('display_name');
+      
+      if (queryLineId && queryName) {
+        this.form.line_user_id = queryLineId;
+        this.form.display_name = queryName;
+        this.liffReady = true;
+        return;
+      }
+
       const LIFF_ID = '{{ liff_id|default:"" }}';
       if (!LIFF_ID) return;
       try {

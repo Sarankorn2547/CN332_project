@@ -48,6 +48,80 @@ def registration_page(request):
     })
 
 
+@require_GET
+def line_login_redirect(request):
+    import urllib.parse
+    from django.shortcuts import redirect
+    client_id = getattr(settings, 'LINE_CHANNEL_ID', '2009130619')
+    redirect_uri = 'https://dashboard.vivaclubs.site/kiosk/register/callback/'
+    
+    params = {
+        'response_type': 'code',
+        'client_id': client_id,
+        'redirect_uri': redirect_uri,
+        'state': 'cn332_state_secret',
+        'scope': 'profile openid',
+    }
+    
+    url = 'https://access.line.me/oauth2/v2.1/authorize?' + urllib.parse.urlencode(params)
+    return redirect(url)
+
+
+@require_GET
+def line_login_callback(request):
+    import urllib.parse
+    import requests
+    from django.shortcuts import redirect
+    
+    code = request.GET.get('code')
+    state = request.GET.get('state')
+    
+    if not code:
+        return HttpResponse("LINE Login failed: Authorization code not provided.", status=400)
+        
+    client_id = getattr(settings, 'LINE_CHANNEL_ID', '2009130619')
+    client_secret = getattr(settings, 'LINE_CHANNEL_SECRET', '141632b5b8301e0b3f2ea0d7d905d14a')
+    redirect_uri = 'https://dashboard.vivaclubs.site/kiosk/register/callback/'
+    
+    # Exchange code for access token
+    token_url = 'https://api.line.me/oauth2/v2.1/token'
+    data = {
+        'grant_type': 'authorization_code',
+        'code': code,
+        'redirect_uri': redirect_uri,
+        'client_id': client_id,
+        'client_secret': client_secret,
+    }
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded'
+    }
+    
+    try:
+        resp = requests.post(token_url, data=data, headers=headers)
+        resp.raise_for_status()
+        token_data = resp.json()
+        access_token = token_data.get('access_token')
+        
+        # Fetch LINE profile using access token
+        profile_url = 'https://api.line.me/v2/profile'
+        profile_headers = {
+            'Authorization': f'Bearer {access_token}'
+        }
+        profile_resp = requests.get(profile_url, headers=profile_headers)
+        profile_resp.raise_for_status()
+        profile_data = profile_resp.json()
+        
+        line_user_id = profile_data.get('userId')
+        display_name = profile_data.get('displayName')
+        
+        # Redirect to the register page with query parameters
+        register_url = f'/kiosk/register/?line_user_id={urllib.parse.quote(line_user_id)}&display_name={urllib.parse.quote(display_name)}'
+        return redirect(register_url)
+        
+    except Exception as e:
+        return HttpResponse(f"LINE Login Error: {str(e)}", status=500)
+
+
 # ============================================================================
 # Rider Flow Views
 # ============================================================================
