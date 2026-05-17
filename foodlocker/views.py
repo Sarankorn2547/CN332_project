@@ -155,6 +155,21 @@ class UserRegisterView(APIView):
                 room_no=room_no,
                 display_name=display_name
             )
+
+            # Send LINE confirmation push notification
+            confirm_message = (
+                f"✅ Registration Confirmed!\n\n"
+                f"Project: {project.name}\n"
+                f"Building: {building.name}\n"
+                f"Room: {room_no}\n\n"
+                f"Please verify this information is correct.\n\n"
+                f"Register link: https://dashboard.vivaclubs.site/kiosk/register/"
+            )
+            try:
+                LineService.push_text(to=line_user_id, text=confirm_message)
+            except Exception as push_err:
+                print(f"LINE registration confirmation push failed: {push_err}")
+
             serializer = LineUserSerializer(line_user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except Exception as e:
