@@ -188,8 +188,11 @@ SIMPLE_JWT = {
 
 # LINE Messaging API
 LINE_CHANNEL_ID = os.environ.get('LINE_CHANNEL_ID', '2009130619')
-LINE_CHANNEL_SECRET = os.environ.get('LINE_CHANNEL_SECRET', '')
-LINE_CHANNEL_ACCESS_TOKEN = os.environ.get('LINE_CHANNEL_ACCESS_TOKEN', '')
+LINE_CHANNEL_SECRET = os.environ.get('LINE_CHANNEL_SECRET', '141632b5b8301e0b3f2ea0d7d905d14a')
+LINE_CHANNEL_ACCESS_TOKEN = os.environ.get(
+    'LINE_CHANNEL_ACCESS_TOKEN', 
+    'oC3Jzkf7Gxadt39AIBozl7tgf2zmvjtaQcNUyWMFrSA/bSZWL8ZdGHHV0YpL4RkjZIT6kxSwKnfNhSWQDKGtkDdRdg6xeMuEoRyShQ0uenTofEoDd1WsCFyMAFAooAOXx2dbZIXZbnm7CUOYSTVvhgdB04t89/1O/w1cDnyilFU='
+)
 LINE_LIFF_ID = os.environ.get('LINE_LIFF_ID', '2009130619-hbwbmhAf')
 
 # Celery / abandoned-food cleanup.
